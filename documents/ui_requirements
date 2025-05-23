@@ -1,0 +1,39 @@
+1. Main Site Contents:
+Upper Nav Bar( contains buttons to "Get Quote", "Tracking", "Book Shipment", "Contact Us", "Login", "Search", and "Hamburger Icon" for a side nav bar)
+Small Description about Shipping documents to India
+Quick shipping quote estimator
+Highlights of services: "Trackable", "Express delivery", "Secure", "Doorstep pickup"
+Approximate Rates
+Testimonials,reviews, and Frequently Asked Questions
+
+2. Shipping Form (Send a Document)
+Fields for:
+Sender info (name, email, phone, address)
+Recipient info (name, email, phone, Indian address with PIN code)
+Pickup date/time
+Type of document
+Declared value (for customs)
+Upload ID proof (optional for customs)
+Shipping speed selection (Standard, Express, Overnight)
+Calculate cost and estimated delivery date
+Payment gateway (credit card, UPI, etc.)
+
+3. Tracking Page
+Input tracking number
+Real-time status: "Picked up", "In Transit", "Customs Clearance", "Out for Delivery", "Delivered"
+Map visualization (optional)
+
+4. Admin/Customer Dashboard (Post-login)
+Shipping history
+Saved addresses
+Download invoices
+Support ticket system
+Notifications for delivery status
+
+5. Rate Calculator
+USA ZIP code to Indian PIN code
+Auto fetch rates based on weight & delivery type
+Estimate customs/duty if any (usually nil for personal docs)
+
+Also, add a description of the various detail of Document shipping. Explain why the contents of the documents matter and how they help determine whether insurance or duties may apply. 
+Uploading ID proof is optional but useful when shipping sensitive or legal documents, which may require verification.
