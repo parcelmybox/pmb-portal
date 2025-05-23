@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ParcelMyBox Dashboard - Quote Manager</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, sans-serif; background: #f7f9fc; }
+    .sidebar {
+      width: 220px;
+      height: 100vh;
+      background: #2c3e50;
+      color: white;
+      padding: 20px;
+      position: fixed;
+      top: 0;
+      left: 0;
+    }
+    .sidebar h2 { margin-bottom: 30px; }
+    .sidebar a {
+      display: block;
+      color: white;
+      text-decoration: none;
+      margin: 10px 0;
+      padding: 10px;
+      border-radius: 4px;
+    }
+    .sidebar a:hover {
+      background: #34495e;
+    }
+    .main {
+      margin-left: 220px;
+      padding: 20px;
+    }
+    .topbar {
+      background: white;
+      padding: 10px 20px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      margin-bottom: 20px;
+    }
+    .cards {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .card {
+      background: white;
+      padding: 20px;
+      flex: 1 1 200px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      border-radius: 8px;
+    }
+    .section {
+      background: white;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      border-radius: 8px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    table, th, td {
+      border: 1px solid #ddd;
+    }
+    th, td {
+      padding: 10px;
+      text-align: left;
+    }
+    th {
+      background: #f0f0f0;
+    }
+    .form-group {
+      margin-bottom: 10px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+    }
+    input, select {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    button {
+      background: #2980b9;
+      color: white;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #3498db;
+    }
+    @media (max-width: 768px) {
+      .sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+      }
+      .main {
+        margin-left: 0;
+      }
+      .cards {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <h2>ParcelMyBox</h2>
+    <a href="#">Dashboard</a>
+    <a href="#">Leads Manager</a>
+    <a href="#">Quote Manager</a>
+    <a href="#">Shipments</a>
+    <a href="#">Invoices</a>
+    <a href="#">Tracking</a>
+    <a href="#">Support</a>
+    <a href="#">Rate Manager</a>
+    <a href="#">Partners</a>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      Welcome, Admin | Notifications | Profile
+    </div>
+
+    <div class="section">
+      <h3>Create New Quote</h3>
+      <div class="form-group">
+        <label for="origin">Origin</label>
+        <input type="text" id="origin" placeholder="City or Zip Code">
+      </div>
+      <div class="form-group">
+        <label for="destination">Destination</label>
+        <input type="text" id="destination" placeholder="City or Zip Code">
+      </div>
+      <div class="form-group">
+        <label for="weight">Weight (kg)</label>
+        <input type="number" id="weight" placeholder="e.g. 5">
+      </div>
+      <div class="form-group">
+        <label for="dimensions">Dimensions (LxWxH cm)</label>
+        <input type="text" id="dimensions" placeholder="e.g. 30x20x15">
+      </div>
+      <div class="form-group">
+        <label for="courier">Preferred Courier</label>
+        <select id="courier">
+          <option>Best Match</option>
+          <option>BlueDart</option>
+          <option>Delhivery</option>
+          <option>India Post</option>
+        </select>
+      </div>
+      <button onclick="generateQuote()">Generate Quote</button>
+    </div>
+
+    <div class="section">
+      <h3>Recent Quotes</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Origin</th>
+            <th>Destination</th>
+            <th>Weight</th>
+            <th>Courier</th>
+            <th>Cost</th>
+          </tr>
+        </thead>
+        <tbody id="quotes-table">
+          <!-- Dynamic rows go here -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const sampleQuotes = [
+      { id: 'Q123', origin: 'Mumbai', destination: 'Delhi', weight: '3', courier: 'Delhivery', cost: '₹150' },
+      { id: 'Q124', origin: 'Pune', destination: 'Bangalore', weight: '2', courier: 'BlueDart', cost: '₹170' },
+    ];
+
+    function renderQuotes() {
+      const table = document.getElementById('quotes-table');
+      table.innerHTML = '';
+      sampleQuotes.forEach(quote => {
+        table.innerHTML += `<tr>
+          <td>${quote.id}</td>
+          <td>${quote.origin}</td>
+          <td>${quote.destination}</td>
+          <td>${quote.weight}</td>
+          <td>${quote.courier}</td>
+          <td>${quote.cost}</td>
+        </tr>`;
+      });
+    }
+
+    function generateQuote() {
+      const origin = document.getElementById('origin').value;
+      const destination = document.getElementById('destination').value;
+      const weight = document.getElementById('weight').value;
+      const courier = document.getElementById('courier').value;
+      const cost = `₹${100 + Math.round(Math.random() * 100)}`;
+      const id = 'Q' + (Math.floor(Math.random() * 1000) + 125);
+      const newQuote = { id, origin, destination, weight, courier, cost };
+      sampleQuotes.unshift(newQuote);
+      renderQuotes();
+    }
+
+    // Initial render
+    renderQuotes();
+  </script>
+</body>
+</html>
