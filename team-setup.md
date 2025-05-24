@@ -32,6 +32,7 @@ This guide will help your team set up the development environment and begin desi
 
    * Create a GitHub account.
    * Share your username to be added as a **collaborator** on the project repository.
+   * Github flow : https://docs.github.com/en/get-started/using-github/github-flow
 
 2. ### 💻 Install Visual Studio Code
 
