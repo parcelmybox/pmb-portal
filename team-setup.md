@@ -14,9 +14,10 @@ Teams :
 
 
 
+
 # 🚀 PMB Portal Setup & Team Kickoff Guide
 
-This guide helps you prepare your development environment and begin collaborative work on the **PMB Portal** project.
+This guide will help your team set up the development environment and begin designing the **PMB Portal** with scalability and mobile-readiness in mind.
 
 ---
 
@@ -24,42 +25,39 @@ This guide helps you prepare your development environment and begin collaborativ
 
 1. ### 🔗 GitHub Account & Access
 
-   * Create a GitHub account (if needed).
-   * Share your GitHub username to be added as a **collaborator** on the repository.
+   * Create a GitHub account.
+   * Share your username to be added as a **collaborator** on the project repository.
 
 2. ### 💻 Install Visual Studio Code
 
-   * Download and install [VS Code](https://code.visualstudio.com/).
+   * [Download VS Code](https://code.visualstudio.com/)
    * Recommended extensions: Python, GitLens, Jinja.
 
 3. ### 🐋 Install Docker & Learn Fundamentals
 
-   * Install [Docker Desktop](https://www.docker.com/products/docker-desktop/).
-   * Learn core Docker concepts:
-
-     * Containers vs. Images
-     * Basic commands (`docker build`, `docker run`, `docker-compose`)
-   * Helpful guide: [Docker Getting Started](https://docs.docker.com/get-started/)
+   * [Install Docker](https://www.docker.com/products/docker-desktop/)
+   * Learn basics: containers, images, and common commands.
+   * Tutorial: [Docker Getting Started](https://docs.docker.com/get-started/)
 
 4. ### 🛢️ Install MariaDB and MySQL Client
 
-   * Install [MariaDB](https://mariadb.org/download/) for backend database.
-   * Ensure **MySQL client** is also installed for command-line access.
+   * Backend: [MariaDB](https://mariadb.org/download/)
+   * CLI: Install the **MySQL client**
 
-5. ### 🐬 Install DBeaver (Database GUI)
+5. ### 🐬 Install DBeaver (DB GUI)
 
-   * Use [DBeaver](https://dbeaver.io/) for easy database management and inspection.
+   * [Download DBeaver](https://dbeaver.io/) for easier DB access
 
-6. ### 🐍 Install Latest Python & Node.js
+6. ### 🐍 Install Python & Node.js
 
-   * Install Python 3.10 or newer: [Python Downloads](https://www.python.org/)
-   * Install Node.js (LTS): [Node.js Downloads](https://nodejs.org/)
+   * Python 3.10+: [Python.org](https://www.python.org/)
+   * Node.js (LTS): [Node.js Downloads](https://nodejs.org/)
 
 7. ### 🧪 Set Up Python Virtual Environment
 
    ```bash
    python -m venv env
-   source env/bin/activate  # On Windows: .\env\Scripts\activate
+   source env/bin/activate  # Windows: .\env\Scripts\activate
    ```
 
 8. ### 📦 Install Django & DB Packages
@@ -74,76 +72,73 @@ This guide helps you prepare your development environment and begin collaborativ
 
 1. ### 🌐 Create Django Project
 
-   * Start the project named `pmb_hello`:
-
-     ```bash
-     django-admin startproject pmb_hello
-     ```
+   ```bash
+   django-admin startproject pmb_hello
+   ```
 
 2. ### 🧩 Create Django App: `category`
 
-   * Navigate into the project folder:
+   ```bash
+   python manage.py startapp category
+   ```
 
-     ```bash
-     python manage.py startapp category
-     ```
-   * Define a **dummy model** (e.g., `Category`) and apply migrations to your DB.
+   * Create a dummy model (e.g., `Category`)
+   * Apply migrations and connect with MariaDB
 
-3. ### 🖼️ Build Jinja Template for Frontend
+3. ### 🧠 Learn Responsive Design: Bootstrap or Tailwind CSS
 
-   * Display content related to the `category` model.
-   * Example use case: “Document shipping requirements and processes.”
+   * Choose one CSS framework to design mobile-friendly templates:
 
-4. ### 📦 Implement Shipping Logic in `views.py`
+     * [Bootstrap Docs](https://getbootstrap.com/)
+     * [Tailwind Docs](https://tailwindcss.com/docs)
+   * Apply responsive layouts in Jinja templates
 
-   * Handle the following inputs:
+4. ### 🖼️ Build Jinja Template
 
-     * **Source PIN code** (India)
-     * **Destination ZIP code** (USA)
-     * **Package weight**
-   * Output: A calculated shipping price using simple business logic.
+   * Use responsive layout to show documentation for categories
+   * Example: shipping requirements, customs forms, etc.
+
+5. ### 📦 Add Shipping Logic in `views.py`
+
+   * Inputs: Source PIN (India), Destination ZIP (USA), Weight
+   * Output: Estimated price (basic formula)
 
 ---
 
 ## 💡 Team Brainstorming & Research
 
-1. ### 🧠 Requirement Gathering
+1. ### 🔍 Requirement Gathering
 
-   * How will the team gather shipping/logistics data?
+   * Explore shipping workflows by:
 
-     * Research online
-     * Call or email carriers
-     * Use web chat or support channels
+     * Internet research
+     * Phone/email/chat with logistics providers
 
 2. ### 📈 Lead Generation Strategies
 
-   * How do companies get new clients?
+   * How do shipping companies get clients?
 
-     * Website lead forms
-     * Digital ads
-     * SEO and content
+     * SEO, ads, website forms
 
 3. ### 🌐 Explore Competitor Websites
 
-   * What info can you access?
+   * Information to study:
 
+     * Price estimators
      * Branch locators
-     * Pricing tools
      * Delivery timelines
-     * Documentation requirements
+     * Required documentation
 
-4. ### 🏢 Branch Lookup by PIN Code
+4. ### 🏢 Locate Branches by PIN Code
 
-   * Investigate how to map source PIN codes to nearest branches.
-   * Use APIs or maintain your own mapping in the DB.
+   * Use APIs or static mapping for PIN → nearest branch
 
-5. ### 🧾 Data Structuring & Storage
+5. ### 🗂️ Data Structuring
 
-   * Plan how to store:
+   * Plan your DB schema:
 
-     * Branch data
-     * ZIP/PIN code mappings
-     * Lead information
-     * Documentation and pricing rules
+     * Leads, categories, documents, shipping logic
+     * Branches and service coverage
+
 
 
