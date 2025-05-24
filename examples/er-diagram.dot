@@ -1,0 +1,23 @@
+digraph ShipmentERD {
+    rankdir=LR;
+    node [shape=record, fontname="Helvetica"];
+
+    Customers [label="{Customers|id PK\lname\lemail\lphone\lbilling_address\lcreated_at\l}"];
+    Enquiries [label="{Enquiries|id PK\lcustomer_id FK\lorigin_country\ldestination_country\lweight_kg\ldocument_type\lcreated_at\l}"];
+    Carriers [label="{Carriers|id PK\lname\lcode\lapi_url\l}"];
+    CarrierRates [label="{CarrierRates|id PK\lcarrier_id FK\lorigin_country\ldestination_country\lbase_rate\lestimated_days\llast_updated\l}"];
+    Shipments [label="{Shipments|id PK\lcustomer_id FK\lcarrier_id FK\lenquiry_id FK\ltracking_number\lstatus\lcreated_at\l}"];
+    ShipmentStatus [label="{ShipmentStatus|id PK\lshipment_id FK\lstatus\ldescription\ltimestamp\l}"];
+    Payments [label="{Payments|id PK\lshipment_id FK\lamount\lpayment_method\lpayment_status\ltransaction_id\lcreated_at\l}"];
+    Documents [label="{Documents|id PK\lshipment_id FK\lfile_path\lfile_type\uploaded_at\l}"];
+
+    Customers -> Enquiries [label="1:N"];
+    Customers -> Shipments [label="1:N"];
+    Enquiries -> Shipments [label="1:1"];
+    Carriers -> CarrierRates [label="1:N"];
+    Carriers -> Shipments [label="1:N"];
+    Shipments -> ShipmentStatus [label="1:N"];
+    Shipments -> Payments [label="1:1"];
+    Shipments -> Documents [label="1:N"];
+}
+    
