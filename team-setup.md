@@ -9,11 +9,11 @@ Teams :
 								
 | S.No | Category       | Team     | Member 1     | Member 2  | Member 3     | Member 4     |
 |------|----------------|----------|--------------|-----------|--------------|--------------|
-| 1    | Document  shipping     | Team 1   | Sahiti       | Lokesh    | Srujan       | Vedin        |
+| 1    | Document  shipping     | Team 1   | Sahithi       | Lokesh    | Srujan       | Vedin        |
 | 2    | Medicine  shipping    | Team 2   | Sandeep      | Yuvaraj   | Sateesh      |              |
 | 3    | Package  shipping      | Team 3   | Guru         | Sanchit   | Bharat       |              |
 | 4    | UI/UX  Design        | Team 4   | Amrita       | Amruth    | Sri Lakshmi  |              |
-| 5    | Github/DevOPS  | Team 5   | Sahiti       | Sri Lakshmi|             |              |
+| 5    | Github/DevOPS  | Team 5   | Sahithi       | Sri Lakshmi|             |              |
 
 
 
