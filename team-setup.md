@@ -8,7 +8,9 @@ Teams :
 | 2    | Medicine       | Team 2   | Sandeep      | Yuvaraj   | Sateesh      |              |
 | 3    | Package        | Team 3   | Guru         | Sanchit   | Bharat       |              |
 | 4    | UI/UX          | Team 4   | Amrita       | Amruth    | Sri Lakshmi  |              |
-| ------------------------------------------------------------------------------------------|
+| 5    | Github/DevOPS  | Team 5   | Sahiti       | Sri Lakshmi|             |              |
+
+
 
 
   Here is a **clean, structured, and well-worded Markdown document** for your project setup and planning steps. This version is ideal for sharing in a project README or onboarding doc:
