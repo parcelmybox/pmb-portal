@@ -1,4 +1,9 @@
 
+# Complete this course
+
+CS50’s Web Programming with Python and JavaScript : https://cs50.harvard.edu/web/2020/
+
+
 
 Teams : 
 								
@@ -141,7 +146,12 @@ This guide will help your team set up the development environment and begin desi
      * Branches and service coverage
 
 
-Optional Refernces:
+Optional references:
 CS50’s Introduction to Artificial Intelligence with Python : https://cs50.harvard.edu/ai/2024/weeks/1/ 
+CS50’s Introduction to Programming with Python : https://cs50.harvard.edu/python/2022/weeks/0/
+Week 8 HTML, CSS, JavaScript : https://cs50.harvard.edu/x/2025/weeks/8/
+Flask : https://cs50.harvard.edu/x/2025/shorts/flask/
+Ajax: https://cs50.harvard.edu/x/2025/shorts/ajax/
+
 
 
