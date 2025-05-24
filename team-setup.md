@@ -141,4 +141,7 @@ This guide will help your team set up the development environment and begin desi
      * Branches and service coverage
 
 
+Optional Refernces:
+CS50’s Introduction to Artificial Intelligence with Python : https://cs50.harvard.edu/ai/2024/weeks/1/ 
+
 
