@@ -13,13 +13,10 @@ Teams :
 
 
 
-  Here is a **clean, structured, and well-worded Markdown document** for your project setup and planning steps. This version is ideal for sharing in a project README or onboarding doc:
-
----
 
 # 🚀 PMB Portal Setup & Team Kickoff Guide
 
-This guide will help you and your team get set up with the development environment and begin planning for the **PMB Portal** project.
+This guide helps you prepare your development environment and begin collaborative work on the **PMB Portal** project.
 
 ---
 
@@ -27,39 +24,45 @@ This guide will help you and your team get set up with the development environme
 
 1. ### 🔗 GitHub Account & Access
 
-   * Create a GitHub account (if you don’t already have one).
-   * Share your GitHub username with the team lead.
-   * Get added as a **collaborator** to the project repository.
+   * Create a GitHub account (if needed).
+   * Share your GitHub username to be added as a **collaborator** on the repository.
 
 2. ### 💻 Install Visual Studio Code
 
    * Download and install [VS Code](https://code.visualstudio.com/).
    * Recommended extensions: Python, GitLens, Jinja.
 
-3. ### 🛢️ Install MariaDB and MySQL Client
+3. ### 🐋 Install Docker & Learn Fundamentals
 
-   * Install [MariaDB](https://mariadb.org/download/) for your database server.
-   * Ensure you have the **MySQL client** installed for CLI access.
+   * Install [Docker Desktop](https://www.docker.com/products/docker-desktop/).
+   * Learn core Docker concepts:
 
-4. ### 🐬 Install DBeaver (Database GUI)
+     * Containers vs. Images
+     * Basic commands (`docker build`, `docker run`, `docker-compose`)
+   * Helpful guide: [Docker Getting Started](https://docs.docker.com/get-started/)
 
-   * Download and install [DBeaver](https://dbeaver.io/) to interact with databases visually.
+4. ### 🛢️ Install MariaDB and MySQL Client
 
-5. ### 🐍 Install Latest Versions of Python & Node.js
+   * Install [MariaDB](https://mariadb.org/download/) for backend database.
+   * Ensure **MySQL client** is also installed for command-line access.
 
-   * Python 3.10 or later recommended: [Download here](https://www.python.org/)
-   * Node.js LTS version: [Download here](https://nodejs.org/)
+5. ### 🐬 Install DBeaver (Database GUI)
 
-6. ### 🧪 Set Up Virtual Environment (virtualenv)
+   * Use [DBeaver](https://dbeaver.io/) for easy database management and inspection.
 
-   * Create a virtual environment for project isolation:
+6. ### 🐍 Install Latest Python & Node.js
 
-     ```bash
-     python -m venv env
-     source env/bin/activate  # On Windows: .\env\Scripts\activate
-     ```
+   * Install Python 3.10 or newer: [Python Downloads](https://www.python.org/)
+   * Install Node.js (LTS): [Node.js Downloads](https://nodejs.org/)
 
-7. ### 📦 Install Django & Database Packages
+7. ### 🧪 Set Up Python Virtual Environment
+
+   ```bash
+   python -m venv env
+   source env/bin/activate  # On Windows: .\env\Scripts\activate
+   ```
+
+8. ### 📦 Install Django & DB Packages
 
    ```bash
    pip install django mysqlclient
@@ -67,82 +70,80 @@ This guide will help you and your team get set up with the development environme
 
 ---
 
-## 🛠️ Project Setup
+## 🛠️ Project Setup Tasks
 
-8. ### 🌐 Create Django Project
+1. ### 🌐 Create Django Project
 
-   * Start a new Django project named `pmb_hello`:
+   * Start the project named `pmb_hello`:
 
      ```bash
      django-admin startproject pmb_hello
      ```
 
-9. ### 🧩 Create Django App: `category`
+2. ### 🧩 Create Django App: `category`
 
-   * Inside the project, create an app called `category`:
+   * Navigate into the project folder:
 
      ```bash
      python manage.py startapp category
      ```
-   * Create a **dummy table** in the database (e.g., `Category`) and connect it using Django models.
+   * Define a **dummy model** (e.g., `Category`) and apply migrations to your DB.
 
-10. ### 🖼️ Create Jinja Template for Frontend
+3. ### 🖼️ Build Jinja Template for Frontend
 
-* Use Jinja templates to display category documentation.
-* Example documentation: **Shipping Requirements & Processes**
+   * Display content related to the `category` model.
+   * Example use case: “Document shipping requirements and processes.”
 
-11. ### 📦 Add Shipping Logic (Views)
+4. ### 📦 Implement Shipping Logic in `views.py`
 
-* Implement a simple shipping calculator in `views.py`.
-* Inputs:
+   * Handle the following inputs:
 
-  * Source PIN code (India)
-  * Destination ZIP code (USA)
-  * Package weight
-* Output: Estimated shipping price
+     * **Source PIN code** (India)
+     * **Destination ZIP code** (USA)
+     * **Package weight**
+   * Output: A calculated shipping price using simple business logic.
 
 ---
 
 ## 💡 Team Brainstorming & Research
 
-12. ### 🧠 Collaboration & Research Plan
+1. ### 🧠 Requirement Gathering
 
-Begin collecting real-world data and ideas:
+   * How will the team gather shipping/logistics data?
 
-#### a) 📞 How can the team gather requirements?
+     * Research online
+     * Call or email carriers
+     * Use web chat or support channels
 
-* Research online
-* Call/email/chat with existing shipping carriers (e.g., DHL, FedEx, Blue Dart)
+2. ### 📈 Lead Generation Strategies
 
-#### b) 📈 How are logistics companies generating leads?
+   * How do companies get new clients?
 
-* SEO
-* Paid ads
-* Partner networks
-* Website lead forms
+     * Website lead forms
+     * Digital ads
+     * SEO and content
 
-#### c) 🌐 What information is publicly accessible on carrier websites?
+3. ### 🌐 Explore Competitor Websites
 
-* Rate calculators
-* Branch locators
-* Transit time estimators
-* Documentation checklists
+   * What info can you access?
 
-#### d) 🏢 How to locate a branch for a given source PIN code?
+     * Branch locators
+     * Pricing tools
+     * Delivery timelines
+     * Documentation requirements
 
-* Look up branch locators from known carrier APIs or websites
-* Store mapping of PIN code to branch in your database
+4. ### 🏢 Branch Lookup by PIN Code
 
-#### e) 🧾 How to structure & store all this information efficiently?
+   * Investigate how to map source PIN codes to nearest branches.
+   * Use APIs or maintain your own mapping in the DB.
 
-* Plan your database schema to support:
+5. ### 🧾 Data Structuring & Storage
 
-  * Branch data
-  * Lead records
-  * Serviceable ZIP/PIN codes
-  * Pricing logic
-  * User-submitted inquiries
+   * Plan how to store:
 
----
+     * Branch data
+     * ZIP/PIN code mappings
+     * Lead information
+     * Documentation and pricing rules
 
-Let me know if you'd like this as a downloadable `.md` file or to turn this into a shared onboarding wiki page for your team.
+
