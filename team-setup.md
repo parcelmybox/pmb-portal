@@ -90,12 +90,13 @@ This guide will help your team set up the development environment and begin desi
 
    * Create a dummy model (e.g., `Category`)
    * Apply migrations and connect with MariaDB
-     
+    
 Set Up Your MariaDB Database
 Start your MariaDB server, then log in using the MariaDB client:
-
+ ```bash
 mysql -u root -p
-
+```
+ ```bash
 Create a database and user:
 
 CREATE DATABASE pmb_db;
@@ -103,10 +104,10 @@ CREATE USER 'pmb_user'@'localhost' IDENTIFIED BY 'your_secure_password';
 GRANT ALL PRIVILEGES ON pmb_db.* TO 'pmb_user'@'localhost';
 FLUSH PRIVILEGES;
 EXIT;
-
+```
 ⚙️  Update settings.py in Django Project
 In pmb_hello/settings.py, set the database configuration to use MariaDB:
-
+ ```bash
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
@@ -120,11 +121,11 @@ DATABASES = {
         },
     }
 }
-
+```
 
 🧩  Define Your Dummy Model
 In category/models.py:
-
+ ```bash
 from django.db import models
 
 class Category(models.Model):
@@ -132,20 +133,24 @@ class Category(models.Model):
 
     def __str__(self):
         return self.name
-
+```
 ✅  Make Migrations and Migrate
 In your terminal (with venv activated):
-
+ ```bash
 python manage.py makemigrations category
 python manage.py migrate
+```
 If everything is configured correctly, Django will create the required tables in your MariaDB database.
 
 🧪 Optional: Test It in Django Shell
+ ```bash
 python manage.py shell
+```
 Then run:
+ ```bash
 from category.models import Category
 Category.objects.create(name="Test Category")
-
+```
 3. ### 🧠 Learn Responsive Design: Bootstrap or Tailwind CSS
 
    * Choose one CSS framework to design mobile-friendly templates:
