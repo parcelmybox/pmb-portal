@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  db:
+    image: mariadb:10.5.15
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=root_password
+      - MYSQL_DATABASE=pmb_db
+      - MYSQL_USER=pmb_user
+      - MYSQL_PASSWORD=pmb_user
+    ports:
+      - "3306:3306"
+    networks:
+      - pmb_network
+
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./pmb_hello:/app
+    environment:
+      - DEBUG=1
+      - DATABASE_NAME=pmb_db
+      - DATABASE_USER=pmb_user
+      - DATABASE_PASSWORD=pmb_user
+      - DATABASE_HOST=db
+      - DATABASE_PORT=3306
+    command: bash -c "python manage.py collectstatic --noinput --clear && python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    depends_on:
+      - db
+    networks:
+      - pmb_network
+
+networks:
+  pmb_network:
+    driver: bridge
+
+volumes:
+  mariadb_data:
