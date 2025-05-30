@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+{% block title %}Shipment Tracking{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h4>Shipment Tracking</h4>
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h5>Shipment Details</h5>
+                        <p><strong>Tracking Number:</strong> {{ shipment.tracking_number }}</p>
+                        <p><strong>Status:</strong> 
+                            <span class="badge {% if shipment.status == 'delivered' %}bg-success{% elif shipment.status == 'shipped' %}bg-info{% elif shipment.status == 'processing' %}bg-warning{% else %}bg-secondary{% endif %}">
+                                {{ shipment.get_status_display }}
+                            </span>
+                        </p>
+                        <p><strong>Shipping Date:</strong> {{ shipment.shipping_date }}</p>
+                        <p><strong>Delivery Date:</strong> {{ shipment.delivery_date|default:"Not yet delivered" }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h5>Shipping Cost</h5>
+                        <p><strong>Total Cost:</strong> ${{ shipment.shipping_cost }}</p>
+                        <p><strong>Declared Value:</strong> ${{ shipment.declared_value }}</p>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-12">
+                        <h5>Tracking History</h5>
+                        <div class="timeline">
+                            {% for event in tracking_events %}
+                            <div class="timeline-item {% if forloop.first %}active{% endif %}">
+                                <div class="timeline-icon">
+                                    <i class="bi {% if event.status == 'delivered' %}bi-check-circle-fill text-success{% elif event.status == 'shipped' %}bi-truck text-info{% elif event.status == 'processing' %}bi-box text-warning{% else %}bi-hourglass text-secondary{% endif %}"></i>
+                                </div>
+                                <div class="timeline-content">
+                                    <h6>{{ event.get_status_display }}</h6>
+                                    <p>{{ event.description }}</p>
+                                    <p class="text-muted small">{{ event.timestamp|date:"F j, Y H:i" }}</p>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.timeline {
+    position: relative;
+    padding: 20px 0;
+}
+
+.timeline:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50px;
+    width: 2px;
+    background: #ddd;
+}
+
+.timeline-item {
+    margin-bottom: 30px;
+    position: relative;
+}
+
+.timeline-item.active .timeline-icon {
+    background: #3498db;
+    color: white;
+}
+
+.timeline-icon {
+    width: 40px;
+    height: 40px;
+    line-height: 40px;
+    border-radius: 50%;
+    text-align: center;
+    background: #f8f9fa;
+    border: 2px solid #ddd;
+    position: absolute;
+    left: -20px;
+    top: 0;
+}
+
+.timeline-content {
+    margin-left: 60px;
+    padding: 15px;
+    background: #fff;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+</style>
+{% endblock %}
