@@ -16,7 +16,9 @@ Teams :
 | 5    | Github/DevOPS  | Team 5   | Sahithi       | Sri Lakshmi|             |              |
 
 
-
+Customer Portal : Team 1 : Sahiti, Lokesh, Srujan, Vedin
+Admin Portal : Team 2: Surya, Sandeep, Yuvaraj,Guru , Sanchit, Bharat
+DevOPS: Sahiti ,Sri Lakshmi 
 
 
 
