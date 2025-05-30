@@ -15,7 +15,8 @@ Teams :
 | 4    | UI/UX  Design        | Team 4   | Amrita       | Amruth    | Sri Lakshmi  |              |
 | 5    | Github/DevOPS  | Team 5   | Sahithi       | Sri Lakshmi|             |              |
 | 6   | Customer Portal  | Team 1  | Sahithi       | Lokesh    | Srujan       | Vedin        |
-| 6   | Admin Portal  | Team 2,3 | Sandeep      | Yuvaraj   |  Guru         | Sanchit   | Bharat       | 
+| 7   | Admin Portal  | Team 2,3 | Sandeep      | Yuvaraj   |  Guru   ,Bharat      | Sanchit          | 
+| 8  | Whatsapp | Team | Vaishavi | Surya |Yuvaraj   |  Guru   ,Bharat      | Sanchit   | Bharat       | 
 
 
 
