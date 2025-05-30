@@ -14,11 +14,11 @@ Teams :
 | 3    | Package  shipping      | Team 3   | Guru         | Sanchit   | Bharat       |              |
 | 4    | UI/UX  Design        | Team 4   | Amrita       | Amruth    | Sri Lakshmi  |              |
 | 5    | Github/DevOPS  | Team 5   | Sahithi       | Sri Lakshmi|             |              |
+| 6   | Customer Portal  | Team 1  | Sahithi       | Lokesh    | Srujan       | Vedin        |
+| 6   | Admin Portal  | Team 2,3 | Sandeep      | Yuvaraj   |  Guru         | Sanchit   | Bharat       | 
 
 
-Customer Portal : Team 1 : Sahiti, Lokesh, Srujan, Vedin
-Admin Portal : Team 2: Surya, Sandeep, Yuvaraj,Guru , Sanchit, Bharat
-DevOPS: Sahiti ,Sri Lakshmi 
+
 
 
 
