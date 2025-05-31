@@ -44,6 +44,17 @@ CREATE TABLE Shipments (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE shipping_rate (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    from_pin VARCHAR(10) NOT NULL,
+    to_zip VARCHAR(10) NOT NULL,
+    price DECIMAL(10, 2) NOT NULL,
+    carrier_name VARCHAR(100),
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
 CREATE TABLE ShipmentStatus (
     id UUID PRIMARY KEY,
     shipment_id UUID REFERENCES Shipments(id),
@@ -69,3 +80,10 @@ CREATE TABLE Documents (
     file_type VARCHAR(50),
     uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+INSERT INTO shipping_rate (from_pin, to_zip, price, carrier_name, notes) VALUES
+('500090', '11211', 500.00, 'DHL', 'Standard delivery from Hyderabad to NYC'),
+('560001', '94105', 550.00, 'FedEx', 'Express to San Francisco'),
+('110001', '30301', 480.00, 'UPS', 'Delhi to Atlanta delivery rate'),
+('400001', '60601', 530.00, 'DHL', 'Mumbai to Chicago'),
+('600550', '90001', 600.00, 'BlueDart', 'Chennai to LA special rate');
