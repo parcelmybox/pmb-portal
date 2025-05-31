@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   db:
     image: mariadb:10.5.15
@@ -21,6 +19,7 @@ services:
       - "8000:8000"
     volumes:
       - ./pmb_hello:/app
+      - ./staticfiles:/app/staticfiles
     environment:
       - DEBUG=1
       - DATABASE_NAME=pmb_db
