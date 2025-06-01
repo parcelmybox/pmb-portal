@@ -20,7 +20,7 @@ class ShipmentForm(forms.ModelForm):
 class ShippingAddressForm(forms.ModelForm):
     class Meta:
         model = ShippingAddress
-        fields = ['address_line1', 'address_line2', 'city', 'state', 'country', 'postal_code', 'phone_number', 'is_default']
+        fields = ['address_line1', 'address_line2', 'city', 'state', 'country', 'postal_code', 'phone_number', 'is_primary']
         widgets = {
             'address_line1': forms.TextInput(attrs={'class': 'form-control'}),
             'address_line2': forms.TextInput(attrs={'class': 'form-control'}),
@@ -29,5 +29,5 @@ class ShippingAddressForm(forms.ModelForm):
             'country': forms.TextInput(attrs={'class': 'form-control'}),
             'postal_code': forms.TextInput(attrs={'class': 'form-control'}),
             'phone_number': forms.TextInput(attrs={'class': 'form-control'}),
-            'is_default': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'is_primary': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }

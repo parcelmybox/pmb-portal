@@ -10,16 +10,36 @@ from django.db.models import Q
 from typing import Dict, List, Tuple, Optional
 from shipping.models import Contact, ShippingAddress
 
-ZIP_CODE_MAPPINGS = {
-    'RI': '95330',
-    'MANTECA': '95336',
-    'SAN JOSE': '95134',
-    'SUNNYVALE': '94085',
-    'FREMONT': '94538',
-    'SAN FRANCISCO': '94105',
-}
+def get_default_zip_code(city_name, state_code):
+    """Get the default zip code for a city/state from the CityCode model"""
+    from shipping.models import CityCode
+    
+    if not city_name or not state_code:
+        return None
+        
+    try:
+        # Try to find an exact match first
+        city_code = CityCode.objects.filter(
+            city__iexact=city_name.strip(),
+            state__iexact=state_code.strip(),
+            is_default=True
+        ).first()
+        
+        # If no exact match, try a fuzzy match on city name
+        if not city_code:
+            city_code = CityCode.objects.filter(
+                city__icontains=city_name.strip(),
+                state__iexact=state_code.strip(),
+                is_default=True
+            ).first()
+            
+        return city_code.postal_code if city_code else None
+    except Exception as e:
+        print(f"Error looking up zip code for {city_name}, {state_code}: {str(e)}")
+        return None
 
 def parse_name(full_name):
+    """Parse full name into first and last name"""
     if not full_name:
         return '', ''
     parts = full_name.strip().split()
@@ -31,6 +51,8 @@ def parse_name(full_name):
 
 def import_contacts(filename):
     """Import contacts from CSV file with improved error handling and duplicate detection"""
+    from shipping.models import CityCode
+    
     if not os.path.exists(filename):
         print(f"❌ Error: File not found: {filename}")
         return
@@ -111,25 +133,40 @@ def import_contacts(filename):
                                 print(f"⏭️  Exists (no changes): {existing}")
                         else:
                             # Create new contact
-                            contact = CustomerProfile(
-                                first_name=first_name,
-                                last_name=last_name,
-                                email=email,
-                                phone=phone,
-                                address=address
+                            contact = Contact(
+                                first_name = first_name or '',
+                                last_name = last_name or '',
+                                email = email.strip().lower() if email else None,
+                                phone = re.sub(r'[^0-9+]', '', str(phone or ''))
                             )
                             contact.save()
                             stats['created'] += 1
                             print(f"✅ Created: {contact}")
                             
                             # Create shipping address if address data exists
-                            if address:
+                            if address_line1:
                                 try:
+                                    city = city or ''
+                                    state = state or ''
+                                    country = country or 'USA'
+                                    
+                                    # Get or create city code if we have a postal code
+                                    if postal_code and city and state and country:
+                                        city_code, created = CityCode.objects.get_or_create(
+                                            city=city,
+                                            state=state,
+                                            country=country,
+                                            postal_code=postal_code,
+                                            defaults={'is_default': False}
+                                        )
+                                    
                                     shipping_address = ShippingAddress(
-                                        address_line1=address[:255],  # Truncate to max_length
-                                        city=row.get('city', ''),
-                                        state=row.get('state', ''),
-                                        country=row.get('country', 'USA'),
+                                        contact=contact,
+                                        address_line1=address_line1[:255],  # Truncate to max_length
+                                        address_line2=address_line2,
+                                        city=city,
+                                        state=state,
+                                        country=country,
                                         postal_code=row.get('zip', row.get('postal_code', '')),
                                         phone_number=phone
                                     )
@@ -166,6 +203,11 @@ def import_contacts(filename):
             print(f"  ... and {len(stats['errors']) - 10} more errors")
 
 if __name__ == "__main__":
-    # Use the path from your existing code
-    filename = r"C:\Users\mural\OneDrive\Desktop\Parcelmybox\contacts-pmb.csv"
-    import_contacts(filename)
+    import argparse
+    
+    # Set up command line argument parsing
+    parser = argparse.ArgumentParser(description='Import contacts from a CSV file')
+    parser.add_argument('filename', help='Path to the CSV file containing contacts')
+    args = parser.parse_args()
+    
+    import_contacts(args.filename)
