@@ -1,6 +1,28 @@
 from django.db import models
 from django.utils import timezone
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, EmailValidator
+from django.core.exceptions import ValidationError
+import re
+
+
+class CityCode(models.Model):
+    """Model to store city and postal code information"""
+    city = models.CharField(max_length=100)
+    state = models.CharField(max_length=100)
+    country = models.CharField(max_length=100, default='USA')
+    postal_code = models.CharField(max_length=20)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['country', 'state', 'city']
+        unique_together = ['city', 'state', 'postal_code']
+        verbose_name = 'City Code'
+        verbose_name_plural = 'City Codes'
+
+    def __str__(self):
+        return f"{self.city}, {self.state} {self.postal_code} ({self.country})"
 
 SHIPPING_STATUS_CHOICES = [
     ('pending', 'Pending'),
@@ -18,17 +40,95 @@ PACKAGE_TYPE_CHOICES = [
     ('fragile', 'Fragile'),
 ]
 
-class ShippingAddress(models.Model):
-    address_line1 = models.CharField(max_length=255)
-    address_line2 = models.CharField(max_length=255, blank=True)
-    city = models.CharField(max_length=100)
-    state = models.CharField(max_length=100)
-    country = models.CharField(max_length=100)
-    postal_code = models.CharField(max_length=20)
-    phone_number = models.CharField(max_length=20)
+class Contact(models.Model):
+    """Model to store contact information"""
+    first_name = models.CharField(max_length=100, verbose_name='First Name', default='')
+    last_name = models.CharField(max_length=100, verbose_name='Last Name', default='')
+    email = models.EmailField(unique=True, validators=[EmailValidator()], verbose_name='Email', default='')
+    phone_number = models.CharField(max_length=20, verbose_name='Phone Number', default='')
+    company = models.CharField(max_length=200, blank=True, null=True, verbose_name='Company')
+    country = models.CharField(max_length=100, verbose_name='Country', default='USA')
+    notes = models.TextField(blank=True, null=True, verbose_name='Notes')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Created At')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='Updated At')
+    is_verified = models.BooleanField(default=False, verbose_name='Is Verified')
+
+    class Meta:
+        ordering = ['last_name', 'first_name']
 
     def __str__(self):
-        return f"{self.address_line1}, {self.city}, {self.country}"
+        name = f"{self.first_name or ''} {self.last_name or ''}".strip()
+        if not name:
+            name = self.email or self.phone_number or 'Unnamed Contact'
+        return name
+
+    def clean(self):
+        """Custom validation"""
+        # Check required fields
+        required_fields = {
+            'first_name': 'First name is required',
+            'last_name': 'Last name is required',
+            'email': 'Email is required',
+            'phone_number': 'Phone number is required',
+            'country': 'Country is required'
+        }
+        
+        for field, error_msg in required_fields.items():
+            if not getattr(self, field, None):
+                raise ValidationError({field: error_msg})
+                
+        # Clean and validate phone number if provided
+        if self.phone_number:
+            cleaned = re.sub(r'\D', '', self.phone_number)
+            if len(cleaned) < 10:
+                raise ValidationError('Phone number must be at least 10 digits')
+            self.phone_number = cleaned
+
+    def save(self, *args, **kwargs):
+        self.clean()
+        super().save(*args, **kwargs)
+        return self
+
+
+class ShippingAddress(models.Model):
+    """Model to store shipping addresses associated with contacts"""
+    contact = models.ForeignKey(
+        Contact, 
+        related_name='shipping_addresses',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True
+    )
+    address_line1 = models.CharField('Address line 1', max_length=255)
+    address_line2 = models.CharField('Address line 2', max_length=255, blank=True)
+    city = models.CharField('City', max_length=100)
+    state = models.CharField('State/Province', max_length=100)
+    country = models.CharField('Country', max_length=100, default='USA')
+    postal_code = models.CharField('ZIP/Postal code', max_length=20)
+    phone_number = models.CharField('Phone', max_length=20, blank=True)
+    is_primary = models.BooleanField('Primary address', default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'shipping address'
+        verbose_name_plural = 'shipping addresses'
+        ordering = ['-is_primary', 'city', 'state']
+
+    def __str__(self):
+        return f"{self.address_line1}, {self.city}, {self.state} {self.postal_code}"
+    
+    def clean(self):
+        """Ensure only one primary address per contact"""
+        if self.is_primary and self.contact_id:
+            ShippingAddress.objects.filter(
+                contact=self.contact,
+                is_primary=True
+            ).exclude(pk=self.pk).update(is_primary=False)
+    
+    def save(self, *args, **kwargs):
+        self.clean()
+        super().save(*args, **kwargs)
 
 class Shipment(models.Model):
     sender_address = models.ForeignKey(ShippingAddress, related_name='sender_shipments', on_delete=models.CASCADE)

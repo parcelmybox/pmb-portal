@@ -1,30 +1,47 @@
-FROM python:3.11-slim
+FROM python:3.10-slim
 
-WORKDIR /app
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=off \
+    PIP_DISABLE_PIP_VERSION_CHECK=on \
+    PIP_DEFAULT_TIMEOUT=100 \
+    STREAMLIT_SERVER_PORT=8501 \
+    STREAMLIT_SERVER_HEADLESS=true \
+    STREAMLIT_BROWSER_GATHER_USAGE_STATS=false \
+    DEBIAN_FRONTEND=noninteractive
 
 # Install system dependencies
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    gcc \
+    python3-dev \
+    default-libmysqlclient-dev \
+    pkg-config \
+    default-mysql-client \
     && rm -rf /var/lib/apt/lists/*
 
-# Upgrade pip and install Python dependencies
+# Set working directory
+WORKDIR /app
+
+# Copy requirements first to leverage Docker cache
 COPY requirements.txt .
-RUN pip install --upgrade pip \
-    && pip install --no-cache-dir -r requirements.txt
 
-# Create directories
-RUN mkdir -p /app/staticfiles /app/media
-RUN chown -R www-data:www-data /app
-RUN chmod -R 755 /app
+# Install Python dependencies
+RUN pip install --upgrade pip && \
+    pip install -r requirements.txt
 
-# Copy application code
-COPY pmb_hello/ .
+# Copy project
+COPY . .
 
-# Set proper permissions
-RUN chmod +x manage.py
-RUN chmod -R 755 /app
+# Expose the ports the app runs on
+EXPOSE 8000 8501
 
-# Expose port 8000
-EXPOSE 8000
+# Make scripts executable
+RUN chmod +x /app/entrypoint.sh
 
-# Command to run the application
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+# Set the entrypoint
+ENTRYPOINT ["/app/entrypoint.sh"]
+
+# Default command (can be overridden in docker-compose)
+CMD []
