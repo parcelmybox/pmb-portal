@@ -1,25 +1,39 @@
 import React, { useState, useRef } from 'react';
 import html2canvas from 'html2canvas';
 import * as XLSX from 'xlsx';
+import Navbar from './Navbar';
+import './App.css';
 
 function App() {
   const [customerName, setCustomerName] = useState('');
   const [customerNumber, setCustomerNumber] = useState('');
   const [customerAddress, setCustomerAddress] = useState('');
-  const [billDate, setBillDate] = useState('');
+  const [items, setItems] = useState([{ description: '', quantity: 1, priceInINR: 0 }]);
   const [packingFee, setPackingFee] = useState(0);
   const [porterFee, setPorterFee] = useState(0);
-  const [items, setItems] = useState([{ description: '', quantity: 1, priceINR: 0, priceUSD: 0 }]);
+  const [billDate, setBillDate] = useState(new Date().toISOString().substr(0, 10));
+  const [exchangeRate, setExchangeRate] = useState(83.5);
+  const [currency, setCurrency] = useState('INR');
   const billRef = useRef(null);
+
+  const formatINR = (amount) =>
+    new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(amount);
+  const formatUSD = (amount) =>
+    new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
 
   const handleItemChange = (index, field, value) => {
     const newItems = [...items];
-    newItems[index][field] = field === 'description' ? value : parseFloat(value);
+    if (field === 'description') {
+      newItems[index][field] = value;
+    } else {
+      const parsed = parseFloat(value);
+      newItems[index][field] = parsed >= 0 ? parsed : 0;
+    }
     setItems(newItems);
   };
 
   const addItem = () => {
-    setItems([...items, { description: '', quantity: 1, priceINR: 0, priceUSD: 0 }]);
+    setItems([...items, { description: '', quantity: 1, priceInINR: 0 }]);
   };
 
   const generatePNG = async () => {
@@ -31,30 +45,25 @@ function App() {
   };
 
   const generateExcel = () => {
-    const itemTotalINR = items.reduce((acc, item) => acc + item.quantity * item.priceINR, 0);
-    const itemTotalUSD = items.reduce((acc, item) => acc + item.quantity * item.priceUSD, 0);
-    const grandTotalINR = itemTotalINR + parseFloat(packingFee) + parseFloat(porterFee);
-
     const data = [
-      ['Date', billDate],
       ['Customer Name', customerName],
       ['Customer Number', customerNumber],
       ['Customer Address', customerAddress],
+      ['Bill Date', billDate],
       [],
-      ['Description', 'Quantity', 'Price INR', 'Price USD', 'Total INR', 'Total USD'],
+      ['Description', 'Quantity', 'Price (INR)', 'Price (USD)', 'Total (INR)', 'Total (USD)'],
       ...items.map(item => [
         item.description,
         item.quantity,
-        item.priceINR,
-        item.priceUSD,
-        item.quantity * item.priceINR,
-        item.quantity * item.priceUSD
+        item.priceInINR,
+        (item.priceInINR / exchangeRate).toFixed(2),
+        item.quantity * item.priceInINR,
+        (item.quantity * item.priceInINR / exchangeRate).toFixed(2),
       ]),
       [],
-      ['Packing Fee (INR)', '', '', '', packingFee],
-      ['Porter Fee (INR)', '', '', '', porterFee],
-      ['Total INR', '', '', '', grandTotalINR],
-      ['Total USD', '', '', '', '', itemTotalUSD]
+      ['Packing Fee', '', packingFee, (packingFee / exchangeRate).toFixed(2)],
+      ['Porter Fee', '', porterFee, (porterFee / exchangeRate).toFixed(2)],
+      ['Total', '', '', '', totalINR(), totalUSD()],
     ];
 
     const worksheet = XLSX.utils.aoa_to_sheet(data);
@@ -63,154 +72,197 @@ function App() {
     XLSX.writeFile(workbook, 'bill.xlsx');
   };
 
-  const itemTotalINR = items.reduce((acc, item) => acc + item.quantity * item.priceINR, 0);
-  const itemTotalUSD = items.reduce((acc, item) => acc + item.quantity * item.priceUSD, 0);
-  const grandTotalINR = itemTotalINR + parseFloat(packingFee) + parseFloat(porterFee);
+  const totalINR = () =>
+    items.reduce((acc, item) => acc + item.quantity * item.priceInINR, 0) +
+    Number(packingFee) +
+    Number(porterFee);
+
+  const totalUSD = () => (totalINR() / exchangeRate).toFixed(2);
 
   return (
-    <div style={{ padding: '2rem', maxWidth: '900px', margin: '0 auto' }}>
-      <h1>Bill Generator</h1>
+    <>
+      <Navbar />
+      <div className="form-container">
+        <h1>Bill Generator</h1>
 
-      <div>
-        <label>Date of Bill:</label>
-        <input
-          type="date"
-          value={billDate}
-          onChange={(e) => setBillDate(e.target.value)}
-          style={{ display: 'block', marginBottom: '1rem', padding: '0.5rem', width: '100%' }}
-        />
-
-        <label>Customer Name:</label>
-        <input
-          type="text"
-          value={customerName}
-          onChange={(e) => setCustomerName(e.target.value)}
-          style={{ display: 'block', marginBottom: '1rem', padding: '0.5rem', width: '100%' }}
-        />
-
-        <label>Customer Number:</label>
-        <input
-          type="text"
-          value={customerNumber}
-          onChange={(e) => setCustomerNumber(e.target.value)}
-          style={{ display: 'block', marginBottom: '1rem', padding: '0.5rem', width: '100%' }}
-        />
-
-        <label>Customer Address:</label>
-        <textarea
-          value={customerAddress}
-          onChange={(e) => setCustomerAddress(e.target.value)}
-          style={{ display: 'block', marginBottom: '1rem', padding: '0.5rem', width: '100%' }}
-        />
-
-        <label>Packing Fee (INR):</label>
-        <input
-          type="number"
-          value={packingFee}
-          onChange={(e) => setPackingFee(e.target.value)}
-          style={{ display: 'block', marginBottom: '1rem', padding: '0.5rem' }}
-        />
-
-        <label>Porter Fee (INR):</label>
-        <input
-          type="number"
-          value={porterFee}
-          onChange={(e) => setPorterFee(e.target.value)}
-          style={{ display: 'block', marginBottom: '2rem', padding: '0.5rem' }}
-        />
-      </div>
-
-      {items.map((item, index) => (
-        <div key={index} style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
+        <div className="form-group">
+          <label htmlFor="customerName">Customer Name:</label>
           <input
             type="text"
-            placeholder="Description"
-            value={item.description}
-            onChange={(e) => handleItemChange(index, 'description', e.target.value)}
-          />
-          <input
-            type="number"
-            placeholder="Quantity"
-            value={item.quantity}
-            onChange={(e) => handleItemChange(index, 'quantity', e.target.value)}
-          />
-          <input
-            type="number"
-            placeholder="Price (INR)"
-            value={item.priceINR}
-            onChange={(e) => handleItemChange(index, 'priceINR', e.target.value)}
-          />
-          <input
-            type="number"
-            placeholder="Price (USD)"
-            value={item.priceUSD}
-            onChange={(e) => handleItemChange(index, 'priceUSD', e.target.value)}
+            id="customerName"
+            value={customerName}
+            onChange={(e) => setCustomerName(e.target.value)}
+            required
           />
         </div>
-      ))}
 
-      <button onClick={addItem} style={{ marginBottom: '2rem' }}>Add Item</button>
+        <div className="form-group">
+          <label htmlFor="customerNumber">Customer Mobile Number:</label>
+          <input
+            type="tel"
+            id="customerNumber"
+            value={customerNumber}
+            onChange={(e) => {
+              const value = e.target.value;
+              if (/^\d{0,10}$/.test(value)) setCustomerNumber(value);
+            }}
+            pattern="[0-9]{10}"
+            maxLength={10}
+            required
+          />
+        </div>
 
-      <div ref={billRef} style={{ border: '1px solid #ccc', padding: '1rem' }}>
-        <h2>Bill Summary</h2>
-        <p><strong>Date:</strong> {billDate}</p>
-        <p><strong>Customer Name:</strong> {customerName}</p>
-        <p><strong>Customer Number:</strong> {customerNumber}</p>
-        <p><strong>Customer Address:</strong> {customerAddress}</p>
+        <div className="form-group">
+          <label htmlFor="customerAddress">Customer Address:</label>
+          <textarea
+            id="customerAddress"
+            rows={2}
+            value={customerAddress}
+            onChange={(e) => setCustomerAddress(e.target.value)}
+            required
+          />
+        </div>
 
-        <table width="100%" border="1" cellPadding="5" style={{ borderCollapse: 'collapse' }}>
-          <thead>
-            <tr>
-              <th>Description</th>
-              <th>Qty</th>
-              <th>INR</th>
-              <th>USD</th>
-              <th>Total INR</th>
-              <th>Total USD</th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.map((item, index) => (
-              <tr key={index}>
-                <td>{item.description}</td>
-                <td>{item.quantity}</td>
-                <td>{item.priceINR}</td>
-                <td>{item.priceUSD}</td>
-                <td>{item.quantity * item.priceINR}</td>
-                <td>{item.quantity * item.priceUSD}</td>
+        <div className="form-group">
+          <label htmlFor="billDate">Bill Date:</label>
+          <input
+            type="date"
+            id="billDate"
+            value={billDate}
+            onChange={(e) => setBillDate(e.target.value)}
+            required
+          />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="currency">Currency:</label>
+          <select value={currency} onChange={(e) => setCurrency(e.target.value)} required>
+            <option value="INR">INR</option>
+            <option value="USD">USD</option>
+          </select>
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="exchangeRate">Exchange Rate (1 USD = ? INR):</label>
+          <input
+            type="number"
+            id="exchangeRate"
+            value={exchangeRate}
+            min="1"
+            step="0.01"
+            onChange={(e) => setExchangeRate(parseFloat(e.target.value) || 1)}
+            required
+          />
+        </div>
+
+        <h2>Items</h2>
+        {items.map((item, index) => (
+          <div className="form-group" key={index}>
+            <label>Description:</label>
+            <input
+              type="text"
+              value={item.description}
+              onChange={(e) => handleItemChange(index, 'description', e.target.value)}
+              required
+            />
+            <label>Quantity:</label>
+            <input
+              type="number"
+              min="0"
+              value={item.quantity}
+              onChange={(e) => handleItemChange(index, 'quantity', e.target.value)}
+              required
+            />
+            <label>Rate (INR):</label>
+            <input
+              type="number"
+              min="0"
+              value={item.priceInINR}
+              onChange={(e) => handleItemChange(index, 'priceInINR', e.target.value)}
+              required
+            />
+            <span>(USD: {formatUSD(item.priceInINR / exchangeRate)})</span>
+          </div>
+        ))}
+
+        <button onClick={addItem}>Add Item</button>
+
+        <div className="form-group">
+          <label>Packing Fee (INR):</label>
+          <input
+            type="number"
+            min="0"
+            value={packingFee}
+            onChange={(e) => setPackingFee(Math.max(0, parseFloat(e.target.value) || 0))}
+            required
+          />
+        </div>
+
+        <div className="form-group">
+          <label>Porter Fee (INR):</label>
+          <input
+            type="number"
+            min="0"
+            value={porterFee}
+            onChange={(e) => setPorterFee(Math.max(0, parseFloat(e.target.value) || 0))}
+            required
+          />
+        </div>
+
+        <div ref={billRef} className="bill-summary">
+          <h2>Bill Summary</h2>
+          <p><strong>Customer:</strong> {customerName}</p>
+          <p><strong>Mobile:</strong> {customerNumber}</p>
+          <p><strong>Address:</strong> {customerAddress}</p>
+          <p><strong>Date:</strong> {billDate}</p>
+          <table>
+            <thead>
+              <tr>
+                <th>Description</th>
+                <th>Qty</th>
+                <th>Rate (INR)</th>
+                <th>Rate (USD)</th>
+                <th>Total (INR)</th>
+                <th>Total (USD)</th>
               </tr>
-            ))}
-            <tr>
-              <td colSpan="4" style={{ textAlign: 'right' }}><strong>Items Total:</strong></td>
-              <td>{itemTotalINR}</td>
-              <td>{itemTotalUSD}</td>
-            </tr>
-            <tr>
-              <td colSpan="4" style={{ textAlign: 'right' }}><strong>Packing Fee:</strong></td>
-              <td>{packingFee}</td>
-              <td>-</td>
-            </tr>
-            <tr>
-              <td colSpan="4" style={{ textAlign: 'right' }}><strong>Porter Fee:</strong></td>
-              <td>{porterFee}</td>
-              <td>-</td>
-            </tr>
-            <tr>
-              <td colSpan="4" style={{ textAlign: 'right' }}><strong>Grand Total:</strong></td>
-              <td><strong>{grandTotalINR}</strong></td>
-              <td><strong>{itemTotalUSD}</strong></td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {items.map((item, idx) => (
+                <tr key={idx}>
+                  <td>{item.description}</td>
+                  <td>{item.quantity}</td>
+                  <td>{formatINR(item.priceInINR)}</td>
+                  <td>{formatUSD(item.priceInINR / exchangeRate)}</td>
+                  <td>{formatINR(item.quantity * item.priceInINR)}</td>
+                  <td>{formatUSD((item.quantity * item.priceInINR) / exchangeRate)}</td>
+                </tr>
+              ))}
+              <tr>
+                <td colSpan="4" style={{ textAlign: 'right' }}>Packing Fee</td>
+                <td>{formatINR(packingFee)}</td>
+                <td>{formatUSD(packingFee / exchangeRate)}</td>
+              </tr>
+              <tr>
+                <td colSpan="4" style={{ textAlign: 'right' }}>Porter Fee</td>
+                <td>{formatINR(porterFee)}</td>
+                <td>{formatUSD(porterFee / exchangeRate)}</td>
+              </tr>
+              <tr>
+                <td colSpan="4" style={{ textAlign: 'right' }}><strong>Total</strong></td>
+                <td><strong>{formatINR(totalINR())}</strong></td>
+                <td><strong>{formatUSD(totalUSD())}</strong></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
 
-      <div style={{ marginTop: '2rem', display: 'flex', gap: '1rem' }}>
-        <button onClick={generatePNG}>Download PNG</button>
-        <button onClick={generateExcel}>Download Excel</button>
+        <div className="action-buttons">
+          <button onClick={generatePNG}>Download PNG</button>
+          <button onClick={generateExcel}>Download Excel</button>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
-//Billgenerator
+
 export default App;
- 
