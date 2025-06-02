@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Parcel Shipping Calculator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f4f4f4;
+    }
+
+    .container {
+      max-width: 700px;
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 12px rgba(0,0,0,0.1);
+    }
+
+    h2 {
+      color: #333;
+    }
+
+    label {
+      display: block;
+      margin: 12px 0 6px;
+      font-weight: bold;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 12px;
+      box-sizing: border-box;
+    }
+
+    button {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .result {
+      margin-top: 20px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2>Parcel Shipping Calculator</h2>
+
+  <label for="carrier">Carrier</label>
+  <select id="carrier">
+    <option value="dhl">DHL</option>
+    <option value="fedex">FedEx</option>
+    <option value="ups">UPS</option>
+  </select>
+
+  <label for="type">Package Type</label>
+  <select id="type" onchange="toggleDimensions()">
+    <option value="document">Document</option>
+    <option value="box">Box</option>
+  </select>
+
+  <div id="dimensionFields" class="hidden">
+    <label for="length">Length (cm)</label>
+    <input type="number" id="length" min="0">
+
+    <label for="width">Width (cm)</label>
+    <input type="number" id="width" min="0">
+
+    <label for="height">Height (cm)</label>
+    <input type="number" id="height" min="0">
+  </div>
+
+  <button onclick="calculate()">Calculate</button>
+
+  <div class="result" id="result"></div>
+</div>
+
+<script>
+  const rates = {
+    dhl: { price: 3000, days: 3 },
+    fedex: { price: 2500, days: 5 },
+    ups: { price: 2400, days: 7 }
+  };
+
+  const volumetricDivisor = 5000; // Used internally only
+
+  function toggleDimensions() {
+    const type = document.getElementById("type").value;
+    const fields = document.getElementById("dimensionFields");
+    fields.classList.toggle("hidden", type === "document");
+  }
+
+  function calculate() {
+    const carrier = document.getElementById("carrier").value;
+    const type = document.getElementById("type").value;
+    const result = document.getElementById("result");
+
+    if (type === "document") {
+      const price = rates[carrier].price;
+      const days = rates[carrier].days;
+      result.textContent = `Price: ₹${price}, Shipping Days: ${days} day(s)`;
+    } else {
+      const length = parseFloat(document.getElementById("length").value);
+      const width = parseFloat(document.getElementById("width").value);
+      const height = parseFloat(document.getElementById("height").value);
+
+      if (isNaN(length) || isNaN(width) || isNaN(height)) {
+        result.textContent = "Please enter all box dimensions.";
+        return;
+      }
+
+      const volumeWeight = (length * width * height) / volumetricDivisor;
+      const price = rates[carrier].price;
+      const days = rates[carrier].days;
+
+      result.textContent = `Volumetric Weight: ${volumeWeight.toFixed(2)} kg | Price: ₹${price} | Shipping Days: ${days}`;
+    }
+  }
+
+  window.onload = toggleDimensions;
+</script>
+
+</body>
+</html>
