@@ -27,6 +27,14 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+# Company Details
+COMPANY_NAME = "ParcelMyBox"
+COMPANY_LOGO = "/static/images/pmb-logo.png"  # Assuming you'll place a logo here
+COMPANY_ADDRESS = "123 Shipping Street, Anytown, USA"
+COMPANY_PHONE = "+1 (555) 123-4567"
+COMPANY_EMAIL = "support@parcelmybox.com"
+COMPANY_COPYRIGHT = "© 2025 ParcelMyBox. All rights reserved."
+
 
 # Application definition
 
@@ -36,6 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
 
     'category',
     'shipping',
@@ -64,6 +73,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'pmb_hello.context_processors.company_info',
             ],
         },
     },
@@ -126,7 +136,7 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = str(BASE_DIR / 'staticfiles')
-STATICFILES_DIRS = []
+STATICFILES_DIRS = [BASE_DIR / 'static']
 
 # Media files configuration
 MEDIA_URL = '/media/'
