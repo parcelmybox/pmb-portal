@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Responsive Nav</title>
+  <style>
+    /* Navbar */
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: #333;
+      color: white;
+      padding: 1rem 2rem;
+      position: relative;
+      z-index: 2;
+    }
+
+    .navbar .logo {
+      font-size: 1.4rem;
+      font-weight: bold;
+    }
+
+    .navbar .nav-links {
+      display: flex;
+      gap: 2rem;
+      flex: 1;
+      justify-content: center;
+    }
+
+    .navbar .nav-links a {
+      color: white;
+      text-decoration: none;
+      font-size: 1rem;
+    }
+
+    .hamburger {
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .hamburger div {
+      width: 25px;
+      height: 3px;
+      background-color: white;
+    }
+
+    /* Side Nav */
+    .side-nav {
+      height: 100%;
+      width: 0;
+      position: fixed;
+      top: 0;
+      right: 0;
+      background-color: #444;
+      overflow-x: hidden;
+      transition: 0.3s;
+      padding-top: 60px;
+      z-index: 3;
+    }
+
+    .side-nav a {
+      padding: 10px 20px;
+      text-decoration: none;
+      color: white;
+      display: block;
+    }
+
+    .side-nav a:hover {
+      background-color: #666;
+    }
+
+    /* Overlay */
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 100%;
+      background-color: rgba(0, 0, 0, 0.6);
+      opacity: 0;
+      visibility: hidden;
+      transition: 0.3s;
+      z-index: 1;
+    }
+
+    .overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    /* Responsive: hide nav links on small screens */
+    @media (max-width: 768px) {
+      .navbar .nav-links {
+        display: none;
+      }
+
+      .hamburger {
+        display: flex;
+      }
+    }
+
+    @media (min-width: 769px) {
+      .hamburger {
+        display: flex; /* Show always for demo/testing */
+      }
+    }
+
+    h2 {
+        text-align: center;
+        margin: 2rem 0 1.5rem;
+      }
+  
+      .carousel-wrapper {
+        position: relative;
+        width: fit-content;
+        margin: auto;
+      }
+  
+      .carousel-container {
+        overflow: hidden;
+        width: calc(300px * 3 + 2rem); /* 3 cards + 2 gaps (gap: 1rem = 16px) */
+        margin: 0 auto;
+      }
+  
+      .carousel-track {
+        display: flex;
+        transition: transform 0.5s ease-in-out;
+        gap: 40px; 
+      }
+  
+      .card {
+        background: transparent;
+        width: 300px;
+        height: 400px;
+        perspective: 1000px;
+        flex-shrink: 0;
+      }
+  
+      .card-inner {
+        width: 100%;
+        height: 100%;
+        transition: transform 0.6s;
+        transform-style: preserve-3d;
+        position: relative;
+      }
+  
+      .card:hover .card-inner {
+        transform: rotateY(180deg);
+      }
+  
+      .card-front, .card-back {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        backface-visibility: hidden;
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      }
+  
+      .card-front {
+        background: white;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+      }
+  
+      .card-front img {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-bottom: 1rem;
+      }
+  
+      .card-front h3 {
+        margin: 0.5rem 0 0.3rem;
+      }
+  
+      .card-front .rating {
+        color: gold;
+        font-size: 1.2rem;
+      }
+  
+      .card-back {
+        background: #333;
+        color: white;
+        transform: rotateY(180deg);
+        padding: 1.2rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center; /* center content horizontally */
+        gap: 1rem;
+        text-align: center;  /* center text */
+      }
+  
+      .carousel-button {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        background-color: #333;
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+        font-size: 1.5rem;
+        z-index: 2;
+        border-radius: 5px;
+      }
+      
+      .carousel-button.prev {
+        left: -45px;
+      }
+      
+      .carousel-button.next {
+        right: -45px;
+      }
+  
+      @media (max-width: 1000px) {
+        .card {
+          width: 250px;
+        }
+      }
+  
+      @media (max-width: 800px) {
+        .carousel-track {
+          flex-wrap: wrap;
+          justify-content: center;
+        }
+  
+        .card {
+          width: 90%;
+        }
+  
+        .carousel-button {
+          display: none;
+        }
+      }
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        margin: 0;
+        padding: 0;
+        background: #f5f5f5;
+      }
+  
+      .shopper-section {
+        max-width: 1000px;
+        margin: 50px auto;
+        padding: 30px;
+        background: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+      }
+      .shopper-header {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 20px;
+      }
+      .shopper-header img {
+        width: 40px;
+        height: 40px;
+      }
+      .shopper-header h2 {
+        font-size: 1.8rem;
+        color: #222;
+        margin: 0;
+      }
+      .shopper-section p {
+        font-size: 1rem;
+        color: #444;
+        line-height: 1.6;
+        margin-bottom: 15px;
+      }
+      .shopper-items {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 20px;
+        margin: 25px 0;
+      }
+      .item-card {
+        background: #f0f8ff;
+        padding: 15px;
+        border-radius: 10px;
+        text-align: center;
+        transition: transform 0.2s;
+      }
+      .item-card:hover {
+        transform: translateY(-5px);
+        background: #e6f3ff;
+      }
+      .item-card img {
+        width: 50px;
+        height: 50px;
+        margin-bottom: 10px;
+      }
+      .item-card span {
+        font-weight: 600;
+        display: block;
+      }
+      .cta-button {
+        display: inline-block;
+        padding: 12px 20px;
+        background-color: #007bff;
+        color: white;
+        text-decoration: none;
+        border-radius: 8px;
+        font-weight: 600;
+        margin-top: 20px;
+        transition: background-color 0.2s;
+      }
+  
+      .cta-button:hover {
+        background-color: #005dc1;
+      }
+  
+      @media (max-width: 600px) {
+        .shopper-header h2 {
+          font-size: 1.4rem;
+        }
+      }
+  </style>
+</head>
+<body>
+
+  <div class="navbar">
+    <div class="logo">LOGO</div>
+    <div class="nav-links">
+      <a href="#">Home</a>
+      <a href="#">About Us</a>
+      <a href="#">Shopping Services</a>
+    </div>
+    <div class="hamburger" onclick="toggleSideNav()">
+      <div></div>
+      <div></div>
+      <div></div>
+    </div>
+  </div>
+
+  <div id="sideNav" class="side-nav">
+    <a href="#">Profile</a>
+    <a href="#">Orders</a>
+    <a href="#">Cart</a>
+    <a href="#">Contact</a>
+    <a href="#" onclick="toggleSideNav()">Close</a>
+  </div>
+
+  <div id="overlay" class="overlay" onclick="toggleSideNav()"></div>
+  <br>
+
+  <center><h1 style = "color:green;">Parcel My Box</h1></center>
+  <br>
+  <div class="shopper-section">
+    <div class="shopper-header">
+      <img src="https://upload.wikimedia.org/wikipedia/en/4/41/Flag_of_India.svg" alt="India Flag">
+      <h2>Meet Our India-Based Personal Shoppers</h2>
+    </div>
+
+    <p>
+      ParcelMyBox connects you with real shoppers on the ground in India, ready to locate and purchase unique items on your behalf. Unlike warehouse stores or generic e-commerce platforms, our shoppers handpick goods, ensuring quality, authenticity, and a personal touch. They're paid by the hour, giving you flexible, customized access to Indian markets.
+    </p>
+
+    <p>Here’s what they can help you find:</p>
+
+    <div class="shopper-items">
+      <div class="item-card">
+        <img src="https://cdn-icons-png.flaticon.com/512/864/864685.png" alt="German Silver">
+        <span>German Silver</span>
+      </div>
+      <div class="item-card">
+        <img src="https://cdn-icons-png.flaticon.com/512/3184/3184762.png" alt="Local Food">
+        <span>Local Food</span>
+      </div>
+      <div class="item-card">
+        <img src="https://cdn-icons-png.flaticon.com/512/3550/3550643.png" alt="Gift Items">
+        <span>Gift Items</span>
+      </div>
+      <div class="item-card">
+        <img src="https://cdn-icons-png.flaticon.com/512/3176/3176397.png" alt="Decorative Items">
+        <span>Decorative Items</span>
+      </div>
+    </div>
+
+    <p>
+      With their feet on the ground and your checklist in hand, ParcelMyBox shoppers make it easy to access India’s vibrant local markets—from anywhere in the world.
+    </p>
+
+    <a href="#hire" class="cta-button">Hire a Shopper</a>
+  </div>
+  <br>
+      <h2>Our Top Profiles</h2>
+<div class="carousel-wrapper">
+  <button class="carousel-button prev" onclick="moveCarousel(-1)">❮</button>
+  <div class="carousel-container">
+    <div class="carousel-track" id="carouselTrack">
+      <div class="card"><div class="card-inner"><div class="card-front"><img src="https://hips.hearstapps.com/hmg-prod/images/john-wick-index-1556734300.png?crop=0.502xw:1.00xh;0.192xw,0&resize=1200:*"><h3>John Wick</h3><div class="rating">★★★★☆</div></div><div class="card-back"><p>Designer & Artist</p><p>Manhattan, NY</p><p>📞 (123) 456-7890</p></div></div></div>
+      <div class="card"><div class="card-inner"><div class="card-front"><img src="https://via.placeholder.com/100"><h3>Ravi .K</h3><div class="rating">★★★★★</div></div><div class="card-back"><p>Web Dev</p><p>Brooklyn, NY</p><p>📞 +91 92474 99247</p></div></div></div>
+      <div class="card"><div class="card-inner"><div class="card-front"><img src="https://via.placeholder.com/100"><h3>Linda Ray</h3><div class="rating">★★★☆☆</div></div><div class="card-back"><p>Photographer</p><p>Queens, NY</p><p>📞 (456) 123-7890</p></div></div></div>
+      <div class="card"><div class="card-inner"><div class="card-front"><img src="https://via.placeholder.com/100"><h3>Tom Briggs</h3><div class="rating">★★★★☆</div></div><div class="card-back"><p>Fitness Coach</p><p>Bronx, NY</p><p>📞 (321) 654-9870</p></div></div></div>
+      <div class="card"><div class="card-inner"><div class="card-front"><img src="https://via.placeholder.com/100"><h3>Sara Kim</h3><div class="rating">★★★★★</div></div><div class="card-back"><p>Beauty Expert</p><p>Staten Island, NY</p><p>📞 (789) 321-4560</p></div></div></div>
+    </div>
+  </div>
+  <button class="carousel-button next" onclick="moveCarousel(1)">❯</button>
+</div>
+  <script>
+    function toggleSideNav() {
+      const sideNav = document.getElementById('sideNav');
+      const overlay = document.getElementById('overlay');
+      if (sideNav.style.width === '250px') {
+        sideNav.style.width = '0';
+        overlay.classList.remove('active');
+      } else {
+        sideNav.style.width = '250px';
+        overlay.classList.add('active');
+      }
+    }
+
+     // Carousel navigation logic
+     let currentIndex = 0;
+  const track = document.getElementById("carouselTrack");
+  const cards = track.querySelectorAll(".card");
+  const visibleCards = 3;
+  const cardWidth = cards[0].offsetWidth + 40;
+
+  function moveCarousel(direction) {
+    const maxIndex = cards.length - visibleCards;
+    currentIndex += direction;
+    if (currentIndex < 0) currentIndex = 0;
+    if (currentIndex > maxIndex) currentIndex = maxIndex;
+    track.style.transform = `translateX(-${currentIndex * cardWidth}px)`;
+  }
+  </script>
+</body>
+</html>
