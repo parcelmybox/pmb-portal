@@ -48,6 +48,26 @@ def tracking(request, tracking_number):
         messages.error(request, 'Shipment not found')
         return redirect('shipping:shipping_home')
 
+def edit_address(request, pk):
+    address = get_object_or_404(ShippingAddress, pk=pk, contact__user=request.user)
+    if request.method == 'POST':
+        form = ShippingAddressForm(request.POST, instance=address)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Address updated successfully!')
+            return redirect('shipping:manage_addresses')
+    else:
+        form = ShippingAddressForm(instance=address)
+    return render(request, 'shipping/edit_address.html', {'form': form, 'address': address})
+
+def delete_address(request, pk):
+    address = get_object_or_404(ShippingAddress, pk=pk, contact__user=request.user)
+    if request.method == 'POST':
+        address.delete()
+        messages.success(request, 'Address deleted successfully!')
+        return redirect('shipping:manage_addresses')
+    return render(request, 'shipping/delete_address.html', {'address': address})
+
 def manage_addresses(request):
     if request.method == 'POST':
         form = ShippingAddressForm(request.POST)
