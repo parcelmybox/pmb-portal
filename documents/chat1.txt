@@ -1,123 +1,162 @@
-Document Shipping Website (USA to India)
-
-A Django-based web platform that enables users to securely ship important documents from the USA to India with real-time tracking, cost estimation, and streamlined logistics.
+# Chatbot Training Data: Document Shipping Website (USA to India)
 
 ---
 
-Main Site Contents
+## INTENT: Get Quote
+### USER SAYS:
+- I want to ship a document from New York to India.
+- How much does it cost to send a certificate to Bangalore?
+- Give me a price estimate for a shipment.
 
-Upper Navigation Bar:
-- Get Quote
-- Tracking
-- Book Shipment
-- Contact Us
-- Login
-- Search
-- Hamburger Icon (opens side navigation)
+### BOT RESPONSE:
+Sure! Please provide:
+1. Your ZIP code (USA)
+2. The recipient’s PIN code (India)
+3. Weight of the document (approx. in lbs or oz)
+4. Shipping speed: Standard, Express, or Overnight
 
-Overview:
-Platform for secure and efficient document shipping to India, offering real-time tracking and door-to-door service.
-
-Features:
-- Quick Shipping Quote Estimator
-- Service Highlights:
-  - Trackable Shipments
-  - Express Delivery
-  - Secure Handling
-  - Doorstep Pickup
-- Approximate Rate Chart
-- Customer Testimonials
-- User Reviews
-- Frequently Asked Questions
+Once I have that, I can calculate an estimated cost and delivery date.
 
 ---
 
-Shipping Form (Send a Document)
+## INTENT: Track Shipment
+### USER SAYS:
+- Where is my document?
+- Track my shipment
+- Status of tracking number 123456789
 
-Sender Information:
-- Name
-- Email
-- Phone
-- Address
+### BOT RESPONSE:
+Please enter your tracking number. I’ll fetch the current status from our system.
 
-Recipient Information:
-- Name
-- Email
-- Phone
-- Indian Address (with PIN code)
-
-Logistics Details:
-- Preferred Pickup Date & Time
-- Type of Document (legal, educational, personal, etc.)
-- Declared Value (for customs/insurance)
-- Upload ID Proof (optional)
-- Shipping Speed: Standard, Express, Overnight
-
-Estimate & Payment:
-- Calculate Cost & Estimated Delivery Date
-- Payment Gateway: Credit Card, UPI, etc.
+(Status could be: Picked Up, In Transit, Customs Clearance, Out for Delivery, Delivered)
 
 ---
 
-Tracking Page
+## INTENT: Book a Shipment
+### USER SAYS:
+- I want to ship a document
+- How do I send something?
+- Book a courier to India
 
-Users can input Tracking Number to get real-time status:
-- Picked Up
-- In Transit
-- Customs Clearance
-- Out for Delivery
-- Delivered
-- Optional: Map Visualization
+### BOT RESPONSE:
+Let’s get started with your shipment. I need:
+1. Sender's name, email, phone, and US address
+2. Recipient's name, email, phone, and Indian address
+3. Type of document (e.g., legal, educational)
+4. Preferred pickup date & time
+5. Declared value (optional)
+6. ID proof upload (optional for sensitive/legal docs)
 
----
-
-Admin / Customer Dashboard (Post-login)
-
-- View Shipment History
-- Manage Saved Addresses
-- Download Invoices
-- Support Ticket System
-- Delivery Status Notifications
+Ready to proceed?
 
 ---
 
-Rate Calculator
+## INTENT: Payment & Checkout
+### USER SAYS:
+- How do I pay?
+- Can I use UPI?
+- Show me the final cost
 
-Input:
-- USA ZIP Code
-- Indian PIN Code
+### BOT RESPONSE:
+We support the following payment methods:
+- Credit/Debit Card
+- UPI
+- Stripe
+- Razorpay
 
-Auto-calculate rates based on:
-- Weight
-- Delivery Type (Standard, Express)
-- Customs/Duties estimate (usually none for personal documents)
-
----
-
-Document Shipping Details
-
-Types of Documents:
-- Legal contracts
-- Educational certificates and transcripts
-- Personal letters and ID documents
-
-Content determines:
-- Customs duty applicability
-- Eligibility for insurance
-- ID verification requirements
-
-ID proof upload is optional but recommended for sensitive/government documents to ensure smooth customs and delivery.
+You’ll see the final price once we calculate based on your inputs.
 
 ---
 
-Tech Stack (Suggested):
-- Django (Backend)
-- PostgreSQL or SQLite (Database)
-- Bootstrap or Tailwind CSS (Frontend)
-- Stripe/Razorpay (Payments)
-- Celery + Redis (for async updates, optional)
+## INTENT: Shipping Rules / Customs Info
+### USER SAYS:
+- Will I have to pay customs?
+- Are legal documents allowed?
+- Do I need ID proof?
+
+### BOT RESPONSE:
+Most personal or legal documents are duty-free when shipped to India. However:
+- Uploading an ID proof is strongly recommended for birth certificates, power of attorney, or immigration documents.
+- Declared value helps with insurance and customs.
+
+Need help classifying your document type?
 
 ---
 
-Ready to Ship?
-Start by Booking a Shipment or Getting a Quote!
+## INTENT: Features / Services Overview
+### USER SAYS:
+- What services do you offer?
+- Is this secure?
+- Why should I use your platform?
+
+### BOT RESPONSE:
+Our service includes:
+✅ Secure Document Handling  
+🚪 Doorstep Pickup (USA only)  
+📦 Real-Time Tracking  
+⚡ Express & Overnight Options  
+📬 Delivery anywhere in India  
+
+Plus, you get instant cost estimates and 24/7 support.
+
+---
+
+## INTENT: Login / Dashboard Access
+### USER SAYS:
+- I want to check my history
+- How do I log in?
+- Where’s my invoice?
+
+### BOT RESPONSE:
+You can log in [here](#). Once logged in, you’ll be able to:
+- View shipment history
+- Download invoices
+- Manage saved addresses
+- Track ongoing shipments
+- Open support tickets
+
+---
+
+## INTENT: FAQs
+### USER SAYS:
+- What documents can I ship?
+- What’s the estimated delivery time?
+- Is overnight delivery available?
+
+### BOT RESPONSE:
+Commonly shipped documents include:
+- Transcripts and degrees
+- Legal papers (power of attorney, affidavits)
+- ID documents (passport copies, birth certificates)
+
+Delivery time depends on your selected speed:
+- Standard: 5–8 days
+- Express: 3–5 days
+- Overnight: 1–2 days (limited availability)
+
+---
+
+## INTENT: Customer Support
+### USER SAYS:
+- I need help
+- Something went wrong with my shipment
+- Can I speak to someone?
+
+### BOT RESPONSE:
+I’m here to help! Please describe your issue briefly.
+
+For more complex issues, you can create a support ticket via your dashboard or contact our customer care team at support@example.com.
+
+---
+
+## SYSTEM HOOKS / BOT DATA ACCESS
+
+- `/getQuote(USA_ZIP, IN_PIN, weight, speed)` → Returns price, ETA
+- `/trackShipment(tracking_id)` → Returns current status
+- `/bookShipment(form_data)` → Submits order and returns order ID
+- `/getFAQs()` → Returns list of FAQs
+- `/getShippingRules()` → Returns customs and document policy info
+- `/userDashboard(token)` → Returns shipment history, invoices, tickets
+
+---
+
