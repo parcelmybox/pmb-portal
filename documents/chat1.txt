@@ -1,0 +1,123 @@
+Document Shipping Website (USA to India)
+
+A Django-based web platform that enables users to securely ship important documents from the USA to India with real-time tracking, cost estimation, and streamlined logistics.
+
+---
+
+Main Site Contents
+
+Upper Navigation Bar:
+- Get Quote
+- Tracking
+- Book Shipment
+- Contact Us
+- Login
+- Search
+- Hamburger Icon (opens side navigation)
+
+Overview:
+Platform for secure and efficient document shipping to India, offering real-time tracking and door-to-door service.
+
+Features:
+- Quick Shipping Quote Estimator
+- Service Highlights:
+  - Trackable Shipments
+  - Express Delivery
+  - Secure Handling
+  - Doorstep Pickup
+- Approximate Rate Chart
+- Customer Testimonials
+- User Reviews
+- Frequently Asked Questions
+
+---
+
+Shipping Form (Send a Document)
+
+Sender Information:
+- Name
+- Email
+- Phone
+- Address
+
+Recipient Information:
+- Name
+- Email
+- Phone
+- Indian Address (with PIN code)
+
+Logistics Details:
+- Preferred Pickup Date & Time
+- Type of Document (legal, educational, personal, etc.)
+- Declared Value (for customs/insurance)
+- Upload ID Proof (optional)
+- Shipping Speed: Standard, Express, Overnight
+
+Estimate & Payment:
+- Calculate Cost & Estimated Delivery Date
+- Payment Gateway: Credit Card, UPI, etc.
+
+---
+
+Tracking Page
+
+Users can input Tracking Number to get real-time status:
+- Picked Up
+- In Transit
+- Customs Clearance
+- Out for Delivery
+- Delivered
+- Optional: Map Visualization
+
+---
+
+Admin / Customer Dashboard (Post-login)
+
+- View Shipment History
+- Manage Saved Addresses
+- Download Invoices
+- Support Ticket System
+- Delivery Status Notifications
+
+---
+
+Rate Calculator
+
+Input:
+- USA ZIP Code
+- Indian PIN Code
+
+Auto-calculate rates based on:
+- Weight
+- Delivery Type (Standard, Express)
+- Customs/Duties estimate (usually none for personal documents)
+
+---
+
+Document Shipping Details
+
+Types of Documents:
+- Legal contracts
+- Educational certificates and transcripts
+- Personal letters and ID documents
+
+Content determines:
+- Customs duty applicability
+- Eligibility for insurance
+- ID verification requirements
+
+ID proof upload is optional but recommended for sensitive/government documents to ensure smooth customs and delivery.
+
+---
+
+Tech Stack (Suggested):
+- Django (Backend)
+- PostgreSQL or SQLite (Database)
+- Bootstrap or Tailwind CSS (Frontend)
+- Stripe/Razorpay (Payments)
+- Celery + Redis (for async updates, optional)
+
+---
+
+Ready to Ship?
+Start by Booking a Shipment or Getting a Quote!
