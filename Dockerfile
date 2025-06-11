@@ -19,6 +19,7 @@ RUN apt-get update && \
     default-libmysqlclient-dev \
     pkg-config \
     default-mysql-client \
+    dos2unix \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
@@ -36,12 +37,3 @@ COPY . .
 
 # Expose the ports the app runs on
 EXPOSE 8000 8501
-
-# Make scripts executable
-RUN chmod +x /app/entrypoint.sh
-
-# Set the entrypoint
-ENTRYPOINT ["/app/entrypoint.sh"]
-
-# Default command (can be overridden in docker-compose)
-CMD []
