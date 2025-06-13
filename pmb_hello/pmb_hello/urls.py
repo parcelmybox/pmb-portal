@@ -22,5 +22,7 @@ urlpatterns = [
     path('', views.home, name='home'),
     path('admin/', admin.site.urls),
     path('categories/', include('category.urls', namespace='category')),
-    path('shipping/', include('shipping.urls', namespace='shipping'))
+    path('shipping/', include('shipping.urls', namespace='shipping')),
+    # Add authentication URLs
+    path('accounts/', include('django.contrib.auth.urls')),
 ]

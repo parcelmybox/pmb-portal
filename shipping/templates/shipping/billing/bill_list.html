@@ -1,0 +1,126 @@
+{% extends 'shipping/billing/base_billing.html' %}
+
+{% block title %}Bills | Billing{% endblock %}
+
+{% block breadcrumb %}
+    <li class="breadcrumb-item active">All Bills</li>
+{% endblock %}
+
+{% block page_title %}Bills{% endblock %}
+
+{% block header_actions %}
+    <a href="{% url 'shipping:create_bill' %}" class="btn btn-primary">
+        <i class="fas fa-plus me-1"></i> New Bill
+    </a>
+{% endblock %}
+
+{% block billing_content %}
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow-sm h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Total Bills</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ summary.total_bills|default:0 }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-file-invoice fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow-sm h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Total Amount</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">${{ summary.total_amount|default:0|floatformat:2 }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow-sm h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Pending</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">${{ summary.pending_amount|default:0|floatformat:2 }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-clock fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-danger shadow-sm h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                Overdue</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">${{ summary.overdue_amount|default:0|floatformat:2 }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-exclamation-triangle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Card -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">Filters</h6>
+            <button class="btn btn-sm btn-link text-primary" type="button" data-bs-toggle="collapse" data-bs-target="#filterCollapse" aria-expanded="false" aria-controls="filterCollapse">
+                <i class="fas fa-filter me-1"></i> Toggle Filters
+            </button>
+        </div>
+        <div class="collapse {% if filter_form.has_changed %}show{% endif %}" id="filterCollapse">
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    {% for field in filter_form %}
+                        <div class="col-md-3">
+                            <label for="{{ field.id_for_label }}" class="form-label small text-muted">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.help_text %}
+                                <small class="form-text text-muted">{{ field.help_text }}</small>
+                            {% endif %}
+                            {% if field.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ field.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search me-1"></i> Apply Filters
+                        </button>
+                        <a href="{% url 'shipping:bill_list' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-undo me-1"></i> Reset
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}

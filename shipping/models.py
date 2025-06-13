@@ -1,6 +1,9 @@
 from django.db import models
 from django.utils import timezone
 from django.core.validators import MinValueValidator
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 SHIPPING_STATUS_CHOICES = [
     ('pending', 'Pending'),
@@ -19,6 +22,7 @@ PACKAGE_TYPE_CHOICES = [
 ]
 
 class ShippingAddress(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='shipping_addresses', null=True, blank=True)
     address_line1 = models.CharField(max_length=255)
     address_line2 = models.CharField(max_length=255, blank=True)
     city = models.CharField(max_length=100)
@@ -26,6 +30,7 @@ class ShippingAddress(models.Model):
     country = models.CharField(max_length=100)
     postal_code = models.CharField(max_length=20)
     phone_number = models.CharField(max_length=20)
+    is_default = models.BooleanField(default=False, help_text='Set as default shipping address')
 
     def __str__(self):
         return f"{self.address_line1}, {self.city}, {self.country}"

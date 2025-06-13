@@ -1,57 +1,67 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Parcel My Box</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body {
-            padding: 20px;
-        }
-        .hero {
-            background-color: #f8f9fa;
-            padding: 40px;
-            border-radius: 10px;
-            margin-bottom: 30px;
-        }
-        .feature-card {
-            margin-bottom: 20px;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="hero">
-            <h1 class="display-4">Welcome to Parcel My Box</h1>
-            <p class="lead">Your trusted international shipping partner</p>
-        </div>
+{% extends 'base.html' %}
 
-        <div class="row">
+{% block title %}Home - Parcel My Box{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="hero bg-light p-5 rounded-3 mb-5">
+        <div class="text-center">
+            <h1 class="display-4 fw-bold mb-3">Welcome to Parcel My Box</h1>
+            <p class="lead">Your trusted international shipping partner</p>
+            <a href="{% url 'shipping:shipping_home' %}" class="btn btn-primary btn-lg mt-3">
+                Get Started <i class="fas fa-arrow-right ms-2"></i>
+            </a>
+        </div>
+    </div>
+
+        <div class="row g-4 mb-5">
             <div class="col-md-4">
-                <a href="{% url 'shipping:tracking' %}" class="text-decoration-none">
-                    <div class="feature-card bg-light">
-                        <h3>Track Shipments</h3>
-                        <p>Real-time tracking for all your international shipments</p>
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="bg-primary bg-opacity-10 p-3 rounded-circle d-inline-flex mb-3">
+                            <i class="fas fa-truck fa-2x text-primary"></i>
+                        </div>
+                        <h3 class="h5 mb-3">Track Shipments</h3>
+                        <p class="text-muted mb-0">Real-time tracking for all your international shipments</p>
                     </div>
-                </a>
+                    <div class="card-footer bg-transparent border-0 pt-0">
+                        <a href="{% url 'shipping:tracking_input_page' %}" class="btn btn-outline-primary w-100">
+                            Track Now <i class="fas fa-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
             </div>
             <div class="col-md-4">
-                <a href="{% url 'shipping:addresses' %}" class="text-decoration-none">
-                    <div class="feature-card bg-light">
-                        <h3>Manage Addresses</h3>
-                        <p>Store and manage your shipping addresses securely</p>
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="bg-success bg-opacity-10 p-3 rounded-circle d-inline-flex mb-3">
+                            <i class="fas fa-map-marker-alt fa-2x text-success"></i>
+                        </div>
+                        <h3 class="h5 mb-3">Shipping</h3>
+                        <p class="text-muted mb-0">Create and manage your shipments with ease</p>
                     </div>
-                </a>
+                    <div class="card-footer bg-transparent border-0 pt-0">
+                        <a href="{% url 'shipping:shipping_home' %}" class="btn btn-outline-success w-100">
+                            Start Shipping <i class="fas fa-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
             </div>
             <div class="col-md-4">
-                <a href="{% url 'shipping:rates' %}" class="text-decoration-none">
-                    <div class="feature-card bg-light">
-                        <h3>Calculate Rates</h3>
-                        <p>Get instant shipping rate quotes for your packages</p>
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="bg-info bg-opacity-10 p-3 rounded-circle d-inline-flex mb-3">
+                            <i class="fas fa-file-invoice-dollar fa-2x text-info"></i>
+                        </div>
+                        <h3 class="h5 mb-3">Billing</h3>
+                        <p class="text-muted mb-0">View and manage your invoices and payments</p>
                     </div>
-                </a>
+                    <div class="card-footer bg-transparent border-0 pt-0">
+                        <a href="{% url 'shipping:bill_list' %}" class="btn btn-outline-info w-100">
+                            View Bills <i class="fas fa-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
 

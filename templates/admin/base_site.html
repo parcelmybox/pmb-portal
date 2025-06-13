@@ -1,0 +1,68 @@
+{% extends "admin/base.html" %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    /* Hide the sidebar */
+    #content-related, #nav-sidebar {
+        display: none !important;
+    }
+    
+    /* Adjust main content to take full width */
+    #content {
+        margin-left: 0 !important;
+        width: 100% !important;
+    }
+    
+    /* Ensure the page takes full width */
+    .dashboard {
+        max-width: none !important;
+        padding: 0 20px !important;
+    }
+    
+    /* Style the breadcrumbs to align properly */
+    .breadcrumbs {
+        margin: 0 0 15px 0 !important;
+        padding: 8px 0 !important;
+    }
+    
+    /* Custom header styles */
+    #header {
+        background: #2c3e50 !important;
+        color: white !important;
+        padding: 10px 20px !important;
+    }
+    
+    #branding h1 {
+        color: white !important;
+        display: flex !important;
+        align-items: center !important;
+        margin: 0 !important;
+        font-size: 18px !important;
+        font-weight: 600 !important;
+    }
+    
+    #branding h1 img {
+        height: 30px;
+        margin-right: 10px;
+        width: auto;
+    }
+    
+    /* Ensure header is visible */
+    #header, #branding, #user-tools {
+        display: block !important;
+    }
+</style>
+{% endblock %}
+
+{% load static %}
+{% block branding %}
+<h1 id="site-name">
+    <a href="{% url 'admin:index' %}">
+        <img src="{% static 'images/logo.svg' %}" alt="Parcel My Box" />
+        Parcel My Box Administration
+    </a>
+</h1>
+{% endblock %}
+
+{% block nav-global %}{% endblock %}

@@ -51,16 +51,20 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'pmb_portal.urls'
 
+# Site URL for absolute URLs in emails and other places
+SITE_URL = 'http://127.0.0.1:8000'
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'shipping.context_processors.admin_site_info',
             ],
         },
     },
@@ -104,17 +108,31 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+# Set timezone to Pacific Time (PST/PDT)
+TIME_ZONE = 'America/Los_Angeles'
 
+# Enable timezone support
 USE_I18N = True
-
 USE_TZ = True
+
+# Format datetime in admin interface
+DATETIME_FORMAT = 'Y-m-d H:i:s T'
+DATE_FORMAT = 'Y-m-d'
+TIME_FORMAT = 'H:i:s'
 
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',
+]
+
+# Media files
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
