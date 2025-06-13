@@ -1,0 +1,162 @@
+# Chatbot Training Data: Document Shipping Website (USA to India)
+
+---
+
+## INTENT: Get Quote
+### USER SAYS:
+- I want to ship a document from New York to India.
+- How much does it cost to send a certificate to Bangalore?
+- Give me a price estimate for a shipment.
+
+### BOT RESPONSE:
+Sure! Please provide:
+1. Your ZIP code (USA)
+2. The recipient’s PIN code (India)
+3. Weight of the document (approx. in lbs or oz)
+4. Shipping speed: Standard, Express, or Overnight
+
+Once I have that, I can calculate an estimated cost and delivery date.
+
+---
+
+## INTENT: Track Shipment
+### USER SAYS:
+- Where is my document?
+- Track my shipment
+- Status of tracking number 123456789
+
+### BOT RESPONSE:
+Please enter your tracking number. I’ll fetch the current status from our system.
+
+(Status could be: Picked Up, In Transit, Customs Clearance, Out for Delivery, Delivered)
+
+---
+
+## INTENT: Book a Shipment
+### USER SAYS:
+- I want to ship a document
+- How do I send something?
+- Book a courier to India
+
+### BOT RESPONSE:
+Let’s get started with your shipment. I need:
+1. Sender's name, email, phone, and US address
+2. Recipient's name, email, phone, and Indian address
+3. Type of document (e.g., legal, educational)
+4. Preferred pickup date & time
+5. Declared value (optional)
+6. ID proof upload (optional for sensitive/legal docs)
+
+Ready to proceed?
+
+---
+
+## INTENT: Payment & Checkout
+### USER SAYS:
+- How do I pay?
+- Can I use UPI?
+- Show me the final cost
+
+### BOT RESPONSE:
+We support the following payment methods:
+- Credit/Debit Card
+- UPI
+- Stripe
+- Razorpay
+
+You’ll see the final price once we calculate based on your inputs.
+
+---
+
+## INTENT: Shipping Rules / Customs Info
+### USER SAYS:
+- Will I have to pay customs?
+- Are legal documents allowed?
+- Do I need ID proof?
+
+### BOT RESPONSE:
+Most personal or legal documents are duty-free when shipped to India. However:
+- Uploading an ID proof is strongly recommended for birth certificates, power of attorney, or immigration documents.
+- Declared value helps with insurance and customs.
+
+Need help classifying your document type?
+
+---
+
+## INTENT: Features / Services Overview
+### USER SAYS:
+- What services do you offer?
+- Is this secure?
+- Why should I use your platform?
+
+### BOT RESPONSE:
+Our service includes:
+✅ Secure Document Handling  
+🚪 Doorstep Pickup (USA only)  
+📦 Real-Time Tracking  
+⚡ Express & Overnight Options  
+📬 Delivery anywhere in India  
+
+Plus, you get instant cost estimates and 24/7 support.
+
+---
+
+## INTENT: Login / Dashboard Access
+### USER SAYS:
+- I want to check my history
+- How do I log in?
+- Where’s my invoice?
+
+### BOT RESPONSE:
+You can log in [here](#). Once logged in, you’ll be able to:
+- View shipment history
+- Download invoices
+- Manage saved addresses
+- Track ongoing shipments
+- Open support tickets
+
+---
+
+## INTENT: FAQs
+### USER SAYS:
+- What documents can I ship?
+- What’s the estimated delivery time?
+- Is overnight delivery available?
+
+### BOT RESPONSE:
+Commonly shipped documents include:
+- Transcripts and degrees
+- Legal papers (power of attorney, affidavits)
+- ID documents (passport copies, birth certificates)
+
+Delivery time depends on your selected speed:
+- Standard: 5–8 days
+- Express: 3–5 days
+- Overnight: 1–2 days (limited availability)
+
+---
+
+## INTENT: Customer Support
+### USER SAYS:
+- I need help
+- Something went wrong with my shipment
+- Can I speak to someone?
+
+### BOT RESPONSE:
+I’m here to help! Please describe your issue briefly.
+
+For more complex issues, you can create a support ticket via your dashboard or contact our customer care team at support@example.com.
+
+---
+
+## SYSTEM HOOKS / BOT DATA ACCESS
+
+- `/getQuote(USA_ZIP, IN_PIN, weight, speed)` → Returns price, ETA
+- `/trackShipment(tracking_id)` → Returns current status
+- `/bookShipment(form_data)` → Submits order and returns order ID
+- `/getFAQs()` → Returns list of FAQs
+- `/getShippingRules()` → Returns customs and document policy info
+- `/userDashboard(token)` → Returns shipment history, invoices, tickets
+
+---
+

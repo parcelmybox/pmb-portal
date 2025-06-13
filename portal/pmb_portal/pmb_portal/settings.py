@@ -16,6 +16,14 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
+
+# Branding info
+COMPANY_NAME = "ParcelMyBox"
+COMPANY_LOGO = "images/logo.png"  # path relative to STATIC
+COMPANY_COPYRIGHT = "© 2025 ParcelMyBox. All rights reserved."
+COMPANY_ADDRESS = "15914 brownstone ave lathrop CA "
+
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
