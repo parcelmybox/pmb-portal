@@ -2,6 +2,7 @@
   "name": "frontend",
   "version": "0.1.0",
   "private": true,
+  "proxy": "http://web:8000",
   "dependencies": {
     "@heroicons/react": "^2.0.18",
     "@testing-library/dom": "^9.4.0",
