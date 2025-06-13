@@ -1,28 +1,9 @@
 from django.db import models
 from django.utils import timezone
-from django.core.validators import MinValueValidator, EmailValidator
-from django.core.exceptions import ValidationError
-import re
+from django.core.validators import MinValueValidator
+from django.contrib.auth import get_user_model
 
-
-class CityCode(models.Model):
-    """Model to store city and postal code information"""
-    city = models.CharField(max_length=100)
-    state = models.CharField(max_length=100)
-    country = models.CharField(max_length=100, default='USA')
-    postal_code = models.CharField(max_length=20)
-    is_active = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        ordering = ['country', 'state', 'city']
-        unique_together = ['city', 'state', 'postal_code']
-        verbose_name = 'City Code'
-        verbose_name_plural = 'City Codes'
-
-    def __str__(self):
-        return f"{self.city}, {self.state} {self.postal_code} ({self.country})"
+User = get_user_model()
 
 SHIPPING_STATUS_CHOICES = [
     ('pending', 'Pending'),
@@ -91,29 +72,15 @@ class Contact(models.Model):
 
 
 class ShippingAddress(models.Model):
-    """Model to store shipping addresses associated with contacts"""
-    contact = models.ForeignKey(
-        Contact, 
-        related_name='shipping_addresses',
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True
-    )
-    address_line1 = models.CharField('Address line 1', max_length=255)
-    address_line2 = models.CharField('Address line 2', max_length=255, blank=True)
-    city = models.CharField('City', max_length=100)
-    state = models.CharField('State/Province', max_length=100)
-    country = models.CharField('Country', max_length=100, default='USA')
-    postal_code = models.CharField('ZIP/Postal code', max_length=20)
-    phone_number = models.CharField('Phone', max_length=20, blank=True)
-    is_primary = models.BooleanField('Primary address', default=False)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        verbose_name = 'shipping address'
-        verbose_name_plural = 'shipping addresses'
-        ordering = ['-is_primary', 'city', 'state']
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='shipping_addresses', null=True, blank=True)
+    address_line1 = models.CharField(max_length=255)
+    address_line2 = models.CharField(max_length=255, blank=True)
+    city = models.CharField(max_length=100)
+    state = models.CharField(max_length=100)
+    country = models.CharField(max_length=100)
+    postal_code = models.CharField(max_length=20)
+    phone_number = models.CharField(max_length=20)
+    is_default = models.BooleanField(default=False, help_text='Set as default shipping address')
 
     def __str__(self):
         return f"{self.address_line1}, {self.city}, {self.state} {self.postal_code}"

@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+{% load static %}
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Bill #{{ bill.id }} - {{ company_name }}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 1.5cm;
+        }
+        body {
+            font-family: 'Helvetica', Arial, sans-serif;
+            line-height: 1.5;
+            color: #333;
+            font-size: 12px;
+            margin: 0;
+            padding: 0;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .logo {
+            max-width: 200px;
+            margin-bottom: 10px;
+        }
+        .company-name {
+            font-size: 20px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin: 10px 0 5px 0;
+        }
+        .bill-info {
+            margin: 30px 0;
+            overflow: hidden;
+        }
+        .bill-from, .bill-to {
+            width: 45%;
+            float: left;
+        }
+        .bill-to {
+            float: right;
+        }
+        .bill-details {
+            margin: 20px 0;
+            clear: both;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #f5f5f5;
+        }
+        .total {
+            text-align: right;
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+        .status {
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 12px;
+        }
+        .status-paid {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .status-pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        .status-overdue {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .footer {
+            margin-top: 50px;
+            text-align: center;
+            font-size: 12px;
+            color: #777;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <div>
+                <div class="company-name">{{ company_name }}</div>
+                <div style="color: #666; font-size: 11px; line-height: 1.4;">
+                    {{ company_address }}<br>
+                    Phone: {{ company_phone }}<br>
+                    Email: {{ company_email }}
+                </div>
+            </div>
+            <div style="text-align: right;">
+                <div style="font-size: 20px; font-weight: 600; color: #2c3e50;">INVOICE</div>
+                <div style="font-size: 11px; color: #666; margin-top: 5px;">#{{ bill.id }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bill-info">
+        <div class="bill-from" style="width: 48%; float: left; padding: 15px; background: #f8f9fa; border-radius: 4px; border: 1px solid #e9ecef;">
+            <h3 style="color: #2c3e50; border-bottom: 1px solid #dee2e6; padding-bottom: 5px; margin: 0 0 10px 0; font-size: 15px;">From</h3>
+            <p style="margin: 4px 0;"><strong>{{ company_name }}</strong></p>
+            <p style="margin: 4px 0;">{{ company_address }}</p>
+            <p style="margin: 4px 0;">Phone: {{ company_phone }}</p>
+            <p style="margin: 4px 0;">Email: {{ company_email }}</p>
+        </div>
+        <div class="bill-to" style="width: 48%; float: right; padding: 15px; background: #f8f9fa; border-radius: 4px; border: 1px solid #e9ecef;">
+            <h3 style="color: #2c3e50; border-bottom: 1px solid #dee2e6; padding-bottom: 5px; margin: 0 0 10px 0; font-size: 15px;">Bill To</h3>
+            <p style="margin: 4px 0;"><strong>{{ bill.customer.get_full_name|default:bill.customer.username }}</strong></p>
+            <p style="margin: 4px 0;">{{ bill.customer.email }}</p>
+            {% if bill.customer.profile.phone %}
+                <p style="margin: 4px 0;">Phone: {{ bill.customer.profile.phone }}</p>
+            {% endif %}
+        </div>
+        <div style="clear: both;"></div>
+    </div>
+
+    <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+        <div style="width: 48%;">
+            <div style="background: #f8f9fa; padding: 12px; border-radius: 4px; border: 1px solid #e9ecef;">
+                <div style="font-weight: 600; color: #2c3e50; margin-bottom: 8px; font-size: 13px;">Bill To</div>
+                <div style="margin-bottom: 10px;">
+                    <div style="font-weight: 500;">{{ bill.customer.get_full_name|default:bill.customer.username }}</div>
+                    {% if bill.customer.email %}<div style="color: #666; font-size: 11px;">{{ bill.customer.email }}</div>{% endif %}
+                    {% if bill.customer.profile.phone %}<div style="color: #666; font-size: 11px;">{{ bill.customer.profile.phone }}</div>{% endif %}
+                </div>
+            </div>
+        </div>
+        <div style="width: 48%;">
+            <div style="background: #f8f9fa; padding: 12px; border-radius: 4px; border: 1px solid #e9ecef; font-size: 12px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                    <span style="color: #666; width: 120px;">Invoice Date:</span>
+                    <span style="font-weight: 500;">{{ bill.created_at|date:"F d, Y" }}</span>
+                </div>
+                {% if bill.due_date %}
+                <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                    <span style="color: #666; width: 120px;">Due Date:</span>
+                    <span style="font-weight: 500;">{{ bill.due_date|date:"F d, Y" }}</span>
+                </div>
+                {% endif %}
+                {% if bill.paid_at %}
+                <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                    <span style="color: #666; width: 120px;">Paid On:</span>
+                    <span style="font-weight: 500;">{{ bill.paid_at|date:"F d, Y" }}</span>
+                </div>
+                {% endif %}
+                <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                    <span style="color: #666; width: 120px;">Payment Method:</span>
+                    <span style="font-weight: 500;">
+                        {% if bill.payment_method %}
+                            {{ bill.get_payment_method_display }}
+                        {% else %}
+                            Not specified
+                        {% endif %}
+                    </span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-top: 10px; padding-top: 8px; border-top: 1px solid #e0e0e0;">
+                    <span style="color: #666; width: 120px;">Status:</span>
+                    <span style="font-weight: 600; color: {% if bill.status == 'PAID' %}#28a745{% elif bill.status == 'OVERDUE' %}#dc3545{% else %}#ffc107{% endif %}; text-transform: uppercase; font-size: 11px;">
+                        {{ bill.get_status_display }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <table style="width: 100%; border-collapse: collapse; margin: 15px 0 20px 0; font-size: 13px;">
+        <thead>
+            <tr style="background-color: #2c3e50; color: white;">
+                <th style="padding: 8px 12px; text-align: left; font-weight: 500;">Description</th>
+                <th style="padding: 8px 12px; text-align: right; font-weight: 500;">Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr style="border-bottom: 1px solid #e9ecef;">
+                <td style="padding: 10px 12px; vertical-align: top;">
+                    <div style="font-weight: 500;">{{ bill.description|default:"Shipping Charges" }}</div>
+                    <div style="color: #6c757d; font-size: 12px; margin-top: 2px;">Bill #{{ bill.id }} - Created on {{ bill.created_at|date:"M d, Y" }}</div>
+                </td>
+                <td style="padding: 10px 12px; text-align: right; vertical-align: top;">${{ bill.amount|floatformat:2 }}</td>
+            </tr>
+            <tr style="background-color: #f8f9fa; border-top: 2px solid #e9ecef;">
+                <td style="padding: 12px; text-align: right; font-weight: 500;" colspan="2">
+                    <div style="display: inline-block; text-align: right; width: 200px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                            <span>Subtotal:</span>
+                            <span>${{ bill.amount|floatformat:2 }}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 6px; color: #6c757d;">
+                            <span>Tax (0%):</span>
+                            <span>$0.00</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-weight: 600; font-size: 14px; padding-top: 8px; margin-top: 8px; border-top: 1px solid #dee2e6;">
+                            <span>Total:</span>
+                            <span>${{ bill.amount|floatformat:2 }}</span>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    {% if bill.paid_at %}
+    <div style="margin-top: 20px;">
+        <strong>Payment received on:</strong> {{ bill.paid_at|date:"F j, Y" }}
+    </div>
+    {% endif %}
+
+    <div class="footer">
+        <p>Thank you for your business!</p>
+        <p>{{ company_name }} - {{ today|date:"F j, Y" }}</p>
+    </div>
+</body>
+</html>

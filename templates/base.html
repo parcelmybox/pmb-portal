@@ -1,4 +1,5 @@
 
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,6 +8,8 @@
     <title>{% block title %}PMB Portal{% endblock %}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet">
     <style>
@@ -39,29 +42,88 @@
             background-color: #2980b9;
             border-color: #2980b9;
         }
+        
+
     </style>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container">
-            <a class="navbar-brand" href="{% url 'home' %}">PMB Portal</a>
+            <!-- Logo - Centered -->
+            <div class="w-100 text-center py-2 d-none d-lg-block">
+                <a class="navbar-brand mx-auto" href="{% url 'site_home_page' %}">
+                    <img src="{% static 'images/Parcel My Box Logo.svg' %}" alt="ParcelMyBox Logo" height="60" style="max-width: 300px; width: 100%; height: auto;">
+                </a>
+            </div>
+            
+            <!-- Mobile Logo (smaller, left-aligned) -->
+            <a class="navbar-brand d-lg-none" href="{% url 'site_home_page' %}">
+                <img src="{% static 'images/Parcel My Box Logo.svg' %}" alt="ParcelMyBox Logo" height="40">
+            </a>
+            
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
+            
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'home' %}">Home</a>
+                <ul class="navbar-nav ms-auto me-0 align-items-center">
+                    <li class="nav-item me-2">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'site_home_page' %}active fw-bold{% endif %}" 
+                           href="{% url 'site_home_page' %}">
+                            <i class="fas fa-home me-1"></i> Home
+                        </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'shipping' %}">Shipping</a>
+                    <li class="nav-item me-2">
+                        <a class="nav-link {% if 'admin' in request.path %}active fw-bold{% endif %}" 
+                           href="{% url 'admin:index' %}">
+                            <i class="fas fa-tachometer-alt me-1"></i> Admin
+                        </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'tracking' %}">Tracking</a>
+                    <li class="nav-item dropdown me-2">
+                        <a class="nav-link dropdown-toggle" href="#" id="shippingDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-shipping-fast me-1"></i> Shipping
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="shippingDropdown">
+                            <li><a class="dropdown-item" href="{% url 'shipping:tracking_input_page' %}"><i class="fas fa-map-marker-alt me-2"></i>Tracking</a></li>
+                            <li><a class="dropdown-item" href="/shipping-price/"><i class="fas fa-tag me-2"></i>Pricing</a></li>
+                            <li><a class="dropdown-item" href="/shipping/bills/"><i class="fas fa-file-invoice-dollar me-2"></i>Billing</a></li>
+                        </ul>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'pricing' %}">Pricing</a>
+                    <li class="nav-item me-2">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'contact' %}active fw-bold{% endif %}" 
+                           href="#">
+                            <i class="fas fa-phone-alt me-1"></i> Contact
+                        </a>
                     </li>
+                </ul>
+                
+                <!-- User Authentication Links -->
+                <ul class="navbar-nav ms-3">
+                    {% if user.is_authenticated %}
+                        <li class="nav-item">
+                            <div class="d-flex align-items-center">
+                                <div class="dropdown">
+                                    <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="fas fa-user-circle me-1"></i>
+                                    </a>
+                                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                                        <li>
+                                            <form id="logout-form" method="post" action="{% url 'logout' %}" class="d-inline">
+                                                {% csrf_token %}
+                                                <button type="submit" class="dropdown-item">
+                                                    <i class="fas fa-sign-out-alt me-2"></i>Logout
+                                                </button>
+                                            </form>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'admin:login' %}">Login</a>
+                        </li>
+                    {% endif %}
                 </ul>
             </div>
         </div>
@@ -81,9 +143,9 @@
                 <div class="col-md-3">
                     <h5>Quick Links</h5>
                     <ul class="list-unstyled">
-                        <li><a href="{% url 'shipping' %}" class="text-white">Shipping</a></li>
-                        <li><a href="{% url 'tracking' %}" class="text-white">Tracking</a></li>
-                        <li><a href="{% url 'pricing' %}" class="text-white">Pricing</a></li>
+                        <li><a href="{% url 'shipping:shipping_home' %}" class="text-white">Shipping</a></li>
+                        <li><a href="{% url 'shipping:tracking_input_page' %}" class="text-white">Tracking</a></li>
+                        <li><a href="{% url 'shipping_price_form' %}" class="text-white">Pricing</a></li>
                     </ul>
                 </div>
                 <div class="col-md-3">
@@ -95,7 +157,41 @@
         </div>
     </footer>
 
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Initialize regular select2 dropdowns
+            $('.select2').select2({
+                theme: 'bootstrap-5',
+                width: '100%',
+                placeholder: $(this).data('placeholder'),
+                allowClear: true
+            });
+            
+            // Initialize customer select2 with tagging
+            $('.select2-customer').select2({
+                theme: 'bootstrap-5',
+                width: '100%',
+                placeholder: $(this).data('placeholder'),
+                allowClear: true,
+                tags: true,
+                tokenSeparators: [',', ' '],
+                createTag: function(params) {
+                    // Don't create a tag if no text
+                    if (params.term.indexOf('@') === -1) {
+                        return null;
+                    }
+                    return {
+                        id: params.term,
+                        text: params.term,
+                        newTag: true // add additional parameters
+                    };
+                }
+            });
+        });
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script>
         // Initialize date picker

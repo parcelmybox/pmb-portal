@@ -1,0 +1,477 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    /* Layout adjustments */
+    #content {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        background: transparent !important;
+    }
+    
+    /* Style the quick links on hover */
+    #content-related a {
+        transition: all 0.2s ease;
+    }
+    
+    #content-related a:hover {
+        transform: translateX(3px);
+        box-shadow: 2px 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    /* Style the recent actions list */
+    #content-related ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+    
+    #content-related li {
+        padding: 8px 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    
+    #content-related li:last-child {
+        border-bottom: none;
+    }
+    
+    /* Stats Grid */
+    .stats-grid {
+        display: grid !important;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)) !important;
+        gap: 20px !important;
+        margin: 0 0 30px 0 !important;
+        width: 100% !important;
+    }
+    
+    /* Stat Card */
+    .stat-card {
+        background: white !important;
+        border-radius: 8px !important;
+        padding: 20px !important;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05) !important;
+        border-left: 4px solid #4361ee !important;
+        transition: transform 0.2s, box-shadow 0.2s !important;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-3px) !important;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
+    }
+    
+    /* Card specific colors */
+    .stat-card.revenue { border-left-color: #4361ee !important; }
+    .stat-card.orders { border-left-color: #7b2cbf !important; }
+    .stat-card.customers { border-left-color: #f72585 !important; }
+    .stat-card.shipments { border-left-color: #f39c12 !important; }
+    .stat-card.overdue { border-left-color: #e74c3c !important; }
+    
+    /* Card Header */
+    .stat-card .card-header {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        margin-bottom: 15px !important;
+    }
+    
+    .stat-card h3 {
+        margin: 0 !important;
+        color: #6c757d !important;
+        font-size: 14px !important;
+        font-weight: 600 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.5px !important;
+    }
+    
+    /* Value Row */
+    .stat-card .value-row {
+        display: flex !important;
+        align-items: baseline !important;
+        margin-bottom: 10px !important;
+    }
+    
+    .stat-card .value {
+        font-size: 28px !important;
+        font-weight: 700 !important;
+        color: #212529 !important;
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif !important;
+        margin-right: 10px !important;
+    }
+    
+    /* Change Indicator */
+    .change-indicator {
+        font-size: 13px !important;
+        font-weight: 600 !important;
+        padding: 3px 8px !important;
+        border-radius: 12px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+    }
+    
+    .change-indicator.positive {
+        color: #10b981 !important;
+        background: rgba(16, 185, 129, 0.1) !important;
+    }
+    
+    .change-indicator.negative {
+        color: #ef4444 !important;
+        background: rgba(239, 68, 68, 0.1) !important;
+    }
+    
+    /* Icon Container */
+    .icon-container {
+        width: 40px !important;
+        height: 40px !important;
+        border-radius: 10px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+    
+    .icon {
+        font-size: 20px !important;
+    }
+    
+    .revenue .icon-container { background: rgba(67, 97, 238, 0.1) !important; }
+    .revenue .icon { color: #4361ee !important; }
+    .orders .icon-container { background: rgba(123, 44, 191, 0.1) !important; }
+    .orders .icon { color: #7b2cbf !important; }
+    .customers .icon-container { background: rgba(247, 37, 133, 0.1) !important; }
+    .customers .icon { color: #f72585 !important; }
+    .shipments .icon-container { background: rgba(243, 156, 18, 0.1) !important; }
+    .shipments .icon { color: #f39c12 !important; }
+    .overdue .icon-container { background: rgba(231, 76, 60, 0.1) !important; }
+    .overdue .icon { color: #e74c3c !important; }
+    
+    /* Description */
+    .description {
+        margin: 10px 0 0 !important;
+        color: #6c757d !important;
+        font-size: 13px !important;
+        font-weight: 500 !important;
+        display: flex !important;
+        align-items: center !important;
+    }
+    
+    .description i {
+        margin-right: 5px !important;
+    }
+    
+    /* Welcome section */
+    .welcome-section {
+        background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 12px;
+        margin: -10px 0 20px 0;  /* Reduced top margin to move it up */
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(67, 97, 238, 0.2);
+    }
+    
+    .welcome-section h1 {
+        font-size: 28px;
+        margin: 0 0 10px 0;
+        font-weight: 700;
+        position: relative;
+        z-index: 2;
+    }
+    
+    .welcome-section p {
+        font-size: 16px;
+        opacity: 0.9;
+        margin: 0;
+        max-width: 600px;
+        position: relative;
+        z-index: 2;
+    }
+    
+    .welcome-section::before {
+        content: '';
+        position: absolute;
+        top: -50px;
+        right: -50px;
+        width: 200px;
+        height: 200px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        z-index: 1;
+    }
+    
+    .welcome-section::after {
+        content: '';
+        position: absolute;
+        bottom: -80px;
+        right: 30px;
+        width: 100px;
+        height: 100px;
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 50%;
+        z-index: 1;
+    }
+    /* Main content area - takes full width */
+    #content-main {
+        float: left;
+        width: 100%;
+    }
+    
+    /* App list */
+    .app-list {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        overflow: hidden;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard" style="display: flex; gap: 20px; width: 100%;">
+    <!-- Sidebar with Quick Links -->
+    <div style="width: 250px; flex-shrink: 0;">
+        <div style="position: sticky; top: 20px; display: flex; flex-direction: column; gap: 20px;">
+            <div style="background: white; border-radius: 8px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                <h3 style="margin: 0 0 15px 0; font-size: 16px; color: #2c3e50; border-bottom: 1px solid #eee; padding-bottom: 10px; display: flex; align-items: center;">
+                    <i class="fas fa-bolt" style="margin-right: 8px; color: #4361ee;"></i>Quick Links
+                </h3>
+                <div style="display: grid; grid-template-columns: 1fr; gap: 12px;">
+                    <!-- Shipments -->
+                    <a href="/shipping/" style="display: flex; align-items: center; padding: 12px; color: #1a365d; text-decoration: none; border-radius: 8px; transition: all 0.2s; background: #ebf8ff; border-left: 4px solid #3182ce;">
+                        <i class="fas fa-truck" style="width: 24px; margin-right: 10px; color: #3182ce; font-size: 16px;"></i>
+                        <span style="font-weight: 500;">Shipments</span>
+                        <i class="fas fa-external-link-alt" style="margin-left: auto; opacity: 0.6; font-size: 12px;"></i>
+                    </a>
+                    
+                    <!-- New Shipment -->
+                    <a href="/shipping/create/" style="display: flex; align-items: center; padding: 12px; color: #2c7a7b; text-decoration: none; border-radius: 8px; transition: all 0.2s; background: #e6fffa; border-left: 4px solid #38b2ac;">
+                        <i class="fas fa-plus-circle" style="width: 24px; margin-right: 10px; color: #2c7a7b; font-size: 16px;"></i>
+                        <span style="font-weight: 500;">New Shipment</span>
+                        <i class="fas fa-external-link-alt" style="margin-left: auto; opacity: 0.6; font-size: 12px;"></i>
+                    </a>
+                    
+                    <!-- Bills -->
+                    <a href="/shipping/bills/" style="display: flex; align-items: center; padding: 12px; color: #2c5282; text-decoration: none; border-radius: 8px; transition: all 0.2s; background: #ebf8ff; border-left: 4px solid #4299e1;">
+                        <i class="fas fa-file-invoice-dollar" style="width: 24px; margin-right: 10px; color: #4299e1; font-size: 16px;"></i>
+                        <span style="font-weight: 500;">Bills</span>
+                        <i class="fas fa-external-link-alt" style="margin-left: auto; opacity: 0.6; font-size: 12px;"></i>
+                    </a>
+                    
+                    <!-- New Bill -->
+                    <a href="/shipping/bills/create/" style="display: flex; align-items: center; padding: 12px; color: #2b6cb0; text-decoration: none; border-radius: 8px; transition: all 0.2s; background: #ebf8ff; border-left: 4px solid #63b3ed;">
+                        <i class="fas fa-plus-circle" style="width: 24px; margin-right: 10px; color: #2b6cb0; font-size: 16px;"></i>
+                        <span style="font-weight: 500;">New Bill</span>
+                        <i class="fas fa-external-link-alt" style="margin-left: auto; opacity: 0.6; font-size: 12px;"></i>
+                    </a>
+                    
+                    <!-- Shipping Addresses -->
+                    <a href="/shipping/addresses/" style="display: flex; align-items: center; padding: 12px; color: #5f370e; text-decoration: none; border-radius: 8px; transition: all 0.2s; background: #fefcbf; border-left: 4px solid #d69e2e;">
+                        <i class="fas fa-address-book" style="width: 24px; margin-right: 10px; color: #975a16; font-size: 16px;"></i>
+                        <span style="font-weight: 500;">Shipping Addresses</span>
+                        <i class="fas fa-external-link-alt" style="margin-left: auto; opacity: 0.6; font-size: 12px;"></i>
+                    </a>
+                    
+                    <!-- Users -->
+                    <a href="/admin/auth/user/" style="display: flex; align-items: center; padding: 12px; color: #5f370e; text-decoration: none; border-radius: 8px; transition: all 0.2s; background: #fefcbf; border-left: 4px solid #d69e2e;">
+                        <i class="fas fa-users" style="width: 24px; margin-right: 10px; color: #975a16; font-size: 16px;"></i>
+                        <span style="font-weight: 500;">Users</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div style="flex: 1; min-width: 0;">
+        <!-- Welcome Section -->
+        <div class="welcome-section">
+            <h1>{% translate 'Welcome back, ' %}{{ request.user.get_full_name|default:request.user.username }}</h1>
+            <p>{% translate 'Here\'s what\'s happening with your store today.' %}</p>
+        </div>
+    
+        {% if billing_stats %}
+        <div class="stats-grid">
+        <!-- Today's Revenue Card -->
+        <div class="stat-card revenue">
+            <div class="card-header">
+                <h3>{% trans "Today's Revenue" %}</h3>
+                <div class="icon-container">
+                    <i class="fas fa-dollar-sign icon"></i>
+                </div>
+            </div>
+            <div class="value-row">
+                <span class="value">${{ billing_stats.todays_revenue|floatformat:2|default:"0.00" }}</span>
+            </div>
+            <p class="description">
+                <i class="fas fa-calendar-day"></i>
+                {% trans "Paid bills today" %}
+            </p>
+        </div>
+
+        <!-- Total Revenue Card -->
+        <div class="stat-card total-revenue" style="border-left-color: #3a0ca3 !important;">
+            <div class="card-header">
+                <h3>{% trans "Total Revenue" %}</h3>
+                <div class="icon-container">
+                    <i class="fas fa-chart-line icon"></i>
+                </div>
+            </div>
+            <div class="value-row">
+                <span class="value">${{ billing_stats.total_revenue|floatformat:2|default:"0.00" }}</span>
+            </div>
+            <p class="description">
+                <i class="fas fa-history"></i>
+                {% trans "All-time paid bills" %}
+            </p>
+        </div>
+
+            <!-- Today's Orders -->
+            <div class="stat-card orders">
+                <div class="card-header">
+                    <h3>{% trans "Today's Orders" %}</h3>
+                    <div class="icon-container orders">
+                        <i class="fas fa-shopping-cart icon orders"></i>
+                    </div>
+                </div>
+                <div class="value-row">
+                    <span class="value">{{ billing_stats.todays_orders|default:0 }}</span>
+                </div>
+                <p class="description orders">
+                    <i class="fas fa-calendar-day"></i>
+                    {% trans "Bills generated today" %}
+                </p>
+            </div>
+
+            <!-- Total Customers -->
+            <div class="stat-card customers">
+                <div class="card-header">
+                    <h3>{% trans "Total Customers" %}</h3>
+                    <div class="icon-container customers">
+                        <i class="fas fa-users icon customers"></i>
+                    </div>
+                </div>
+                <div class="value-row">
+                    <span class="value">{{ billing_stats.total_customers|default:0 }}</span>
+                </div>
+                <p class="description customers">
+                    <i class="fas fa-user-plus"></i>
+                    {% trans "Registered users" %}
+                </p>
+            </div>
+
+            <!-- Pending Shipments -->
+            <div class="stat-card shipments">
+                <div class="card-header">
+                    <h3>{% trans "Pending Shipments" %}</h3>
+                    <div class="icon-container shipments">
+                        <i class="fas fa-truck icon shipments"></i>
+                    </div>
+                </div>
+                <div class="value-row">
+                    <span class="value">{{ billing_stats.pending_shipments|default:0 }}</span>
+                </div>
+                <p class="description shipments">
+                    <i class="fas fa-clock"></i>
+                    {% trans "Awaiting processing" %}
+                </p>
+            </div>
+
+            <!-- Unpaid Bills -->
+            <div class="stat-card unpaid" style="border-left-color: #e63946 !important;">
+                <div class="card-header">
+                    <h3>{% trans "Unpaid Bills" %}</h3>
+                    <div class="icon-container unpaid">
+                        <i class="fas fa-money-bill-wave icon unpaid"></i>
+                    </div>
+                </div>
+                <div class="value-row">
+                    <span class="value">{{ billing_stats.unpaid_bills|default:0 }}</span>
+                </div>
+                <p class="description unpaid">
+                    <i class="fas fa-clock"></i>
+                    {% trans "Awaiting payment" %}
+                </p>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- App List -->
+        <div class="app-list">
+            {% if app_list %}
+                {% for app in app_list %}
+                    <div class="app-module" style="background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 20px; overflow: hidden;">
+                        <div style="padding: 15px 20px; border-bottom: 1px solid #eee; background: #f8f9fa;">
+                            <h2 style="margin: 0; font-size: 16px; color: #2c3e50;">
+                                <a href="{{ app.app_url }}" style="color: inherit; text-decoration: none;">{{ app.name }}</a>
+                            </h2>
+                        </div>
+                        <div style="padding: 15px 20px;">
+                            <table style="width: 100%; border-collapse: collapse;">
+                                <tbody>
+                                    {% for model in app.models %}
+                                        <tr style="border-bottom: 1px solid #f0f0f0;">
+                                            <td style="padding: 10px 0; width: 70%;">
+                                                <a href="{{ model.admin_url }}" style="color: #4361ee; text-decoration: none; font-size: 14px; display: block;">
+                                                    {{ model.name }}
+                                                </a>
+                                            </td>
+                                            <td style="text-align: right; padding: 10px 0; width: 15%;">
+                                                {% if model.add_url %}
+                                                    <a href="{{ model.add_url }}" class="addlink" style="color: #2ecc71; text-decoration: none; font-size: 12px; padding: 4px 8px; border: 1px solid #2ecc71; border-radius: 4px; margin-right: 5px;">
+                                                        <i class="fas fa-plus" style="margin-right: 3px;"></i> Add
+                                                    </a>
+                                                {% endif %}
+                                            </td>
+                                            <td style="text-align: right; padding: 10px 0; width: 15%;">
+                                                {% if model.admin_url %}
+                                                    <a href="{{ model.admin_url }}" class="changelink" style="color: #4361ee; text-decoration: none; font-size: 12px; padding: 4px 8px; border: 1px solid #4361ee; border-radius: 4px;">
+                                                        <i class="fas fa-edit" style="margin-right: 3px;"></i> Change
+                                                    </a>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>{% trans "You don't have permission to view or edit anything." %}</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extrahead %}
+{{ block.super }}
+<script>
+// Update time every second
+function updateTime() {
+    const now = new Date();
+    const timeElement = document.getElementById('current-time');
+    if (timeElement) {
+        timeElement.textContent = now.toLocaleTimeString('en-US', {
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true
+        });
+    }
+}
+
+// Update time immediately and then every minute
+updateTime();
+setInterval(updateTime, 60000);
+</script>
+{% endblock extrahead %}
+
+{% block sidebar %}
+{{ block.super }}
+{% endblock sidebar %}
+
+{% block footer %}
+{{ block.super }}
+{% endblock %}

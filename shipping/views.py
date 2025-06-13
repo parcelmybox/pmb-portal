@@ -1,14 +1,41 @@
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, redirect, get_object_or_404, reverse
 from django.contrib import messages
 from django.utils import timezone
+from django.views.generic import TemplateView
 from .models import Shipment, ShippingAddress, ShipmentItem, TrackingEvent
 from .forms import ShipmentForm, ShippingAddressForm
 
+class PricingView(TemplateView):
+    template_name = 'shipping/pricing.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Add any pricing data to the context
+        context['pricing_tiers'] = [
+            {
+                'name': 'Standard',
+                'price': 'From $5.99',
+                'features': ['Up to 2kg', '3-5 business days', 'Tracking included'],
+                'popular': False
+            },
+            {
+                'name': 'Express',
+                'price': 'From $9.99',
+                'features': ['Up to 5kg', '1-2 business days', 'Priority support'],
+                'popular': True
+            },
+            {
+                'name': 'Premium',
+                'price': 'From $14.99',
+                'features': ['Up to 10kg', 'Next day delivery', '24/7 support'],
+                'popular': False
+            }
+        ]
+        return context
+
 def shipping_home(request):
-    recent_shipments = Shipment.objects.order_by('-created_at')[:5]
-    return render(request, 'shipping/home.html', {
-        'recent_shipments': recent_shipments
-    })
+    shipments = Shipment.objects.select_related('sender_address', 'recipient_address').order_by('-created_at')
+    return render(request, 'shipping/shipment_list.html', {'shipments': shipments})
 
 def create_shipment(request):
     if request.method == 'POST':
@@ -35,6 +62,16 @@ def create_shipment(request):
 def shipment_detail(request, pk):
     shipment = get_object_or_404(Shipment, pk=pk)
     return render(request, 'shipping/shipment_detail.html', {'shipment': shipment})
+
+def tracking_input_page(request):
+    if request.method == 'POST':
+        tracking_number = request.POST.get('tracking_number', '')
+        if tracking_number:
+            return redirect(reverse('shipping:tracking', kwargs={'tracking_number': tracking_number}))
+        else:
+            messages.error(request, 'Please enter a tracking number.')
+            return render(request, 'shipping/tracking_input_page.html')
+    return render(request, 'shipping/tracking_input_page.html')
 
 def tracking(request, tracking_number):
     try:
@@ -88,6 +125,33 @@ def generate_tracking_number():
     """Generate a unique tracking number"""
     import random
     import string
-    prefix = 'PMB-'
-    random_part = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
-    return prefix + random_part
+    prefix = 'PMB'
+    random_chars = ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
+    return f"{prefix}{random_chars}"
+
+def edit_address(request, pk):
+    """Edit an existing shipping address."""
+    address = get_object_or_404(ShippingAddress, pk=pk)
+    
+    if request.method == 'POST':
+        form = ShippingAddressForm(request.POST, instance=address)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Address updated successfully.')
+            return redirect('shipping:manage_addresses')
+    else:
+        form = ShippingAddressForm(instance=address)
+    
+    return render(request, 'shipping/edit_address.html', {
+        'form': form,
+        'address': address
+    })
+
+def delete_address(request, pk):
+    """Delete a shipping address."""
+    address = get_object_or_404(ShippingAddress, pk=pk)
+    if request.method == 'POST':
+        address.delete()
+        messages.success(request, 'Address deleted successfully.')
+        return redirect('shipping:manage_addresses')
+    return render(request, 'shipping/delete_address_confirm.html', {'address': address})
