@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>All Lockers</title>
+</head>
+<body>
+    <h1>All Assigned Lockers</h1>
+    <table border="1" cellpadding="10" style="margin: auto;">
+        <tr>
+            <th>Customer</th>
+            <th>Locker Code</th>
+            <th>Warehouse Address</th>
+        </tr>
+        {% for customer, code, address in lockers %}
+        <tr>
+            <td>{{ customer }}</td>
+            <td>{{ code }}</td>
+            <td>{{ address }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <br>
+    <div style="text-align: center;">
+        <a href="/">← Back to Form</a>
+    </div>
+</body>
+</html>

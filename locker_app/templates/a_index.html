@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Locker Assignment</title>
+    <style>
+        body { font-family: Arial; text-align: center; padding: 50px; }
+        input, button { padding: 10px; margin: 10px; }
+        .result {
+            background-color: #f0f0f0;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 10px;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <h1>Assign a Locker</h1>
+    <form method="POST">
+        <input type="text" name="customer_name" placeholder="Enter Customer Name" required>
+        <button type="submit">Assign Locker</button>
+    </form>
+
+    {% if locker %}
+    <div class="result">
+        <h2>Locker Assigned!</h2>
+        <p><strong>Customer:</strong> {{ locker.customer_name }}</p>
+        <p><strong>Locker Code:</strong> {{ locker.locker_code }}</p>
+        <p><strong>Warehouse Address:</strong> {{ locker.warehouse_address }}</p>
+    </div>
+    {% endif %}
+    <br><br>
+    <a href="/all">View All Lockers</a>
+</body>
+</html>
