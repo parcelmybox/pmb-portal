@@ -1,0 +1,4 @@
+Box Number,Item Type,Item Name,Weight,Quantity,Length,Width,Height,Fragile,Special Notes
+1,Glass,qwert,10,1,,,,Yes,
+1,Glass,546,15,1,,,,Yes,
+2,Glass,55,1,1,,,,No,

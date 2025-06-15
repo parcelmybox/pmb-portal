@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ParcelMyBox – Home</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Roboto Slab', serif;
+    }
+
+    body {
+      zoom: 133%;
+      background: #f7f7f7;
+      color: #111;
+    }
+
+    .wrapper {
+      width: 1440px;
+      height: 1024px;
+      margin: 0 auto;
+      overflow-x: hidden;
+      background: #f7f7f7;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: white;
+      padding: 15px 50px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .logo img {
+      height: 40px;
+    }
+
+    nav a {
+      margin-left: 25px;
+      text-decoration: none;
+      color: #111;
+      font-weight: 500;
+    }
+
+    .hero {
+      background: url('assets/hero.png') center/cover no-repeat;
+      color: white;
+      padding: 100px 50px;
+      text-align: left;
+      flex: 1;
+    }
+
+    .hero h1 {
+      font-size: 48px;
+      margin-bottom: 15px;
+    }
+
+    .hero p {
+      font-size: 18px;
+      margin-bottom: 30px;
+    }
+
+    .hero-buttons {
+      display: flex;
+      gap: 20px;
+    }
+
+    .hero-buttons a {
+      padding: 12px 24px;
+      font-size: 16px;
+      text-decoration: none;
+      border-radius: 5px;
+      border: 2px solid white;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      transition: 0.3s;
+    }
+
+    .hero-buttons a:hover {
+      background: white;
+      color: #111;
+    }
+
+    .features {
+      padding: 60px 50px;
+      text-align: center;
+      background: #fff;
+    }
+
+    .features h2 {
+      margin-bottom: 40px;
+    }
+
+    .feature-cards {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      flex-wrap: wrap;
+    }
+
+    .card {
+      background: #f8f9ff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      width: 280px;
+    }
+
+    .card i {
+      font-size: 32px;
+      margin-bottom: 15px;
+      color: #007BFF;
+    }
+
+    .card h4 {
+      margin-bottom: 10px;
+    }
+
+    footer {
+      background: #111827;
+      padding: 40px 0;
+      text-align: center;
+    }
+
+    footer img {
+      height: 40px;
+    }
+
+    @media (max-width: 768px) {
+      .wrapper {
+        width: 100%;
+        height: auto;
+      }
+
+      .hero h1 {
+        font-size: 32px;
+      }
+
+      .hero-buttons {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      
+
+      nav {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+
+    <!-- Header -->
+    <header>
+      <div class="logo">
+        <img src="assets/logo.png" alt="ParcelMyBox Logo" />
+      </div>
+      <nav>
+        <a href="home.html">Home</a>
+        <a href="book-order.html">Book Order</a>
+        <a href="pricing.html">Pricing & Info</a>
+        <a href="#">Track Shipment</a>
+      </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+      <h1>Ship Smart, <br>Ship Simple.</h1>
+      <p>Hassle-free courier solutions tailored for your needs.</p>
+      <div class="hero-buttons">
+        <a href="book-order.html">Book Order</a>
+        <a href="pricing.html">Info. & Pricing</a>
+      </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features">
+      <h2>Why Choose ParcelMyBox</h2>
+      <div class="feature-cards">
+        <div class="card">
+          <i class="fa-solid fa-truck-fast"></i>
+          <h4>Fast Delivery</h4>
+          <p>Same day, next day or economy delivery options – all with real-time tracking.</p>
+        </div>
+        <div class="card">
+          <i class="fa-solid fa-shield-halved"></i>
+          <h4>Secure Handling</h4>
+          <p>Special packaging for fragile items with insurance options to protect your shipment.</p>
+        </div>
+        <div class="card">
+          <i class="fa-solid fa-globe"></i>
+          <h4>Worldwide Reach</h4>
+          <p>We deliver to over 200 countries with easy-to-understand customs documentation.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+      <img src="assets/logo.png" alt="ParcelMyBox Footer Logo" />
+    </footer>
+
+  </div>
+</body>
+</html>
