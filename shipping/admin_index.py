@@ -1,3 +1,5 @@
+from datetime import datetime, time as datetime_time, timedelta, timezone as datetime_timezone
+import pytz
 from django.contrib import admin
 from django.contrib.admin.views.decorators import staff_member_required
 from django.utils import timezone
@@ -5,52 +7,396 @@ from django.template.response import TemplateResponse
 from django.db.models import Sum, Count, Q
 from django.shortcuts import render
 from django.contrib.auth import get_user_model
-from .models import Shipment
-# Import Bill model with absolute import to avoid circular imports
-from shipping.bill_models import Bill
+from .models import Shipment, Bill
+from django.db.models.functions import TruncDay
+
+# Define UTC timezone for database operations
+UTC = pytz.UTC
+
+# Define PST timezone (handles both PST and PDT)
+PACIFIC_TZ = pytz.timezone('America/Los_Angeles')
 
 User = get_user_model()
 
 def get_billing_stats():
-    print("\n" + "="*50)
+    print("\n" + "="*80)
     print("=== GET_BILLING_STATS CALLED ===")
-    print("="*50)
-    print("Current time:", timezone.now())
-    print("="*50)
+    print("="*80)
     
-    # Debug: Check if Bill model is imported correctly
-    print(f"Bill model: {Bill}")
-    print(f"Bill model __module__: {Bill.__module__}")
-    print(f"Bill model __name__: {Bill.__name__}")
-    
-    # Debug: Verify the database connection and table
-    from django.db import connection
-    print(f"Database connection: {connection.settings_dict['NAME']}")
-    
-    # Debug: List all tables in the database
-    tables = connection.introspection.table_names()
-    print(f"Database tables: {tables}")
-    
-    # Debug: Check if the bills table exists
-    bill_table_name = Bill._meta.db_table
-    print(f"Looking for bill table: {bill_table_name}")
-    
-    if bill_table_name not in tables:
-        print(f"ERROR: Table {bill_table_name} not found in database!")
-        return None
-    
-    # Debug: Check if there are any bills in the database
     try:
-        bill_count = Bill.objects.count()
-        print(f"Total bills in database: {bill_count}")
+        from django.db.models import Sum, Count, Q, F, DecimalField
+        from django.db.models.functions import Coalesce, TruncDate
+        from django.db import connection
+        import json
         
-        # Print first few bills for debugging
-        if bill_count > 0:
-            print("Sample bills:")
-            for bill in Bill.objects.all()[:3]:
-                print(f"- ID: {bill.id}, Amount: {bill.amount}, Status: {bill.status}, Created: {bill.created_at}")
+        # Get current time in PST
+        current_time = timezone.now()
+        pst_now = current_time.astimezone(PACIFIC_TZ)
+        today = pst_now.date()
+        
+        # Calculate date ranges in PST
+        yesterday = today - timedelta(days=1)
+        last_week = today - timedelta(days=7)
+        
+        print(f"Current time (UTC): {current_time}")
+        print(f"Current time (PST): {pst_now}")
+        print(f"Current date (PST): {today}")
+        print(f"Current timezone: {PACIFIC_TZ.zone}")
+        print("-"*80)
+        
+        # Debug: Check database connection and tables
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
+            tables = cursor.fetchall()
+            print("\nDatabase tables:", [t[0] for t in tables])
+            
+            # Check if shipping_bill table exists
+            cursor.execute("SELECT * FROM sqlite_master WHERE type='table' AND name='shipping_bill'")
+            bill_table = cursor.fetchone()
+            
+            if bill_table:
+                print("\nBill table structure:")
+                cursor.execute("PRAGMA table_info(shipping_bill)")
+                print([col[1] for col in cursor.fetchall()])
+                
+                # Get raw bill data
+                cursor.execute("SELECT id, status, amount, created_at, due_date FROM shipping_bill")
+                raw_bills = cursor.fetchall()
+                print(f"\nFound {len(raw_bills)} raw bills in database:")
+                for bill in raw_bills:
+                    print(f"- ID: {bill[0]}, Status: {bill[1]}, Amount: ${bill[2]}, Created: {bill[3]}, Due: {bill[4]}")
+            else:
+                print("\nERROR: shipping_bill table not found in database!")
+        
+        # Get all bills with customer details using Django ORM
+        bills = Bill.objects.all().select_related('customer')
+        total_bills = bills.count()
+        
+        print(f"\nTotal bills via ORM: {total_bills}")
+        print("All bill IDs:", [bill.id for bill in bills])
+        print("All customer IDs:", [bill.customer_id for bill in bills])
+        print("Unique customer IDs:", set(bill.customer_id for bill in bills))
+        
+        if total_bills == 0:
+            print("No bills found via ORM. This might indicate a database connection issue.")
+            # Try to create a test bill to verify database connection
+            try:
+                from django.contrib.auth import get_user_model
+                User = get_user_model()
+                test_user = User.objects.first()
+                if test_user:
+                    print("Creating test bill...")
+                    test_bill = Bill.objects.create(
+                        customer=test_user,
+                        amount=100.00,
+                        status='PENDING',
+                        due_date=timezone.now().date() + timedelta(days=7)
+                    )
+                    print(f"Created test bill ID: {test_bill.id}")
+                    bills = Bill.objects.all()
+                    total_bills = bills.count()
+            except Exception as e:
+                print(f"Error creating test bill: {str(e)}")
+            
+            return {
+                'todays_revenue': 0,
+                'total_revenue': 0,
+                'pending_bills': 0,
+                'overdue_bills': 0,
+                'revenue_change': 0,
+                'pending_percentage': 0,
+                'recent_bills': [],
+                'total_bills': 0,
+                'today': today.strftime('%b %d, %Y'),
+                'debug': 'No bills found in database',
+                'tables': [t[0] for t in tables] if 'tables' in locals() else []
+            }
+        
+        # Get today's range in PST
+        today_start = PACIFIC_TZ.localize(datetime.combine(today, datetime_time.min))
+        today_end = today_start + timedelta(days=1)
+        
+        print(f"Today's range (PST): {today_start} to {today_end}")
+        
+        # Convert to UTC for database query
+        today_start_utc = today_start.astimezone(UTC)
+        today_end_utc = today_end.astimezone(UTC)
+        
+        print(f"Today's range (UTC): {today_start_utc} to {today_end_utc}")
+        
+        # Get bills created today
+        today_bills = bills.filter(created_at__gte=today_start_utc, created_at__lt=today_end_utc)
+        print(f"Found {today_bills.count()} bills for today")
+        
+        # Debug: Print the actual created_at times of bills
+        print("\nBill creation times (UTC):")
+        for bill in bills.order_by('-created_at')[:5]:
+            print(f"- Bill {bill.id}: {bill.created_at} (PST: {bill.created_at.astimezone(PACIFIC_TZ)}), Status: {bill.status}, Amount: ${bill.amount}")
+        
+        # Ensure we're using Decimal for amount aggregation
+        from decimal import Decimal
+        today_revenue = today_bills.aggregate(
+            total=Coalesce(Sum('amount', output_field=DecimalField()), Decimal('0')))['total']
+        print(f"Today's revenue: ${today_revenue}")
+        
+        # Get yesterday's range in PST
+        yesterday_start = PACIFIC_TZ.localize(datetime.combine(yesterday, datetime_time.min))
+        yesterday_end = yesterday_start + timedelta(days=1)
+        
+        # Convert to UTC for database query
+        yesterday_start_utc = yesterday_start.astimezone(UTC)
+        yesterday_end_utc = yesterday_end.astimezone(UTC)
+        
+        # Get yesterday's revenue for comparison
+        yesterday_revenue = bills.filter(
+            created_at__gte=yesterday_start_utc,
+            created_at__lt=yesterday_end_utc
+        ).aggregate(total=Coalesce(Sum('amount', output_field=DecimalField()), Decimal('0')))['total']
+        
+        # Calculate revenue change percentage
+        revenue_change = 0
+        if yesterday_revenue > 0:
+            revenue_change = ((today_revenue - yesterday_revenue) / yesterday_revenue) * 100
+        
+        # Get total revenue
+        total_revenue = bills.aggregate(
+            total=Coalesce(Sum('amount', output_field=DecimalField()), Decimal('0')))['total']
+        
+        # Get pending and overdue bills
+        pending_bills = bills.filter(status='PENDING').count()
+        overdue_bills = bills.filter(
+            Q(status='PENDING', due_date__lt=today) | 
+            Q(status='OVERDUE')
+        ).distinct().count()
+        
+        # Calculate pending percentage
+        pending_percentage = (pending_bills / total_bills * 100) if total_bills > 0 else 0
+        
+        # Get recent bills for the table (last 10)
+        recent_bills = list(bills.order_by('-created_at')[:10])
+        
+        # Debug: Print recent bills
+        print("\nRecent Bills:")
+        for bill in recent_bills:
+            print(f"- ID: {bill.id}, Status: {bill.status}, Amount: ${bill.amount}, Created: {bill.created_at.astimezone(PACIFIC_TZ)}")
+        
+        # Get additional stats
+        todays_orders = today_bills.count()
+        total_customers = bills.values('customer').distinct().count()
+        unpaid_bills = bills.filter(status__in=['PENDING', 'OVERDUE']).count()
+        
+        # Format the data for the template
+        stats = {
+            'todays_revenue': round(float(today_revenue), 2),
+            'total_revenue': round(float(total_revenue), 2),
+            'pending_bills': pending_bills,
+            'overdue_bills': overdue_bills,
+            'revenue_change': round(revenue_change, 2),
+            'pending_percentage': round(pending_percentage, 2),
+            'recent_bills': recent_bills,
+            'total_bills': total_bills,
+            'today': today.strftime('%b %d, %Y'),
+            'todays_orders': todays_orders,
+            'total_customers': total_customers,
+            'unpaid_bills': unpaid_bills
+        }
+        
+        print("\n=== BILLING STATS ===")
+        print(f"Today's Revenue: ${stats['todays_revenue']}")
+        print(f"Total Revenue: ${stats['total_revenue']}")
+        print(f"Total Bills: {stats['total_bills']}")
+        print(f"Pending Bills: {stats['pending_bills']}")
+        print(f"Overdue Bills: {stats['overdue_bills']}")
+        print(f"Revenue Change: {stats['revenue_change']}%")
+        print(f"Pending Percentage: {stats['pending_percentage']}%")
+        print(f"Today's Orders: {stats['todays_orders']}")
+        print(f"Total Customers: {stats['total_customers']}")
+        print(f"Unpaid Bills: {stats['unpaid_bills']}")
+        print("====================\n")
+        
+        return stats
+        
     except Exception as e:
-        print(f"Error counting bills: {e}")
+        import traceback
+        print(f"Error in get_billing_stats: {str(e)}")
+        print(traceback.format_exc())
+        # Return default values in case of error
+        return {
+            'todays_revenue': 0,
+            'total_revenue': 0,
+            'pending_bills': 0,
+            'overdue_bills': 0,
+            'revenue_change': 0,
+            'pending_percentage': 0,
+            'recent_bills': [],
+            'total_bills': 0,
+            'today': timezone.now().astimezone(PACIFIC_TZ).strftime('%b %d, %Y')
+        }
+        recent_bills = bills.order_by('-created_at')[:10]  # Show only 10 most recent for brevity
+        print(f"Total bills in DB: {bills.count()}")
+        print(f"Bill status distribution: {bills.values('status').annotate(count=Count('id')).order_by('-count')}")
+        
+        for bill in recent_bills:
+            created_pst = bill.created_at.astimezone(PACIFIC_TZ)
+            is_today = created_pst.date() == today
+            is_yesterday = created_pst.date() == yesterday
+            print(f"\nBill ID: {bill.id}")
+            print(f"  Status: {bill.status}")
+            print(f"  Amount: {bill.amount}")
+            print(f"  Created (UTC): {bill.created_at}")
+            print(f"  Created (PST): {created_pst}")
+            print(f"  Is Paid: {bill.is_paid}")
+            print(f"  Is Today: {is_today}")
+            print(f"  Is Yesterday: {is_yesterday}")
+            print(f"  Due Date: {getattr(bill, 'due_date', 'N/A')}")
+        
+        # Calculate today's revenue and orders with timezone-aware comparison
+        print(f"\n=== TODAY'S BILLS (PST Date: {today}) ===")
+        
+        # Get today's range in PST
+        today_start = PACIFIC_TZ.localize(datetime.combine(today, datetime_time.min))
+        today_end = today_start + timedelta(days=1)
+        
+        # Convert to UTC for database query
+        today_start_utc = today_start.astimezone(timezone.utc)
+        today_end_utc = today_end.astimezone(timezone.utc)
+        
+        print(f"Today range (PST): {today_start} to {today_end}")
+        print(f"Today range (UTC): {today_start_utc} to {today_end_utc}")
+        
+        # Get bills created today using Django ORM with timezone-aware filtering
+        today_bills = bills.filter(
+            created_at__gte=today_start_utc,
+            created_at__lt=today_end_utc
+        )
+        print(f"\nFound {today_bills.count()} bills for today using ORM filtering")
+        
+        # Debug: Show the actual SQL query being executed
+        print(f"SQL Query: {str(today_bills.query)}")
+        
+        # Print the bills that were found for today
+        if today_bills.exists():
+            print("\nToday's bills:")
+            for bill in today_bills:
+                created_pst = bill.created_at.astimezone(PACIFIC_TZ)
+                print(f"- ID: {bill.id}, Status: {bill.status}, Amount: {bill.amount}, Created (PST): {created_pst}")
+        else:
+            print("No bills found for today. Checking for any bills in the database...")
+            # Check if there are any bills at all
+            if bills.exists():
+                latest_bill = bills.latest('created_at')
+                latest_pst = latest_bill.created_at.astimezone(PACIFIC_TZ)
+                print(f"Latest bill in DB: ID {latest_bill.id}, Created (PST): {latest_pst}, Status: {latest_bill.status}")
+            else:
+                print("No bills found in the database at all.")
+        
+        paid_today_bills = today_bills.filter(status__iexact='PAID')  # Case-insensitive match
+        print(f"Found {paid_today_bills.count()} PAID bills today")
+        
+        # Debug: Print all statuses in today's bills
+        print("\nStatus counts in today's bills:")
+        status_counts = today_bills.values('status').annotate(count=Count('id')).order_by('-count')
+        for stat in status_counts:
+            print(f"- {stat['status']}: {stat['count']}")
+        
+        today_revenue = paid_today_bills.aggregate(
+            total=Coalesce(Sum('amount'), 0, output_field=DecimalField())
+        )['total'] or 0
+        today_orders = today_bills.count()
+        
+        print(f"Today's revenue: {today_revenue}")
+        print(f"Today's orders: {today_orders}")
+        
+        # Calculate yesterday's revenue with timezone-aware comparison
+        print(f"\n=== YESTERDAY'S BILLS (Local Date: {yesterday}) ===")
+        
+        # Get yesterday's range in PST
+        yesterday_start = PACIFIC_TZ.localize(datetime.combine(yesterday, datetime_time.min))
+        yesterday_end = yesterday_start + timedelta(days=1)
+        
+        # Get yesterday's bills using Django ORM with timezone-aware filtering
+        yesterday_bills = bills.filter(
+            created_at__gte=yesterday_start.astimezone(timezone.utc),
+            created_at__lt=yesterday_end.astimezone(timezone.utc)
+        )
+        print(f"\nFound {yesterday_bills.count()} bills for yesterday using ORM filtering")
+        
+        paid_yesterday_bills = yesterday_bills.filter(status='PAID')
+        print(f"Found {paid_yesterday_bills.count()} PAID bills yesterday")
+        
+        yesterday_revenue = paid_yesterday_bills.aggregate(
+            total=Coalesce(Sum('amount'), 0, output_field=DecimalField())
+        )['total'] or 0
+        
+        print(f"Yesterday's revenue: {yesterday_revenue}")
+        
+        # Calculate revenue change percentage
+        if yesterday_revenue > 0:
+            revenue_change = ((today_revenue - yesterday_revenue) / yesterday_revenue) * 100
+        else:
+            revenue_change = 100.0 if today_revenue > 0 else 0.0
+        
+        # Calculate order change
+        yesterday_orders = yesterday_bills.count()
+        order_change = ((today_orders - yesterday_orders) / yesterday_orders * 100) if yesterday_orders > 0 else (100.0 if today_orders > 0 else 0.0)
+        
+        # Calculate stats
+        total_revenue = bills.filter(status='PAID').aggregate(
+            total=Coalesce(Sum('amount'), 0, output_field=DecimalField())
+        )['total'] or 0
+        
+        # Count bills by status
+        status_counts = bills.values('status').annotate(count=Count('id'))
+        status_dict = {item['status']: item['count'] for item in status_counts}
+        
+        # Calculate pending bills (status is PENDING or DRAFT)
+        pending_bills = status_dict.get('PENDING', 0) + status_dict.get('DRAFT', 0)
+        
+        # Calculate overdue bills
+        overdue_bills = bills.filter(
+            status__in=['PENDING', 'OVERDUE'],
+            due_date__lt=today
+        ).count()
+        
+        # Calculate pending percentage
+        total_bills = bills.count()
+        pending_percentage = round((pending_bills / total_bills * 100) if total_bills > 0 else 0, 1)
+        
+        # Get total number of customers
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        total_customers = User.objects.filter(is_staff=False).count()
+        
+        # Get unpaid bills (PENDING and OVERDUE statuses)
+        unpaid_bills = bills.filter(status__in=['PENDING', 'OVERDUE']).count()
+        
+        # Prepare the result
+        result = {
+            'todays_revenue': float(today_revenue),
+            'total_revenue': float(total_revenue),
+            'pending_bills': pending_bills,
+            'overdue_bills': overdue_bills,
+            'todays_orders': today_orders,
+            'revenue_change': round(revenue_change, 1),
+            'order_change': round(order_change, 1),
+            'pending_percentage': pending_percentage,
+            'total_customers': total_customers,
+            'unpaid_bills': unpaid_bills,
+            'pending_shipments': 0  # Placeholder for future implementation
+        }
+        
+        print("\n=== Billing Stats ===")
+        for key, value in result.items():
+            print(f"{key}: {value}")
+        print("====================\n")
+        
+        return result
+        
+    except Exception as e:
+        import traceback
+        print(f"Error in get_billing_stats: {str(e)}")
+        print(traceback.format_exc())
+        return None
         import traceback
         traceback.print_exc()
         return None
@@ -245,13 +591,25 @@ class CustomAdminSite(admin.AdminSite):
         context = {}
         context.update(admin.site.each_context(request))
         
+        # Get billing stats
+        billing_stats = get_billing_stats() or {}
+        
+        # Add default values if stats are empty
+        billing_stats.setdefault('todays_revenue', 0)
+        billing_stats.setdefault('total_revenue', 0)
+        billing_stats.setdefault('pending_bills', 0)
+        billing_stats.setdefault('overdue_bills', 0)
+        billing_stats.setdefault('revenue_change', 0)
+        billing_stats.setdefault('order_change', 0)
+        billing_stats.setdefault('pending_percentage', 0)
+        
         # Add billing stats to the context
-        billing_stats = get_billing_stats()
-        if billing_stats:
-            context['billing_stats'] = billing_stats
+        context['billing_stats'] = billing_stats
         
         # Add app list to the context
         app_list = self.get_app_list(request)
+        
+        # Update context with required variables
         context.update({
             'title': 'Dashboard',
             'app_list': app_list,
@@ -261,6 +619,11 @@ class CustomAdminSite(admin.AdminSite):
             'available_apps': app_list,
             **(extra_context or {}),
         })
+        
+        # Debug: Print context to console
+        print("\n=== DEBUG: Admin Index Context ===")
+        print(f"Billing Stats: {billing_stats}")
+        print("==============================\n")
         
         # Use the custom template
         return TemplateResponse(request, 'admin/index.html', context)

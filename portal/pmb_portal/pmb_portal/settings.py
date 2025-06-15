@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'shipping',
 ]
 
 MIDDLEWARE = [
@@ -62,6 +63,11 @@ ROOT_URLCONF = 'pmb_portal.urls'
 # Site URL for absolute URLs in emails and other places
 SITE_URL = 'http://127.0.0.1:8000'
 
+# Authentication backends
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+]
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -69,10 +75,14 @@ TEMPLATES = [
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
+                'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'shipping.context_processors.admin_site_info',
+            ],
+            'builtins': [
+                'django.templatetags.static',
             ],
         },
     },
@@ -110,6 +120,13 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+
+# Session Configuration
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # Using database-backed sessions
+SESSION_COOKIE_AGE = 1209600  # 2 weeks in seconds
+SESSION_COOKIE_SECURE = False  # Set to True in production with HTTPS
+SESSION_COOKIE_HTTPONLY = True
+SESSION_SAVE_EVERY_REQUEST = True
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/

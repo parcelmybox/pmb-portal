@@ -1,0 +1,323 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Edit Invoice #{{ invoice.id }} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'shipping:shipping_home' %}">Shipping</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'shipping:invoice_list' %}">Invoices</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'shipping:invoice_detail' invoice_id=invoice.id %}">Invoice #{{ invoice.id }}</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Edit</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2>Edit Invoice #{{ invoice.id }}</h2>
+                <span class="badge bg-{{ invoice.get_status_badge }}">
+                    {{ invoice.get_status_display|title }}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <form method="post" class="needs-validation" novalidate>
+                {% csrf_token %}
+                
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {% for error in form.non_field_errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <div class="row">
+                    <!-- Left Column -->
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="{{ form.customer.id_for_label }}" class="form-label">Customer</label>
+                            {{ form.customer }}
+                            <div class="invalid-feedback">
+                                {{ form.customer.errors }}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.shipment.id_for_label }}" class="form-label">Shipment</label>
+                            {{ form.shipment }}
+                            <div class="invalid-feedback">
+                                {{ form.shipment.errors }}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.status.id_for_label }}" class="form-label">Status</label>
+                            {{ form.status }}
+                            <div class="invalid-feedback">
+                                {{ form.status.errors }}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.due_date.id_for_label }}" class="form-label">Due Date</label>
+                                    {{ form.due_date }}
+                                    <div class="invalid-feedback">
+                                        {{ form.due_date.errors }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.payment_method.id_for_label }}" class="form-label">Payment Method</label>
+                                    {{ form.payment_method }}
+                                    <div class="invalid-feedback">
+                                        {{ form.payment_method.errors }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column -->
+                    <div class="col-md-6">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.amount.id_for_label }}" class="form-label">Amount</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        {{ form.amount }}
+                                    </div>
+                                    <div class="invalid-feedback">
+                                        {{ form.amount.errors }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.tax_rate.id_for_label }}" class="form-label">Tax Rate (%)</label>
+                                    {{ form.tax_rate }}
+                                    <div class="invalid-feedback">
+                                        {{ form.tax_rate.errors }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.tax_amount.id_for_label }}" class="form-label">Tax Amount</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        {{ form.tax_amount }}
+                                    </div>
+                                    <div class="invalid-feedback">
+                                        {{ form.tax_amount.errors }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.total_amount.id_for_label }}" class="form-label">Total Amount</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        {{ form.total_amount }}
+                                    </div>
+                                    <div class="invalid-feedback">
+                                        {{ form.total_amount.errors }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.payment_date.id_for_label }}" class="form-label">Payment Date</label>
+                            {{ form.payment_date }}
+                            <div class="invalid-feedback">
+                                {{ form.payment_date.errors }}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.transaction_id.id_for_label }}" class="form-label">Transaction ID</label>
+                            {{ form.transaction_id }}
+                            <div class="invalid-feedback">
+                                {{ form.transaction_id.errors }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-12">
+                        <div class="mb-3">
+                            <label for="{{ form.notes.id_for_label }}" class="form-label">Notes</label>
+                            {{ form.notes }}
+                            <div class="invalid-feedback">
+                                {{ form.notes.errors }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="{% url 'shipping:invoice_detail' invoice_id=invoice.id %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Cancel
+                    </a>
+                    <div class="btn-group">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Save Changes
+                        </button>
+                        {% if invoice.status != 'paid' %}
+                        <a href="{% url 'shipping:update_invoice_status' invoice_id=invoice.id %}?status=paid" class="btn btn-success">
+                            <i class="fas fa-check-circle me-2"></i>Mark as Paid
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Add Bootstrap Datepicker -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+    // Initialize date pickers
+    document.addEventListener('DOMContentLoaded', function() {
+        // Date picker for due date
+        flatpickr('#id_due_date', {
+            dateFormat: 'Y-m-d',
+            allowInput: true
+        });
+
+        // Date picker for payment date (if field exists)
+        if (document.getElementById('id_payment_date')) {
+            flatpickr('#id_payment_date', {
+                dateFormat: 'Y-m-d',
+                allowInput: true,
+                allowEmpty: true
+            });
+        }
+
+        // Auto-calculate tax and total when amount or tax rate changes
+        const amountField = document.getElementById('id_amount');
+        const taxRateField = document.getElementById('id_tax_rate');
+        const taxAmountField = document.getElementById('id_tax_amount');
+        const totalAmountField = document.getElementById('id_total_amount');
+
+        function calculateTotals() {
+            const amount = parseFloat(amountField.value) || 0;
+            const taxRate = parseFloat(taxRateField.value) || 0;
+            const taxAmount = (amount * taxRate) / 100;
+            const totalAmount = amount + taxAmount;
+
+            taxAmountField.value = taxAmount.toFixed(2);
+            totalAmountField.value = totalAmount.toFixed(2);
+        }
+
+        if (amountField && taxRateField && taxAmountField && totalAmountField) {
+            amountField.addEventListener('change', calculateTotals);
+            taxRateField.addEventListener('change', calculateTotals);
+            
+            // Initial calculation
+            calculateTotals();
+        }
+    });
+</script>
+
+<style>
+    /* Custom styles for the form */
+    .form-control:disabled, .form-control[readonly] {
+        background-color: #e9ecef;
+        opacity: 1;
+    }
+    
+    /* Make form controls look consistent */
+    .form-select, .form-control {
+        padding: 0.375rem 0.75rem;
+    }
+    
+    /* Style the notes textarea */
+    textarea.form-control {
+        min-height: 100px;
+    }
+    
+    /* Style the form labels */
+    .form-label {
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+    }
+    
+    /* Style the card */
+    .card {
+        border: none;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+    
+    .card-body {
+        padding: 1.5rem;
+    }
+    
+    /* Style the breadcrumb */
+    .breadcrumb {
+        background-color: transparent;
+        padding: 0.5rem 0;
+        margin-bottom: 1rem;
+    }
+    
+    .breadcrumb-item a {
+        color: #6c757d;
+        text-decoration: none;
+    }
+    
+    .breadcrumb-item.active {
+        color: #0d6efd;
+        font-weight: 500;
+    }
+    
+    /* Style the status badge */
+    .badge {
+        font-size: 0.875rem;
+        font-weight: 500;
+        padding: 0.35em 0.65em;
+    }
+    
+    /* Style the buttons */
+    .btn {
+        padding: 0.375rem 0.75rem;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 767.98px) {
+        .btn-group {
+            width: 100%;
+            flex-direction: column;
+        }
+        
+        .btn-group .btn {
+            width: 100%;
+            margin-bottom: 0.5rem;
+        }
+        
+        .btn-group .btn:last-child {
+            margin-bottom: 0;
+        }
+    }
+</style>
+{% endblock %}

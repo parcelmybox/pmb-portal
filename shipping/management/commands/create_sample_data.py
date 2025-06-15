@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 from shipping.models import ShippingAddress
-from shipping.bill_models import Bill
+from shipping.models import Bill
 from django.utils import timezone
 
 class Command(BaseCommand):

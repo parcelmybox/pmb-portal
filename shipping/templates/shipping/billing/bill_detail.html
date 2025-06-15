@@ -65,16 +65,6 @@
                     <dt class="col-sm-3">Created</dt>
                     <dd class="col-sm-9">{{ bill.created_at|date:"F j, Y H:i" }}</dd>
 
-                    {% if bill.due_date %}
-                    <dt class="col-sm-3">Due Date</dt>
-                    <dd class="col-sm-9">
-                        {{ bill.due_date|date:"F j, Y" }}
-                        {% if bill.is_overdue %}
-                        <span class="badge bg-danger ms-2">Overdue</span>
-                        {% endif %}
-                    </dd>
-                    {% endif %}
-
                     {% if bill.paid_at %}
                     <dt class="col-sm-3">Paid On</dt>
                     <dd class="col-sm-9">{{ bill.paid_at|date:"F j, Y H:i" }}</dd>

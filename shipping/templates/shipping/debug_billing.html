@@ -1,0 +1,95 @@
+{% extends "admin/base_site.html" %}
+{% load humanize %}
+
+{% block title %}Billing Debug{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1>Billing Debug Information</h1>
+    
+    <div class="card mb-4">
+        <div class="card-header">
+            <h2>Current Time</h2>
+        </div>
+        <div class="card-body">
+            <p><strong>UTC Time:</strong> {{ current_time_utc }}</p>
+            <p><strong>PST Time:</strong> {{ current_time_pst }}</p>
+            <p><strong>Today (PST):</strong> {{ today }}</p>
+        </div>
+    </div>
+    
+    <div class="card mb-4">
+        <div class="card-header">
+            <h2>Billing Summary</h2>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="card text-white bg-primary mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">Total Bills</h5>
+                            <p class="card-text display-4">{{ total_bills }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-white bg-success mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">Today's Bills</h5>
+                            <p class="card-text display-4">{{ today_bills_count }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-white bg-info mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">Today's Revenue</h5>
+                            <p class="card-text display-4">${{ today_revenue|floatformat:2 }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-header">
+            <h2>All Bills</h2>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Created (UTC)</th>
+                            <th>Created (PST)</th>
+                            <th>Status</th>
+                            <th>Amount</th>
+                            <th>Is Today</th>
+                            <th>Is Paid</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for bill in bills %}
+                        <tr class="{% if bill.is_today %}table-info{% endif %}">
+                            <td>{{ bill.id }}</td>
+                            <td>{{ bill.created_utc }}</td>
+                            <td>{{ bill.created_pst }}</td>
+                            <td>
+                                <span class="badge {% if bill.status == 'PAID' %}bg-success{% else %}bg-warning{% endif %}">
+                                    {{ bill.status }}
+                                </span>
+                            </td>
+                            <td>${{ bill.amount|floatformat:2 }}</td>
+                            <td>{% if bill.is_today %}✅{% else %}❌{% endif %}</td>
+                            <td>{% if bill.is_paid %}✅{% else %}❌{% endif %}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

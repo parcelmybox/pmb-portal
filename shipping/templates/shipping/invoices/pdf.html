@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>INVOICE #{{ invoice.id }} - PARCELMYBOX</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 1cm 1.5cm 1.5cm 1.5cm;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 9px;
+            line-height: 1.2;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 100%;
+            max-width: 100%;
+            margin: 0 auto;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #eee;
+        }
+        .company-info {
+            width: 60%;
+        }
+        .company-name {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 3px;
+            color: #2c3e50;
+        }
+        .company-details {
+            font-size: 9px;
+            color: #666;
+            line-height: 1.3;
+        }
+        .invoice-info {
+            width: 40%;
+            text-align: right;
+        }
+        .invoice-number {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 3px;
+            color: #2c3e50;
+        }
+        .invoice-date {
+            font-size: 9px;
+            margin-bottom: 2px;
+            color: #666;
+        }
+        .status {
+            display: inline-block;
+            padding: 1px 6px;
+            background-color: #2c3e50;
+            color: #fff;
+            font-size: 9px;
+            font-weight: 600;
+            text-transform: uppercase;
+            border-radius: 2px;
+        }
+        .address-section {
+            display: flex;
+            margin: 10px 0;
+            gap: 10px;
+        }
+        .address-box {
+            flex: 1;
+            font-size: 9px;
+            line-height: 1.4;
+        }
+        .address-box h3 {
+            font-size: 9px;
+            margin: 0 0 3px 0;
+            padding-bottom: 2px;
+            border-bottom: 1px solid #eee;
+            text-transform: uppercase;
+            color: #555;
+        }
+        .address-content {
+            font-size: 9px;
+            line-height: 1.4;
+            color: #444;
+        }
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 5px 0;
+            font-size: 8px;
+        }
+        .items-table th {
+            text-align: left;
+            padding: 3px 0;
+            font-weight: 600;
+            color: #444;
+            text-transform: uppercase;
+            font-size: 7px;
+            border-bottom: 1px solid #eee;
+        }
+        .items-table td {
+            padding: 2px 0;
+            vertical-align: top;
+            font-size: 8px;
+            border-bottom: 1px solid #f5f5f5;
+        }
+        .text-right {
+            text-align: right;
+        }
+        .text-center {
+            text-align: center;
+        }
+        .totals {
+            float: right;
+            width: 180px;
+            margin: 5px 0;
+        }
+        .totals table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .totals td {
+            padding: 3px 0;
+            font-size: 9px;
+            border-bottom: 1px solid #f5f5f5;
+        }
+        .totals .label {
+            font-weight: 600;
+            text-align: right;
+            padding-right: 10px;
+        }
+        .footer {
+            margin-top: 10px;
+            padding-top: 5px;
+            font-size: 7px;
+            color: #777;
+            border-top: 1px solid #eee;
+            text-align: center;
+            line-height: 1.2;
+        }
+        .summary {
+            margin: 15px 0;
+            font-size: 9px;
+            color: #444;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="company-info">
+                <div class="company-name">PARCELMYBOX</div>
+                <div class="company-details">
+                    123 Shipping Street, New York, NY 10001 • (123) 456-7890 • info@parcelmybox.com
+                </div>
+            </div>
+            <div class="invoice-info">
+                <div class="invoice-number">INVOICE #{{ invoice.id|stringformat:"05d" }}</div>
+                <div class="invoice-date">{{ invoice.created_at|date:"M d, Y" }} • Due: {{ invoice.due_date|default:invoice.created_at|date:"M d, Y" }}</div>
+                <div class="status">{{ invoice.get_status_display|upper }}</div>
+            </div>
+        </div>
+        
+        <!-- Address Section -->
+        <div class="address-section">
+            <div style="flex: 1;">
+                <h3>Bill To</h3>
+                <div class="address-content">
+                    <strong>{{ invoice.shipment.sender_address.first_name }} {{ invoice.shipment.sender_address.last_name }}</strong><br>
+                    {% if invoice.shipment.sender_address.company_name %}
+                        {{ invoice.shipment.sender_address.company_name }}<br>
+                    {% endif %}
+                    {{ invoice.shipment.sender_address.address_line1 }}<br>
+                    {% if invoice.shipment.sender_address.address_line2 %}
+                        {{ invoice.shipment.sender_address.address_line2 }}<br>
+                    {% endif %}
+                    {{ invoice.shipment.sender_address.city }}, {{ invoice.shipment.sender_address.state }} {{ invoice.shipment.sender_address.postal_code }}<br>
+                    {{ invoice.shipment.sender_address.get_country_display }}
+                </div>
+            </div>
+            
+            <div style="flex: 1;">
+                <h3>Ship To</h3>
+                <div class="address-content">
+                    <strong>{{ invoice.shipment.recipient_address.first_name }} {{ invoice.shipment.recipient_address.last_name }}</strong><br>
+                    {% if invoice.shipment.recipient_address.company_name %}
+                        {{ invoice.shipment.recipient_address.company_name }}<br>
+                    {% endif %}
+                    {{ invoice.shipment.recipient_address.address_line1 }}<br>
+                    {% if invoice.shipment.recipient_address.address_line2 %}
+                        {{ invoice.shipment.recipient_address.address_line2 }}<br>
+                    {% endif %}
+                    {{ invoice.shipment.recipient_address.city }}, {{ invoice.shipment.recipient_address.state }} {{ invoice.shipment.recipient_address.postal_code }}<br>
+                    {{ invoice.shipment.recipient_address.get_country_display }}
+                </div>
+            </div>
+            
+            <div style="flex: 1;">
+                <h3>Shipment Details</h3>
+                <div class="address-content">
+                    <strong>Tracking #:</strong> {{ invoice.shipment.tracking_number|default:"N/A" }}<br>
+                    <strong>Shipped:</strong> {{ invoice.shipment.shipping_date|date:"M d, Y"|default:"N/A" }}<br>
+                    <strong>Status:</strong> {{ invoice.shipment.get_status_display }}<br>
+                    <strong>Method:</strong> {{ invoice.shipment.get_shipping_method_display|default:"Standard" }}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Summary Info -->
+        <div class="summary">
+            <div><strong>Payment Terms:</strong> Net {{ invoice.terms_net_days|default:30 }} days</div>
+            <div><strong>Due Date:</strong> {{ invoice.due_date|default:invoice.created_at|date:"M d, Y" }}</div>
+        </div>
+        
+        <!-- Invoice Items -->
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th style="width: 5%;">#</th>
+                    <th style="width: 55%;">Description</th>
+                    <th style="width: 15%; text-align: right;">Rate</th>
+                    <th style="width: 10%; text-align: center;">Qty</th>
+                    <th style="width: 15%; text-align: right;">Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in invoice.items.all %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>
+                        <strong>{{ item.description }}</strong>
+                        {% if item.details %}<br><small>{{ item.details }}</small>{% endif %}
+                    </td>
+                    <td class="text-right">${{ item.rate|floatformat:2 }}</td>
+                    <td class="text-center">{{ item.quantity }}</td>
+                    <td class="text-right">${{ item.amount|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        <!-- Totals -->
+        <div style="clear: both;">
+            <div class="totals">
+                <table>
+                    <tr>
+                        <td class="label">Subtotal:</td>
+                        <td class="text-right">${{ invoice.amount|floatformat:2 }}</td>
+                    </tr>
+                    {% if invoice.tax_amount %}
+                    <tr>
+                        <td class="label">Tax ({{ invoice.tax_rate }}%):</td>
+                        <td class="text-right">${{ invoice.tax_amount|floatformat:2 }}</td>
+                    </tr>
+                    {% endif %}
+                    {% if invoice.discount_amount %}
+                    <tr>
+                        <td class="label">Discount:</td>
+                        <td class="text-right">- ${{ invoice.discount_amount|floatformat:2 }}</td>
+                    </tr>
+                    {% endif %}
+                    <tr>
+                        <td class="label">Shipping:</td>
+                        <td class="text-right">${{ invoice.amount|default:"0.00"|floatformat:2 }}</td>
+                    </tr>
+                    <tr>
+                        <td class="label"><strong>Total:</strong></td>
+                        <td class="text-right"><strong>${{ invoice.total_amount|floatformat:2 }}</strong></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Payment Information -->
+        <div style="margin: 5px 0 15px; font-size: 8px; line-height: 1.2;">
+            <h3 style="margin: 0 0 6px 0; font-size: 8px; color: #2c3e50; text-transform: uppercase; letter-spacing: 0.3px;">
+                Payment Methods
+            </h3>
+            
+            <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 8px;">
+                <div style="display: flex; align-items: center; gap: 5px;">
+                    <img src="https://www.zellepay.com/sites/default/files/2021-07/zelle-logo-color-1x.png" alt="Zelle" style="height: 12px; width: auto;">
+                    <span>Zelle:</span>
+                </div>
+                <div style="flex: 1;">
+                    <strong>pay@parcelmybox.com</strong>
+                    <span style="color: #666; margin-left: 5px; font-style: italic;">(Include invoice #{{ invoice.id }})</span>
+                </div>
+            </div>
+            
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <div style="display: flex; align-items: center; gap: 5px;">
+                    <img src="https://www.gstatic.com/instantbuy/svg/google-pay.svg" alt="Google Pay" style="height: 10px; width: auto;">
+                    <span>Google Pay:</span>
+                </div>
+                <div style="flex: 1;">
+                    <strong>pay@parcelmybox.com</strong>
+                    <span style="color: #666; margin-left: 5px; font-style: italic;">(Include invoice #{{ invoice.id }})</span>
+                </div>
+            </div>
+                    
+            <div style="flex: 1; padding: 10px; background: #f0f8ff; border-radius: 3px; border: 1px solid #d0e3ff;">
+                <h4 style="margin: 0 0 8px 0; font-size: 10px; color: #2c3e50; text-transform: uppercase;">
+                    Payment Due
+                </h4>
+                <div style="font-size: 16px; font-weight: 700; color: #2c3e50; margin: 5px 0 8px;">
+                    ${{ invoice.balance_due|floatformat:2 }}
+                </div>
+                <div style="font-size: 10px; color: #666; margin-bottom: 5px;">
+                    Due by {{ invoice.due_date|default:invoice.created_at|date:"F d, Y" }}
+                </div>
+                {% if invoice.status == 'overdue' %}
+                <div style="color: #d32f2f; font-size: 9px; font-weight: 500;">
+                    <i class="fas fa-exclamation-circle"></i> Payment is overdue
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Terms & Footer -->
+        <div style="margin-top: 5px; padding-top: 3px; border-top: 1px dashed #eee;">
+            <div style="margin-bottom: 15px;">
+                <h4 style="margin: 0 0 5px 0; font-size: 10px; color: #555; text-transform: uppercase;">
+                    Payment Terms
+                </h4>
+                <p style="margin: 0; font-size: 9px; color: #666; line-height: 1.4;">
+                    Payment is due within {{ invoice.terms_days|default:30 }} days of invoice date. A monthly service charge of 1.5% will be applied to overdue balances.
+                </p>
+            </div>
+            
+            <div style="background-color: #f8f9fa; padding: 10px; border-radius: 3px; text-align: center;">
+                <p style="margin: 3px 0; font-size: 8px; color: #666; line-height: 1.2;">
+                    <strong>Thank you for your business!</strong> If you have any questions about this invoice, please contact our billing team.
+                </p>
+                <p style="margin: 3px 0 0 0; font-size: 7px; color: #888;">
+                    <strong>ParcelMyBox Inc.</strong> | 123 Shipping Street, New York, NY 10001 | 
+                    <a href="tel:+15551234567" style="color: #2c3e50; text-decoration: none;">+1 (555) 123-4567</a> | 
+                    <a href="mailto:billing@parcelmybox.com" style="color: #2c3e50; text-decoration: none;">billing@parcelmybox.com</a>
+                </p>
+            </div>
+        </div>
+        <div class="footer">
+            <div>Thank you for your business! • PARCELMYBOX • (123) 456-7890 • info@parcelmybox.com</div>
+        </div>
+    </div>
+</body>
+</html>

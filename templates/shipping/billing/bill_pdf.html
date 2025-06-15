@@ -4,103 +4,253 @@
 <head>
     <meta charset="utf-8">
     <title>Bill #{{ bill.id }} - {{ company_name }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         @page {
             size: A4;
             margin: 1.5cm;
         }
         body {
-            font-family: 'Helvetica', Arial, sans-serif;
-            line-height: 1.5;
-            color: #333;
-            font-size: 12px;
+            font-family: 'Inter', 'Helvetica', Arial, sans-serif;
+            line-height: 1.6;
+            color: #2d3748;
+            font-size: 13px;
             margin: 0;
             padding: 0;
+            background-color: #fff;
         }
         .header {
-            text-align: center;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #e0e0e0;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f2f5;
+        }
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 25px;
+        }
+        .logo-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
         }
         .logo {
-            max-width: 200px;
-            margin-bottom: 10px;
+            height: 50px;
+            margin-right: 15px;
+        }
+        .company-info {
+            text-align: left;
         }
         .company-name {
-            font-size: 20px;
-            font-weight: 600;
-            color: #2c3e50;
-            margin: 10px 0 5px 0;
+            font-size: 22px;
+            font-weight: 700;
+            color: #2d3748;
+            margin: 0 0 5px 0;
+            letter-spacing: -0.5px;
+        }
+        .company-details {
+            color: #64748b;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+        .document-title {
+            text-align: right;
+        }
+        .document-title h1 {
+            font-size: 24px;
+            color: #3b82f6;
+            margin: 0 0 5px 0;
+            font-weight: 700;
+        }
+        .document-number {
+            color: #64748b;
+            font-size: 13px;
         }
         .bill-info {
             margin: 30px 0;
             overflow: hidden;
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 20px;
         }
-        .bill-from, .bill-to {
-            width: 45%;
-            float: left;
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        .info-group {
+            width: 48%;
+        }
+        .info-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: #64748b;
+            font-weight: 600;
+            margin-bottom: 5px;
+            letter-spacing: 0.5px;
+        }
+        .info-value {
+            font-size: 14px;
+            font-weight: 500;
+            color: #1e293b;
         }
         .bill-to {
-            float: right;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 25px;
         }
-        .bill-details {
-            margin: 20px 0;
-            clear: both;
+        .section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #f0f2f5;
         }
         table {
             width: 100%;
             border-collapse: collapse;
-            margin: 20px 0;
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 10px;
-            text-align: left;
-        }
-        th {
-            background-color: #f5f5f5;
-        }
-        .total {
-            text-align: right;
-            font-size: 18px;
-            font-weight: bold;
-            margin-top: 20px;
-        }
-        .status {
-            padding: 5px 10px;
-            border-radius: 4px;
-            font-weight: bold;
-            text-transform: uppercase;
+            margin: 20px 0 30px 0;
             font-size: 12px;
         }
+        th {
+            background-color: #f8fafc;
+            color: #475569;
+            font-weight: 600;
+            text-align: left;
+            padding: 12px 15px;
+            border-bottom: 2px solid #e2e8f0;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+        }
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: top;
+        }
+        tr:last-child td {
+            border-bottom: 2px solid #e2e8f0;
+        }
+        .text-right {
+            text-align: right;
+        }
+        .total-row {
+            font-weight: 600;
+            background-color: #f8fafc;
+        }
+        .status {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
         .status-paid {
-            background-color: #d4edda;
-            color: #155724;
+            background-color: #dcfce7;
+            color: #166534;
         }
         .status-pending {
-            background-color: #fff3cd;
-            color: #856404;
+            background-color: #fef9c3;
+            color: #854d0e;
         }
-        .status-overdue {
-            background-color: #f8d7da;
-            color: #721c24;
+        .status-overdue, .status-unpaid {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+        .status-cancelled {
+            background-color: #f1f5f9;
+            color: #475569;
+        }
+        .totals {
+            float: right;
+            width: 300px;
+            margin-top: 20px;
+        }
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding: 10px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .total-label {
+            color: #64748b;
+        }
+        .total-amount {
+            font-weight: 600;
+            color: #1e293b;
+        }
+        .grand-total {
+            font-size: 16px;
+            font-weight: 700;
+            color: #3b82f6;
+            border-top: 2px solid #3b82f6;
+            padding-top: 12px;
+            margin-top: 5px;
         }
         .footer {
             margin-top: 50px;
-            text-align: center;
-            font-size: 12px;
-            color: #777;
-            border-top: 1px solid #eee;
             padding-top: 20px;
+            text-align: center;
+            font-size: 11px;
+            color: #94a3b8;
+            border-top: 1px solid #f1f5f9;
+        }
+        .payment-info {
+            margin-top: 30px;
+            padding: 15px;
+            background: #f0f9ff;
+            border-radius: 8px;
+            border-left: 4px solid #3b82f6;
+        }
+        .payment-info p {
+            margin: 5px 0;
+            color: #0369a1;
+            font-size: 12px;
         }
     </style>
 </head>
 <body>
     <div class="header">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-            <div>
-                <div class="company-name">{{ company_name }}</div>
+        <div class="header-content">
+            <div class="company-info">
+                <div class="logo-container">
+                    <img src="{% static 'images/logo.png' %}" alt="{{ company_name }}" class="logo">
+                    <div>
+                        <h1 class="company-name">{{ company_name }}</h1>
+                        <div class="company-details">
+                            {{ company_address|linebreaksbr }}<br>
+                            {{ company_phone }} | {{ company_email }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="document-title">
+                <h1>INVOICE</h1>
+                <div class="document-number">#{{ bill.id }}</div>
+                <div class="status status-{{ bill.status|lower }}">
+                    {{ bill.get_status_display }}
+                </div>
+            </div>
+        </div>
+        <div class="bill-info">
+            <div class="info-row">
+                <div class="info-group">
+                    <div class="info-label">Bill Date</div>
+                    <div class="info-value">{{ bill.created_at|date:"F j, Y" }}</div>
+                </div>
+                <div class="info-group">
+                    <div class="info-label">Due Date</div>
+                    <div class="info-value">{{ bill.due_date|date:"F j, Y" }}</div>
+                </div>
+            </div>
+        </div>
                 <div style="color: #666; font-size: 11px; line-height: 1.4;">
                     {{ company_address }}<br>
                     Phone: {{ company_phone }}<br>
@@ -128,22 +278,9 @@
             <p style="margin: 4px 0;">{{ bill.customer.email }}</p>
             {% if bill.customer.profile.phone %}
                 <p style="margin: 4px 0;">Phone: {{ bill.customer.profile.phone }}</p>
-            {% endif %}
-        </div>
-        <div style="clear: both;"></div>
     </div>
 
-    <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
-        <div style="width: 48%;">
-            <div style="background: #f8f9fa; padding: 12px; border-radius: 4px; border: 1px solid #e9ecef;">
-                <div style="font-weight: 600; color: #2c3e50; margin-bottom: 8px; font-size: 13px;">Bill To</div>
-                <div style="margin-bottom: 10px;">
-                    <div style="font-weight: 500;">{{ bill.customer.get_full_name|default:bill.customer.username }}</div>
-                    {% if bill.customer.email %}<div style="color: #666; font-size: 11px;">{{ bill.customer.email }}</div>{% endif %}
-                    {% if bill.customer.profile.phone %}<div style="color: #666; font-size: 11px;">{{ bill.customer.profile.phone }}</div>{% endif %}
-                </div>
-            </div>
-        </div>
+    <table style="width: 100%; border-collapse: collapse; margin: 20px 0 30px 0; font-size: 12px;">
         <div style="width: 48%;">
             <div style="background: #f8f9fa; padding: 12px; border-radius: 4px; border: 1px solid #e9ecef; font-size: 12px;">
                 <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
