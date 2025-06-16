@@ -28,12 +28,7 @@ SECRET_KEY = env('SECRET_KEY', default='django-insecure-$@6a$g-5_%+8cqziz=0ncydi
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env.bool('DEBUG', default=True)
 
-ALLOWED_HOSTS = [
-    'localhost',
-    '127.0.0.1',
-    'pmbdev.westus.cloudapp.azure.com',
-    'pmbdev.westus.cloudapp.azure.com:8000'
-]
+ALLOWED_HOSTS = ['*']  # Allow all hosts in development
 
 # Site ID for Django sites framework
 SITE_ID = 1
