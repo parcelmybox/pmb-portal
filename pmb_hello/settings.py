@@ -28,7 +28,7 @@ SECRET_KEY = env('SECRET_KEY', default='django-insecure-$@6a$g-5_%+8cqziz=0ncydi
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env.bool('DEBUG', default=True)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']  # Allow all hosts in development
 
 # Site ID for Django sites framework
 SITE_ID = 1
