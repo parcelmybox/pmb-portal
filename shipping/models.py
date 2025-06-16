@@ -9,6 +9,7 @@ from .constants import BILL_STATUS_CHOICES
 
 User = get_user_model()
 
+# Status and choice constants
 PAYMENT_METHODS = [
     ('', ''),  # Empty default
     ('CASH', 'Cash'),
@@ -28,6 +29,52 @@ COURIER_SERVICES = [
     ('USPS', 'USPS'),
     ('OTHER', 'Other'),
 ]
+
+SHIPPING_STATUS_CHOICES = [
+    ('pending', 'Pending'),
+    ('processing', 'Processing'),
+    ('shipped', 'Shipped'),
+    ('delivered', 'Delivered'),
+    ('cancelled', 'Cancelled'),
+]
+
+# Package type choices
+PACKAGE_TYPE_CHOICES = [
+    ('box', 'Box'),
+    ('envelope', 'Envelope'),
+    ('tube', 'Tube'),
+    ('pallet', 'Pallet'),
+    ('other', 'Other'),
+]
+
+class CityCode(models.Model):
+    """Model for storing city postal codes and locations."""
+    city = models.CharField(max_length=100, verbose_name='City')
+    state = models.CharField(max_length=100, verbose_name='State/Province')
+    country = models.CharField(max_length=100, verbose_name='Country')
+    postal_code = models.CharField(max_length=20, verbose_name='Postal Code')
+    is_active = models.BooleanField(default=True, verbose_name='Active')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Created At')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='Updated At')
+
+    class Meta:
+        verbose_name = 'City Code'
+        verbose_name_plural = 'City Codes'
+        unique_together = ['city', 'state', 'country', 'postal_code']
+        indexes = [
+            models.Index(fields=['city']),
+            models.Index(fields=['state']),
+            models.Index(fields=['country']),
+            models.Index(fields=['postal_code']),
+        ]
+
+    def __str__(self):
+        return f"{self.city}, {self.state} {self.postal_code} ({self.country})"
+
+    def save(self, *args, **kwargs):
+        """Ensure postal code is always uppercase."""
+        self.postal_code = self.postal_code.upper()
+        super().save(*args, **kwargs)
 
 SHIPPING_STATUS_CHOICES = [
     ('pending', 'Pending'),
