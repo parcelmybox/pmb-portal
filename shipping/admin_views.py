@@ -5,8 +5,9 @@ from django.utils import timezone
 import requests
 from django.conf import settings
 from django.http import JsonResponse
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone as tz
 import json
+import pytz
 
 @staff_member_required
 def billing_dashboard(request):
@@ -46,8 +47,12 @@ def billing_dashboard(request):
                     print(f"  {key}: {value} (type: {type(value)})")
         print("\n" + "="*50 + "\n")
         
-        # Get current date and calculate date ranges
-        today = timezone.now().date()
+        # Set timezone to PST
+        pst = pytz.timezone('America/Los_Angeles')
+        
+        # Get current date in PST and calculate date ranges
+        now_pst = timezone.now().astimezone(pst)
+        today = now_pst.date()
         yesterday = today - timedelta(days=1)
         this_month = today.replace(day=1)
         
@@ -158,9 +163,21 @@ def billing_dashboard(request):
                 due = parse_date(due_date)
                 print(f"- Due date parsed: {due}")
                 if due:
-                    if due < today:
+                    # Convert due date to PST date for comparison
+                    if isinstance(due, datetime):
+                        # If it's a datetime, ensure it's timezone-aware and convert to PST
+                        if not timezone.is_aware(due):
+                            due = timezone.make_aware(due, tz.utc)
+                        due_pst = due.astimezone(pst).date()
+                    else:
+                        # If it's just a date, compare directly
+                        due_pst = due
+                    
+                    print(f"- Due date in PST: {due_pst}")
+                    
+                    if due_pst < today:
                         overdue_bills.append(bill)
-                        print(f"- Added to overdue bills (due: {due} < today: {today})")
+                        print(f"- Added to overdue bills (due: {due_pst} < today: {today})")
             
             # Count today's orders
             if created_at:
@@ -168,18 +185,24 @@ def billing_dashboard(request):
                 print(f"- Created date parsed: {created} (type: {type(created)})")
                 print(f"- Today's date: {today} (type: {type(today)})")
                 if created:
-                    # Convert both dates to string for comparison to avoid timezone issues
-                    created_str = created.strftime('%Y-%m-%d') if hasattr(created, 'strftime') else str(created)
-                    today_str = today.strftime('%Y-%m-%d') if hasattr(today, 'strftime') else str(today)
+                    # Convert created date to PST for comparison
+                    if isinstance(created, datetime):
+                        # If it's a datetime, ensure it's timezone-aware and convert to PST
+                        if not timezone.is_aware(created):
+                            created = timezone.make_aware(created, tz.utc)
+                        created_pst = created.astimezone(pst).date()
+                    else:
+                        # If it's just a date, compare directly
+                        created_pst = created
                     
-                    print(f"- Comparing dates - Created: {created_str}, Today: {today_str}")
+                    print(f"- Created date in PST: {created_pst}")
                     
-                    if created_str == today_str:
+                    if created_pst == today:
                         today_orders += 1
                         today_revenue += amount
-                        print(f"- Added to today's orders (created: {created_str} == today: {today_str})")
+                        print(f"- Added to today's orders (created: {created_pst} == today: {today})")
                     else:
-                        print(f"- Not today's order (created: {created_str} != today: {today_str})")
+                        print(f"- Not today's order (created: {created_pst} != today: {today}")
             else:
                 print("- No created_at date found")
         
@@ -220,7 +243,17 @@ def billing_dashboard(request):
             created_at = bill.get('created_at')
             if created_at:
                 created = parse_date(created_at)
-                if created == yesterday:
+                # Convert created date to PST for comparison
+                if isinstance(created, datetime):
+                    # If it's a datetime, ensure it's timezone-aware and convert to PST
+                    if not timezone.is_aware(created):
+                        created = timezone.make_aware(created, timezone.utc)
+                    created_pst = created.astimezone(pst).date()
+                else:
+                    # If it's just a date, compare directly
+                    created_pst = created
+                
+                if created_pst == yesterday:
                     if bill.get('status', '').lower() == 'paid':
                         yesterday_revenue += float(bill.get('amount', 0))
                     yesterday_orders += 1

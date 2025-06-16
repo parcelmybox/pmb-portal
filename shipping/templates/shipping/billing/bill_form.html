@@ -33,8 +33,23 @@
 
                 <div class="row">
                     <div class="col-md-6">
-                        <div class="mb-3">
-                            {{ form.customer|as_crispy_field }}
+                        <div class="mb-3" id="customer-name-container">
+                            <label for="id_customer_name" class="form-label">Customer</label>
+                            <input type="text" 
+                                   name="customer_name" 
+                                   class="form-control" 
+                                   id="id_customer_name" 
+                                   required 
+                                   value="{{ form.customer_name.value|default:'' }}" 
+                                   placeholder="Enter customer name"
+                                   autocomplete="off"
+                                   style="background-image: none !important;">
+                            {{ form.customer_id }}
+                            {% if form.customer_name.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.customer_name.errors }}
+                                </div>
+                            {% endif %}
                         </div>
                     </div>
                     <div class="col-md-6">
@@ -82,10 +97,35 @@
 </div>
 {% endblock %}
 
+{% block extra_css %}
+{{ block.super }}
+<style>
+/* Ensure customer name field stays as plain text input */
+#id_customer_name {
+    background-image: none !important;
+    -webkit-appearance: textfield !important;
+    -moz-appearance: textfield !important;
+    appearance: textfield !important;
+}
+
+/* Hide any dropdown arrows or indicators */
+#id_customer_name::-webkit-calendar-picker-indicator,
+#id_customer_name::-webkit-inner-spin-button,
+#id_customer_name::-webkit-outer-spin-button {
+    display: none !important;
+    -webkit-appearance: none !important;
+    margin: 0;
+}
+</style>
+{% endblock %}
+
 {% block extra_js %}
 {{ block.super }}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Prevent any select2 initialization on the customer name field
+        $('#id_customer_name').select2 && $('#id_customer_name').select2('destroy');
+        
         // Initialize date picker
         if (typeof flatpickr !== 'undefined') {
             flatpickr('.datepicker', {
@@ -95,9 +135,9 @@
             });
         }
 
-        // Initialize select2 if available
+        // Initialize select2 only on specific fields, excluding customer_name
         if ($.fn.select2) {
-            $('.select2').select2({
+            $('select.select2').not('#id_customer_name').select2({
                 theme: 'bootstrap-5',
                 width: '100%',
                 placeholder: $(this).data('placeholder')

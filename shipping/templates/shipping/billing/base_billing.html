@@ -96,7 +96,7 @@
     <!-- Breadcrumb Navigation -->
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{% url 'admin:index' %}">Admin</a></li>
+            <li class="breadcrumb-item"><a href="/admin/"><i class="fas fa-tachometer-alt me-1"></i> Dashboard</a></li>
             <li class="breadcrumb-item"><a href="{% url 'shipping:shipping_home' %}">Shipping</a></li>
             <li class="breadcrumb-item"><a href="{% url 'shipping:bill_list' %}">Billing</a></li>
             {% block breadcrumb %}{% endblock %}

@@ -4,7 +4,7 @@ from django.shortcuts import render, redirect
 from django.utils.html import format_html
 from django.contrib.admin.views.decorators import staff_member_required
 from .models import ShippingAddress, Shipment, ShipmentItem, TrackingEvent
-from .bill_models import Bill
+from .models import Bill
 from .admin_views import billing_dashboard
 from .admin_index import get_billing_stats
 
@@ -45,12 +45,9 @@ class BillAdmin(admin.ModelAdmin):
     date_hierarchy = 'created_at'
     change_list_template = 'admin/billing_dashboard.html'
     
-    def get_urls(self):
-        urls = super().get_urls()
-        custom_urls = [
-            path('billing-dashboard/', self.admin_site.admin_view(billing_dashboard), name='billing_dashboard'),
-        ]
-        return custom_urls + urls
+    def changelist_view(self, request, extra_context=None):
+        # Use our custom billing dashboard view for the changelist
+        return billing_dashboard(request)
     
     def changelist_view(self, request, extra_context=None):
         extra_context = extra_context or {}

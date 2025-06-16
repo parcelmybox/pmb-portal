@@ -1,6 +1,6 @@
 from django.views.generic import ListView
 from django.db.models import Q
-from .bill_models import Bill
+from .models import Bill
 from .forms import BillFilterForm
 
 class BillFilterView(ListView):

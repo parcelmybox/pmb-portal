@@ -1,3 +1,4 @@
+from decimal import Decimal
 from django.shortcuts import render, redirect, get_object_or_404, HttpResponse
 from django.contrib import messages
 from django.core.paginator import Paginator
@@ -18,7 +19,7 @@ import logging
 # Set up logging
 logger = logging.getLogger(__name__)
 
-from .bill_models import Bill
+from .models import Bill
 from .activity import ActivityHistory
 from .forms import BillForm, BillFilterForm
 from .decorators import staff_required
@@ -147,43 +148,45 @@ def create_bill(request):
         print("\n=== FORM DATA ===")
         print(f"POST data: {request.POST}")
         
-        form = BillForm(request.POST, user=request.user)
+        # Create a mutable copy of POST data
+        post_data = request.POST.copy()
+        form = BillForm(post_data, user=request.user)
         
         if form.is_valid():
             try:
                 with transaction.atomic():
                     # Debug: Print cleaned data
-                    print(f"\n=== CLEANED DATA ===")
+                    print("\n=== CLEANED DATA ===")
                     print(f"Status: {form.cleaned_data.get('status')}")
-                    print(f"Customer input: {form.cleaned_data.get('customer_input')}")
+                    print(f"Customer name: {form.cleaned_data.get('customer_name')}")
                     
                     bill = form.save(commit=False)
                     bill.created_by = request.user
                     
                     # Debug: Print bill status before any changes
-                    print(f"\n=== BILL STATUS ===")
+                    print("\n=== BILL STATUS ===")
                     print(f"Before setting customer - Status: {bill.status}")
                     
                     # Handle customer input
-                    customer_input = form.cleaned_data.get('customer_input', '').strip()
+                    customer_name = form.cleaned_data.get('customer_name', '').strip()
                     
-                    # Try to find existing user by email or username
+                    # Try to find existing user by name or username
                     user = User.objects.filter(
-                        Q(email__iexact=customer_input) | 
-                        Q(username__iexact=customer_input) |
-                        Q(first_name__iexact=customer_input)
+                        Q(first_name__iexact=customer_name) |
+                        Q(username__iexact=customer_name) |
+                        Q(email__iexact=customer_name)
                     ).first()
                     
-                    if not user and customer_input:  # Create new user if not found
-                        username = customer_input.lower().replace(' ', '_')
-                        email = f"{username}@example.com" if '@' not in customer_input else customer_input
+                    if not user and customer_name:  # Create new user if not found
+                        username = customer_name.lower().replace(' ', '.')
+                        email = f"{username}@example.com" if '@' not in customer_name else customer_name
                         
                         # Generate a random password
                         password = get_random_string(12)
                         user = User.objects.create_user(
                             username=username,
                             email=email,
-                            first_name=customer_input,
+                            first_name=customer_name,
                             is_active=False,  # Mark as inactive until verified
                             password=password
                         )
@@ -238,24 +241,24 @@ def create_bill(request):
                 # Log the error
                 logger.error(f'Error generating bill: {str(e)}', exc_info=True)
     else:
+        # Initialize form with any provided customer data
         initial_data = {}
         customer_id = request.GET.get('customer_id')
         if customer_id:
             try:
                 customer = User.objects.get(id=customer_id, is_staff=False)
-                initial_data['customer_input'] = customer.get_full_name() or customer.username
+                initial_data['customer_name'] = customer.get_full_name() or customer.username
+                initial_data['customer_id'] = customer_id
             except User.DoesNotExist:
                 pass
                 
         form = BillForm(initial=initial_data, user=request.user)
     
-    # Get active customers for the dropdown
-    customers = User.objects.filter(is_active=True, is_staff=False).order_by('first_name', 'last_name', 'username')
-    
     context = {
         'form': form,
-        'customers': customers,
-        'title': 'Generate New Bill'
+        'title': 'Generate New Bill',
+        'submit_text': 'Create Bill',
+        'cancel_url': reverse('shipping:bill_list')
     }
     
     return render(request, 'shipping/billing/create_bill.html', context)
@@ -301,41 +304,126 @@ def export_bill_pdf(request, bill_id):
         messages.error(request, "You don't have permission to view this bill.")
         return redirect('shipping:bill_list')
     
-    # Get the template
-    template = get_template('shipping/billing/bill_pdf_clean.html')
+    # Use the simple template
+    template_path = 'shipping/billing/bill_pdf_simple.html'
+    template = get_template(template_path)
+    
+    # Prepare company information
+    company_info = {
+        'name': 'ParcelMyBox',
+        'address': '123 Business Street, San Francisco, CA 94105',
+        'phone': '+1 (415) 555-0123',
+        'email': 'billing@parcelmybox.com',
+        'website': 'www.parcelmybox.com',
+        'tax_id': 'TAX-123-456-789',
+    }
+    
+    # Calculate totals if not already set
+    subtotal = bill.amount or 0
+    tax_rate = Decimal('0.10')  # 10% tax rate as an example
+    tax_amount = subtotal * tax_rate
+    total = subtotal + tax_amount
+    
+    # Calculate due date if not set
+    due_date = bill.due_date or (timezone.now() + timedelta(days=15)).date()
+    
+    # Get bill items safely
+    items = []
+    if hasattr(bill, 'items') and hasattr(bill.items, 'all'):
+        try:
+            items = list(bill.items.all())
+        except (AttributeError, TypeError):
+            items = []
+    
+    # If no items, create a default item from the bill
+    if not items and bill.amount:
+        items = [{
+            'description': bill.description or 'Shipping Service',
+            'quantity': 1,
+            'unit_price': bill.amount,
+            'total': bill.amount
+        }]
     
     # Prepare context
     now = timezone.now()
     context = {
         'bill': bill,
-        'company_name': 'ParcelMyBox',
-        'company_address': '123 Business Street, City, Country',
-        'company_phone': '(123) 456-7890',
-        'company_email': 'billing@parcelmybox.com',
+        'company_name': company_info['name'],
+        'company_address': company_info['address'],
+        'company_phone': company_info['phone'],
+        'company_email': company_info['email'],
+        'company_website': company_info['website'],
+        'company_tax_id': company_info['tax_id'],
         'STATIC_URL': settings.STATIC_URL,
-        'STATIC_ROOT': str(settings.STATIC_ROOT).replace('\\', '/'),  # Convert Windows paths to forward slashes
+        'STATIC_ROOT': str(settings.STATIC_ROOT).replace('\\', '/'),
         'today': now.date(),
-        'now': now,  # Add current datetime for template debugging
-        'request': request  # Add request to context for absolute URLs
+        'due_date': due_date,
+        'now': now,
+        'request': request,
+        'subtotal': subtotal,
+        'tax_amount': tax_amount,
+        'tax_rate': tax_rate * 100,  # Convert to percentage
+        'total': total,
+        'payment_terms': 'Net 15',
+        'items': items
     }
     
-    # Render the HTML
+    # Render the HTML with context
     html = template.render(context)
     
-    # Create a file-like buffer to receive PDF data
+    # Create HTTP response with PDF headers
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="bill_{bill.id}.pdf"'
     
-    # Generate PDF
-    pisa_status = pisa.CreatePDF(
-        html,
-        dest=response,
-        encoding='UTF-8',
-    )
-    
-    # If error, show error message
-    if pisa_status.err:
-        messages.error(request, 'Error generating PDF. Please try again.')
+    try:
+        # Generate PDF using xhtml2pdf with minimal configuration
+        from xhtml2pdf import pisa
+        
+        # Simple CSS to ensure basic formatting
+        default_css = """
+            body {
+                font-family: Arial, sans-serif;
+                font-size: 10px;
+                line-height: 1.4;
+                margin: 0;
+                padding: 0;
+            }
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                margin: 10px 0;
+            }
+            th, td {
+                border: 1px solid #ddd;
+                padding: 6px;
+                text-align: left;
+            }
+            th {
+                background-color: #f5f5f5;
+                font-weight: bold;
+            }
+        """
+        
+        # Generate PDF
+        pisa_status = pisa.CreatePDF(
+            html,
+            dest=response,
+            encoding='UTF-8',
+            link_callback=None,
+            show_error_as_pdf=False,
+            xhtml=False,
+            default_css=default_css
+        )
+        
+        # Check for errors
+        if pisa_status.err:
+            logger.error(f'PDF generation error: {pisa_status.err}')
+            messages.error(request, 'Error generating PDF. Please try again.')
+            return redirect('shipping:bill_detail', bill_id=bill.id)
+            
+    except Exception as e:
+        logger.error(f'Error in PDF generation: {str(e)}')
+        messages.error(request, f'Error generating PDF: {str(e)}')
         return redirect('shipping:bill_detail', bill_id=bill.id)
     
     return response
@@ -422,41 +510,32 @@ def edit_bill(request, bill_id):
         messages.error(request, 'You do not have permission to edit bills.')
         return redirect('shipping:bill_list')
     
-    bill = get_object_or_404(Bill, id=bill_id)
+    # Get the bill with customer data
+    bill = get_object_or_404(Bill.objects.select_related('customer'), id=bill_id)
     
     if request.method == 'POST':
-        form = BillForm(request.POST, instance=bill, user=request.user)
+        # Create a mutable copy of POST data
+        post_data = request.POST.copy()
+        
+        # Get the customer name from the form data
+        customer_name = post_data.get('customer_name', '').strip()
+        
+        # If customer name is provided, update the form data
+        if customer_name:
+            # Set the customer_id to empty to force the form to handle the customer name
+            post_data['customer_id'] = ''
+        
+        form = BillForm(post_data, instance=bill, user=request.user)
+        
         if form.is_valid():
             try:
                 with transaction.atomic():
                     updated_bill = form.save(commit=False)
                     
-                    # Handle customer input
-                    customer_input = form.cleaned_data.get('customer_input', '').strip()
-                    print(f"\n=== CUSTOMER INPUT ===")
-                    print(f"Raw customer input: {customer_input}")
-                    print(f"Current customer: {updated_bill.customer.get_full_name()} (ID: {updated_bill.customer_id})")
-                    
-                    if customer_input:
-                        # Try to find existing user by email, username, or name
-                        user = User.objects.filter(
-                            Q(email__iexact=customer_input) | 
-                            Q(username__iexact=customer_input) |
-                            Q(first_name__iexact=customer_input) |
-                            Q(last_name__iexact=customer_input) |
-                            Q(first_name__iexact=' '.join(customer_input.split()[:-1]), 
-                              last_name__iexact=customer_input.split()[-1] if ' ' in customer_input else '') |
-                            Q(first_name__iexact=customer_input.split()[0], 
-                              last_name__iexact=' '.join(customer_input.split()[1:]) if len(customer_input.split()) > 1 else '')
-                        ).first()
-                        
-                        if user:
-                            print(f"Found user: {user.get_full_name()} (ID: {user.id})")
-                            updated_bill.customer = user
-                            print(f"Updated bill customer to: {updated_bill.customer.get_full_name()} (ID: {updated_bill.customer_id})")
-                        else:
-                            print("No matching user found, keeping existing customer")
-                            print(f"Current customer remains: {updated_bill.customer.get_full_name()} (ID: {updated_bill.customer_id})")
+                    # Debug: Print customer information
+                    print("\n=== CUSTOMER INFO ===")
+                    print(f"Customer name from form: {form.cleaned_data.get('customer_name')}")
+                    print(f"Current customer: {updated_bill.customer} (ID: {updated_bill.customer_id})")
                     
                     # Save the bill with updated fields
                     updated_bill.save()
@@ -478,13 +557,18 @@ def edit_bill(request, bill_id):
     else:
         # Initialize form with bill data
         initial_data = {
-            'customer_input': bill.customer.get_full_name() or bill.customer.username,
+            'customer_name': bill.customer.get_full_name() or bill.customer.username,
+            'customer_id': bill.customer_id,
             'amount': bill.amount,
             'status': bill.status,
             'due_date': bill.due_date,
-            'description': bill.description
+            'description': bill.description,
+            'package': bill.package,
+            'weight': bill.weight,
+            'courier_service': bill.courier_service,
+            'payment_method': bill.payment_method
         }
-        form = BillForm(initial=initial_data, user=request.user)
+        form = BillForm(initial=initial_data, user=request_user)
     
     context = {
         'form': form,

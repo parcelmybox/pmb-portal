@@ -43,6 +43,10 @@ urlpatterns = [
     path('', pmb_hello_views.site_home_page, name='site_home_page'),  # New site home page
     path('admin/logout/', admin_logout, name='admin:logout'),  # Admin logout
     path('admin/', custom_admin_site.urls),  # Use our custom admin site
+    
+    # Shipping app URLs
+    path('shipping/', include('shipping.urls')),
+    
     # Redirect old pricing URL to new one
     path('shipping/pricing/', RedirectView.as_view(url='/shipping-price/', permanent=True)),
     # Redirect old billing URLs to new ones

@@ -134,7 +134,6 @@
                                 <th>Customer</th>
                                 <th>Amount</th>
                                 <th>Status</th>
-                                <th>Due Date</th>
                                 <th>Created At</th>
                                 <th>Actions</th>
                             </tr>
@@ -150,7 +149,6 @@
                                         {{ bill.get_status_display }}
                                     </span>
                                 </td>
-                                <td>{{ bill.due_date|date:"M d, Y" }}</td>
                                 <td>{{ bill.created_at|date:"M d, Y" }}</td>
                                 <td>
                                     <div class="d-flex gap-1">

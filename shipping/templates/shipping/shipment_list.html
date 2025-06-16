@@ -38,7 +38,7 @@
                             </td>
                             <td>{{ shipment.sender_address.city }}, {{ shipment.sender_address.country }}</td>
                             <td>{{ shipment.recipient_address.city }}, {{ shipment.recipient_address.country }}</td>
-                            <td>{{ shipment.created_at|date:"M d, Y" }}</td>
+                            <td>{{ shipment.shipping_date|date:"M d, Y" }}</td>
                             <td class="text-end">
                                 <a href="{% url 'shipping:shipment_detail' shipment.id %}" class="btn btn-sm btn-outline-primary">
                                     <i class="fas fa-eye"></i> View
@@ -59,10 +59,7 @@
                 <i class="fas fa-truck fa-4x text-muted"></i>
             </div>
             <h4 class="mb-3">No shipments found</h4>
-            <p class="text-muted mb-4">You haven't created any shipments yet.</p>
-            <a href="{% url 'shipping:create_shipment' %}" class="btn btn-primary">
-                <i class="fas fa-plus me-2"></i>Create Your First Shipment
-            </a>
+            <p class="text-muted">You haven't created any shipments yet.</p>
         </div>
     {% endif %}
 </div>

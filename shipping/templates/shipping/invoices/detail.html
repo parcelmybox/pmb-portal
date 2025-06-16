@@ -1,0 +1,346 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Invoice #{{ invoice.id }} | {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'shipping:shipping_home' %}">Shipping</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'shipping:invoice_list' %}">Invoices</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Invoice #{{ invoice.id }}</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+    
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2>Invoice #{{ invoice.id }}</h2>
+                <span class="badge bg-{{ invoice.get_status_badge }}">
+                    {{ invoice.get_status_display|title }}
+                </span>
+            </div>
+            
+            <!-- Invoice Actions -->
+            <div class="btn-group mb-3">
+                <a href="{% url 'shipping:export_invoice_pdf' invoice_id=invoice.id %}" class="btn btn-outline-primary">
+                    <i class="fas fa-file-pdf me-2"></i>Export PDF
+                </a>
+                {% if can_edit %}
+                <a href="{% url 'shipping:edit_invoice' invoice_id=invoice.id %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-edit me-2"></i>Edit
+                </a>
+                {% endif %}
+                {% if invoice.shipment %}
+                <a href="{% url 'shipping:shipment_detail' pk=invoice.shipment.id %}" class="btn btn-outline-info">
+                    <i class="fas fa-truck me-2"></i>View Shipment
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Invoice Details -->
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Invoice Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <h6>Bill To</h6>
+                            <address class="mb-3">
+                                {% if invoice.shipment %}
+                                    <strong>{{ invoice.shipment.sender_address.first_name }} {{ invoice.shipment.sender_address.last_name }}</strong><br>
+                                    {% if invoice.shipment.sender_address.company_name %}
+                                        {{ invoice.shipment.sender_address.company_name }}<br>
+                                    {% endif %}
+                                    {{ invoice.shipment.sender_address.address_line1 }}<br>
+                                    {% if invoice.shipment.sender_address.address_line2 %}
+                                        {{ invoice.shipment.sender_address.address_line2 }}<br>
+                                    {% endif %}
+                                    {{ invoice.shipment.sender_address.city }}, {{ invoice.shipment.sender_address.state }} {{ invoice.shipment.sender_address.postal_code }}<br>
+                                    {{ invoice.shipment.sender_address.get_country_display }}
+                                    {% if invoice.shipment.sender_address.phone_number %}
+                                        <br>{{ invoice.shipment.sender_address.phone_number }}
+                                    {% endif %}
+                                {% else %}
+                                    <strong>{{ invoice.customer.get_full_name|default:invoice.customer.username }}</strong><br>
+                                    {{ invoice.customer.email }}
+                                    {% if invoice.customer.profile.phone %}
+                                        <br>{{ invoice.customer.profile.phone }}
+                                    {% endif %}
+                                {% endif %}
+                            </address>
+                            
+                            {% if invoice.shipment %}
+                            <h6>Sender</h6>
+                            <address class="mb-3">
+                                <strong>{{ invoice.shipment.sender_address.first_name }} {{ invoice.shipment.sender_address.last_name }}</strong><br>
+                                {% if invoice.shipment.sender_address.company_name %}
+                                    {{ invoice.shipment.sender_address.company_name }}<br>
+                                {% endif %}
+                                {{ invoice.shipment.sender_address.address_line1 }}<br>
+                                {% if invoice.shipment.sender_address.address_line2 %}
+                                    {{ invoice.shipment.sender_address.address_line2 }}<br>
+                                {% endif %}
+                                {{ invoice.shipment.sender_address.city }}, {{ invoice.shipment.sender_address.state }} {{ invoice.shipment.sender_address.postal_code }}<br>
+                                {{ invoice.shipment.sender_address.get_country_display }}
+                                {% if invoice.shipment.sender_address.phone_number %}
+                                    <br>{{ invoice.shipment.sender_address.phone_number }}
+                                {% endif %}
+                            </address>
+                            {% endif %}
+                        </div>
+                        
+                        {% if invoice.shipment %}
+                        <div class="col-md-4">
+                            <h6>Recipient</h6>
+                            <address class="mb-3">
+                                <strong>{{ invoice.shipment.recipient_address.first_name }} {{ invoice.shipment.recipient_address.last_name }}</strong><br>
+                                {% if invoice.shipment.recipient_address.company_name %}
+                                    {{ invoice.shipment.recipient_address.company_name }}<br>
+                                {% endif %}
+                                {{ invoice.shipment.recipient_address.address_line1 }}<br>
+                                {% if invoice.shipment.recipient_address.address_line2 %}
+                                    {{ invoice.shipment.recipient_address.address_line2 }}<br>
+                                {% endif %}
+                                {{ invoice.shipment.recipient_address.city }}, {{ invoice.shipment.recipient_address.state }} {{ invoice.shipment.recipient_address.postal_code }}<br>
+                                {{ invoice.shipment.recipient_address.get_country_display }}
+                                {% if invoice.shipment.recipient_address.phone_number %}
+                                    <br>{{ invoice.shipment.recipient_address.phone_number }}
+                                {% endif %}
+                            </address>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="col-md-4 text-md-end">
+                            <h6>Invoice Information</h6>
+                            <p class="mb-1">
+                                <strong>Invoice #:</strong> {{ invoice.id }}<br>
+                                <strong>Date:</strong> {{ invoice.created_at|date:"M d, Y" }}<br>
+                                <strong>Due Date:</strong> {{ invoice.due_date|date:"M d, Y" }}<br>
+                                <strong>Status:</strong> 
+                                <span class="badge bg-{{ invoice.get_status_badge }}">
+                                    {{ invoice.get_status_display|title }}
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <h6>Items</h6>
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Description</th>
+                                    <th class="text-end">Quantity</th>
+                                    <th class="text-end">Unit Price</th>
+                                    <th class="text-end">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Shipping Charge - {{ invoice.shipment.get_package_type_display }} ({{ invoice.shipment.weight }} kg)</td>
+                                    <td class="text-end">1</td>
+                                    <td class="text-end">${{ invoice.amount|floatformat:2 }}</td>
+                                    <td class="text-end">${{ invoice.amount|floatformat:2 }}</td>
+                                </tr>
+                                {% if invoice.tax_amount %}
+                                <tr>
+                                    <td colspan="3" class="text-end"><strong>Tax ({{ invoice.tax_rate|default:0 }}%):</strong></td>
+                                    <td class="text-end">${{ invoice.tax_amount|floatformat:2 }}</td>
+                                </tr>
+                                {% endif %}
+                                <tr class="table-active">
+                                    <th colspan="3" class="text-end">Total:</th>
+                                    <th class="text-end">${{ invoice.total_amount|floatformat:2 }}</th>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    {% if invoice.notes %}
+                    <div class="mt-3">
+                        <h6>Notes</h6>
+                        <p class="mb-0">{{ invoice.notes|linebreaksbr }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Payment Information -->
+            {% if invoice.payment_method %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Payment Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p class="mb-1">
+                                <strong>Payment Method:</strong> {{ invoice.get_payment_method_display }}<br>
+                                {% if invoice.payment_date %}
+                                    <strong>Payment Date:</strong> {{ invoice.payment_date|date:"M d, Y" }}<br>
+                                {% endif %}
+                                {% if invoice.transaction_id %}
+                                    <strong>Transaction ID:</strong> {{ invoice.transaction_id }}
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Invoice Actions -->
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'shipping:export_invoice_pdf' invoice_id=invoice.id %}" class="btn btn-primary">
+                            <i class="fas fa-file-pdf me-2"></i>Download PDF
+                        </a>
+                        
+                        {% if invoice.status != 'paid' and can_edit %}
+                        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#markAsPaidModal">
+                            <i class="fas fa-check-circle me-2"></i>Mark as Paid
+                        </button>
+                        {% endif %}
+                        
+                        {% if invoice.shipment %}
+                        <a href="{% url 'shipping:shipment_detail' pk=invoice.shipment.id %}" class="btn btn-outline-primary">
+                            <i class="fas fa-truck me-2"></i>View Shipment
+                        </a>
+                        {% endif %}
+                        
+                        {% if can_edit %}
+                        <a href="{% url 'shipping:edit_invoice' invoice_id=invoice.id %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-edit me-2"></i>Edit Invoice
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Invoice Summary -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Subtotal:</span>
+                            <span>${{ invoice.amount|floatformat:2 }}</span>
+                        </div>
+                        {% if invoice.tax_amount %}
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Tax ({{ invoice.tax_rate|default:0 }}%):</span>
+                            <span>${{ invoice.tax_amount|floatformat:2 }}</span>
+                        </div>
+                        {% endif %}
+                        <hr>
+                        <div class="d-flex justify-content-between fw-bold">
+                            <span>Total:</span>
+                            <span>${{ invoice.total_amount|floatformat:2 }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Status:</span>
+                            <span class="badge bg-{{ invoice.get_status_badge }}">
+                                {{ invoice.get_status_display|title }}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    {% if invoice.status != 'paid' %}
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        This invoice is due on {{ invoice.due_date|date:"M d, Y" }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Mark as Paid Modal -->
+{% if can_edit %}
+<div class="modal fade" id="markAsPaidModal" tabindex="-1" aria-labelledby="markAsPaidModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="markAsPaidModalLabel">Mark as Paid</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'shipping:update_invoice_status' invoice_id=invoice.id %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="paymentMethod" class="form-label">Payment Method</label>
+                        <select class="form-select" id="paymentMethod" name="payment_method" required>
+                            {% for value, display in invoice.PAYMENT_METHOD_CHOICES %}
+                                <option value="{{ value }}" {% if value == invoice.payment_method %}selected{% endif %}>
+                                    {{ display }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="transactionId" class="form-label">Transaction ID (Optional)</label>
+                        <input type="text" class="form-control" id="transactionId" name="transaction_id" 
+                               value="{{ invoice.transaction_id|default:'' }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="paymentDate" class="form-label">Payment Date</label>
+                        <input type="date" class="form-control" id="paymentDate" name="payment_date" 
+                               value="{{ timezone.now|date:'Y-m-d' }}" required>
+                    </div>
+                    <input type="hidden" name="status" value="paid">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-check-circle me-2"></i>Mark as Paid
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize any tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+    
+    // Set today's date as default for payment date
+    var today = new Date();
+    var dd = String(today.getDate()).padStart(2, '0');
+    var mm = String(today.getMonth() + 1).padStart(2, '0');
+    var yyyy = today.getFullYear();
+    today = yyyy + '-' + mm + '-' + dd;
+    document.getElementById('paymentDate').value = today;
+});
+</script>
+{% endblock %}

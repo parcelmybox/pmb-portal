@@ -8,7 +8,7 @@ from django.contrib.auth import get_user_model
 from django.utils import timezone
 
 from ..models import Shipment
-from ..bill_models import Bill
+from ..models import Bill
 from ..activity import ActivityHistory
 from ..forms import BillForm
 from ..views_billing import create_bill
