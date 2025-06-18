@@ -13,3 +13,16 @@ pandas==2.1.0
 openpyxl==3.1.2  # For Excel file support
 python-multipart==0.0.6  # For file uploads
 xhtml2pdf==0.2.15  # For PDF generation
+
+# API Development
+djangorestframework==3.16.0  # For building REST APIs
+djangorestframework-simplejwt==5.5.0  # For JWT authentication
+django-cors-headers==4.3.1  # For handling CORS
+django-filter==24.1  # For filtering API results
+drf-yasg==1.21.7
+
+# Development
+django-debug-toolbar==4.4.0  # For debugging and profiling
+pyyaml==6.0.1  # For API schema generation
+coreapi==2.3.3  # For API documentation
+markdown==3.5.1  # For markdown support in API docs
