@@ -541,3 +541,6 @@ class Bill(models.Model):
             return True
             
         return False
+
+## Yuvaraj will cerate new model for pickup request table 
+
