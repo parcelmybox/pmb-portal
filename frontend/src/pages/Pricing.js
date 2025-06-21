@@ -1,141 +1,88 @@
 import React from 'react';
 
+const courierPlans = [
+  {
+    name: 'UPS Shipping',
+    tagline: 'Reliable & Progressive Value',
+    priceDisplay: '₹2800+',
+    priceDetail: '₹2800 for 1kg + ₹500 per kg (until 10kg)',
+    isHighlighted: true,
+    features: [
+      'Best for standard international shipping',
+      'Basic tracking included',
+      'Insurance available separately',
+      'Support for bulk consolidation',
+    ],
+    cta: 'Ship with UPS'
+  },
+  {
+    name: 'DHL Shipping',
+    tagline: 'Fast & Premium Delivery',
+    priceDisplay: '₹3600+',
+    priceDetail: '₹3600 for 1kg + ₹500 per kg (till 5kg), then ₹780/kg',
+    isHighlighted: false,
+    features: [
+      '3–5 Day delivery',
+      'Includes advanced tracking',
+      'Priority handling',
+      'Reliable courier partner',
+    ],
+    cta: 'Ship with DHL'
+  },
+  {
+    name: 'FedEx Shipping',
+    tagline: 'Affordable & Consistent',
+    priceDisplay: '₹2700+',
+    priceDetail: '₹2700 for 1kg + ₹500 per kg (till 11kg), then ₹730/kg',
+    isHighlighted: false,
+    features: [
+      '5–7 Day delivery',
+      'Tracking included',
+      'Good for light to medium parcels',
+      'Trusted international service',
+    ],
+    cta: 'Ship with FedEx'
+  }
+];
+
 function Pricing() {
   return (
-    <div className="p-6 max-w-4xl mx-auto">
-      <h1 className="text-3xl font-bold text-gray-800 mb-8">International Shipping Pricing</h1>
-      
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <h3 className="text-2xl font-bold text-gray-800 mb-4">Basic International</h3>
-          <div className="space-y-2">
-            <div className="flex justify-between items-center">
-              <div>
-                <span className="text-gray-600">India to USA</span>
-                <br />
-                <span className="text-indigo-600 font-bold text-2xl">₹4,999</span>
-                <br />
-                <span className="text-gray-500">$60.60</span>
-              </div>
-              <div>
-                <span className="text-gray-600">USA to India</span>
-                <br />
-                <span className="text-indigo-600 font-bold text-2xl">₹7,999</span>
-                <br />
-                <span className="text-gray-500">$96.96</span>
-              </div>
+    <div className="bg-white min-h-screen p-6 flex flex-col items-center">
+      <h1 className="text-3xl font-bold mb-8 text-center text-gray-800">Choose Your Shipping Option</h1>
+      <div className="grid md:grid-cols-3 gap-6 w-full max-w-6xl">
+        {courierPlans.map((plan, index) => (
+          <div
+            key={index}
+            className={`rounded-lg shadow-lg overflow-hidden border-2 flex flex-col justify-between ${
+              plan.isHighlighted ? 'border-orange-500' : 'border-gray-200'
+            } bg-white`}
+          >
+            <div className={`p-6 ${plan.isHighlighted ? 'bg-orange-500 text-white' : 'bg-green-100 text-gray-800'}`}>
+              <h2 className="text-xl font-bold">{plan.name}</h2>
+              <p className="text-sm mt-1">{plan.tagline}</p>
+            </div>
+
+            <div className="p-6 text-center">
+              <p className="text-2xl font-bold text-blue-600">{plan.priceDisplay}</p>
+              <p className="text-gray-600 text-sm mt-1">{plan.priceDetail}</p>
+
+              <ul className="mt-4 space-y-2 text-left text-sm text-gray-700">
+                {plan.features.map((feature, i) => (
+                  <li key={i} className="flex items-start">
+                    <span className="text-green-500 mr-2">✔</span>
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+
+              <button className={`mt-6 w-full py-2 rounded font-semibold text-sm ${
+                plan.isHighlighted ? 'bg-white text-orange-500 border border-orange-500' : 'bg-green-500 text-white hover:bg-green-600'
+              }`}>
+                {plan.cta}
+              </button>
             </div>
           </div>
-          <ul className="space-y-4 text-gray-600">
-            <li className="flex items-center">
-              <svg className="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-              Standard international shipping
-            </li>
-            <li className="flex items-center">
-              <svg className="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-              Tracking included
-            </li>
-            <li className="flex items-center">
-              <svg className="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-              Insurance up to ₹10,000
-            </li>
-          </ul>
-          <button className="mt-6 w-full bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700">
-            Get Started
-          </button>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-lg p-6 border-2 border-indigo-600">
-          <h3 className="text-2xl font-bold text-gray-800 mb-4">Premium International</h3>
-          <div className="space-y-2">
-            <div className="flex justify-between items-center">
-              <div>
-                <span className="text-gray-600">India to USA</span>
-                <br />
-                <span className="text-indigo-600 font-bold text-2xl">₹8,999</span>
-                <br />
-                <span className="text-gray-500">$109.10</span>
-              </div>
-              <div>
-                <span className="text-gray-600">USA to India</span>
-                <br />
-                <span className="text-indigo-600 font-bold text-2xl">₹14,999</span>
-                <br />
-                <span className="text-gray-500">$181.81</span>
-              </div>
-            </div>
-          </div>
-          <ul className="space-y-4 text-gray-600">
-            <li className="flex items-center">
-              <svg className="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-              Priority international shipping
-            </li>
-            <li className="flex items-center">
-              <svg className="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-              Real-time tracking
-            </li>
-            <li className="flex items-center">
-              <svg className="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-              Insurance up to ₹50,000
-            </li>
-            <li className="flex items-center">
-              <svg className="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-              Priority customer support
-            </li>
-          </ul>
-          <button className="mt-6 w-full bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700">
-            Upgrade Now
-          </button>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <h3 className="text-2xl font-bold text-gray-800 mb-4">Enterprise International</h3>
-          <p className="text-4xl font-bold text-indigo-600 mb-4">Custom</p>
-          <p className="text-gray-600 mb-6">Contact us for international shipping pricing</p>
-          <ul className="space-y-4 text-gray-600">
-            <li className="flex items-center">
-              <svg className="w-5 h-5 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              Delivery times and estimates may vary.
-            </li>
-            <li className="flex items-center">
-              <svg className="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-              Custom shipping solutions
-            </li>
-            <li className="flex items-center">
-              <svg className="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-              Priority handling
-            </li>
-            <li className="flex items-center">
-              <svg className="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-              Advanced analytics
-            </li>
-          </ul>
-          <button className="mt-6 w-full bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700">
-            Contact Us
-          </button>
-        </div>
+        ))}
       </div>
     </div>
   );
