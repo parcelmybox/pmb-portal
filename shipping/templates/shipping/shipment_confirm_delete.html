@@ -1,0 +1,172 @@
+{% extends 'admin/base_site.html' %}
+{% load i18n static %}
+
+{% block title %}Delete Shipment #{{ object.id }} | {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-trash-alt me-2"></i>
+            Delete Shipment
+        </h1>
+        <div>
+            <a href="{% url 'shipping:shipment_detail' object.pk %}" class="btn btn-secondary">
+                <i class="fas fa-times me-2"></i>Cancel
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Warning Alert -->
+            <div class="card shadow mb-4 border-left-danger">
+                <div class="card-header py-3 bg-white">
+                    <h6 class="m-0 font-weight-bold text-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Confirm Deletion
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <h5 class="alert-heading">Warning!</h5>
+                        <p class="mb-0">
+                            You are about to delete shipment <strong>#{{ object.id }}</strong> with tracking number 
+                            <strong>{{ object.tracking_number|default:'N/A' }}</strong>. This action cannot be undone.
+                        </p>
+                    </div>
+
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6 class="text-muted small">Sender</h6>
+                                    <p class="mb-1">
+                                        {{ object.sender_address.first_name }} {{ object.sender_address.last_name }}<br>
+                                        {{ object.sender_address.city }}, {{ object.sender_address.get_country_display }}
+                                    </p>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6 class="text-muted small">Recipient</h6>
+                                    <p class="mb-1">
+                                        {{ object.recipient_address.first_name }} {{ object.recipient_address.last_name }}<br>
+                                        {{ object.recipient_address.city }}, {{ object.recipient_address.get_country_display }}
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-md-6">
+                                    <h6 class="text-muted small">Shipping Date</h6>
+                                    <p class="mb-1">{{ object.shipping_date|date:"M j, Y"|default:"Not specified" }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6 class="text-muted small">Status</h6>
+                                    <span class="badge bg-{{ object.get_status_badge_class }}">
+                                        {{ object.get_status_display }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-danger">
+                        <h6 class="alert-heading">This will permanently delete the following:</h6>
+                        <ul class="mb-0">
+                            <li>Shipment record #{{ object.id }}</li>
+                            <li>All associated tracking events</li>
+                            <li>Any related shipping labels or documents</li>
+                        </ul>
+                    </div>
+
+                    <form method="post" class="mt-4">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label for="confirmation" class="font-weight-bold">
+                                Type "DELETE" to confirm:
+                            </label>
+                            <input type="text" class="form-control" id="confirmation" name="confirmation" 
+                                   placeholder="Type DELETE to confirm" required>
+                        </div>
+                        <div class="form-group form-check">
+                            <input type="checkbox" class="form-check-input" id="confirm" required>
+                            <label class="form-check-label" for="confirm">
+                                I understand that this action cannot be undone
+                            </label>
+                        </div>
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-danger" id="delete-btn" disabled>
+                                <i class="fas fa-trash-alt me-2"></i>Delete Permanently
+                            </button>
+                            <a href="{% url 'shipping:shipment_detail' object.pk %}" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <!-- Help Card -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 bg-white">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-question-circle me-2"></i>
+                        Need Help?
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <h6 class="text-primary">What happens when I delete a shipment?</h6>
+                    <p class="small">
+                        The shipment and all its associated data will be permanently removed from the system. 
+                        This action cannot be undone.
+                    </p>
+                    
+                    <h6 class="text-primary mt-3">What if I only want to cancel the shipment?</h6>
+                    <p class="small">
+                        If you only want to cancel the shipment without deleting it, you can update the shipment status 
+                        to "Cancelled" instead of deleting it.
+                    </p>
+                    
+                    <div class="mt-4">
+                        <a href="{% url 'shipping:shipment_update' object.pk %}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-edit me-1"></i> Edit Shipment
+                        </a>
+                        
+                        {% if object.status != 'cancelled' %}
+                        <a href="{% url 'shipping:shipment_cancel' object.pk %}" class="btn btn-outline-warning btn-sm">
+                            <i class="fas fa-ban me-1"></i> Cancel Instead
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extrajs %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const confirmationField = document.getElementById('confirmation');
+    const confirmCheckbox = document.getElementById('confirm');
+    const deleteButton = document.getElementById('delete-btn');
+    
+    function validateForm() {
+        if (confirmationField.value === 'DELETE' && confirmCheckbox.checked) {
+            deleteButton.disabled = false;
+        } else {
+            deleteButton.disabled = true;
+        }
+    }
+    
+    confirmationField.addEventListener('input', validateForm);
+    confirmCheckbox.addEventListener('change', validateForm);
+    
+    // Initial validation
+    validateForm();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,1359 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Create New Shipment - ParcelMyBox{% endblock %}
+
+{% block extra_css %}
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet">
+    <style>
+        .navbar {
+            background-color: #2c3e50;
+        }
+        .navbar-brand {
+            color: #3498db !important;
+            font-weight: bold;
+        }
+        .nav-link {
+            color: #ecf0f1 !important;
+        }
+        .nav-link:hover {
+            color: #3498db !important;
+        }
+        .container {
+            max-width: 1200px;
+        }
+        .card {
+            border: none;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        .btn-primary {
+            background-color: #3498db;
+            border-color: #3498db;
+        }
+        .btn-primary:hover {
+            background-color: #2980b9;
+            border-color: #2980b9;
+        }
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1100;
+        }
+        .toast {
+            opacity: 1;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">
+                            <i class="bi bi-box-seam me-2"></i>Create New Shipment
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <form id="shipment-form" method="post" action="{% url 'shipping:shipment_create' %}" class="needs-validation" novalidate enctype="multipart/form-data" onsubmit="return handleShipmentFormSubmit(event)">
+                            {% csrf_token %}
+                            <div id="debug-info" style="display: none;" class="mb-3 p-2 bg-light rounded">
+                                <h6 class="text-muted">Debug Info</h6>
+                                <p>CSRF Token: {{ csrf_token }}</p>
+                                <p>Form Action: {% url 'shipping:shipment_create' %}</p>
+                            </div>
+                            
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <div class="card h-100">
+                                        <div class="card-header bg-light">
+                                            <h5 class="mb-0">Shipment Details</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="mb-3">
+                                                <label for="id_package_type" class="form-label">
+                                                    Package Type <span class="text-danger">*</span>
+                                                </label>
+                                                {{ form.package_type }}
+                                                <div class="invalid-feedback">
+                                                    Please select a package type.
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="row">
+                                                <div class="col-md-6 mb-3">
+                                                    <label for="id_weight" class="form-label">
+                                                        Weight (kg) <span class="text-danger">*</span>
+                                                    </label>
+                                                    <div class="input-group">
+                                                        <input type="number" 
+                                                               class="form-control" 
+                                                               name="weight" 
+                                                               id="id_weight" 
+                                                               step="any" 
+                                                               min="0.1" 
+                                                               value="{{ form.weight.value|default:'' }}" 
+                                                               required
+                                                               oninput="console.log('Weight input:', this.value)">
+                                                        <span class="input-group-text">kg</span>
+                                                        <div class="invalid-feedback">
+                                                            Please enter a valid weight (minimum 0.1 kg).
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="row">
+                                                <div class="col-md-4 mb-3">
+                                                    <label for="id_length" class="form-label">
+                                                        Length (cm) <span class="text-danger">*</span>
+                                                    </label>
+                                                    <div class="input-group">
+                                                        <input type="number" 
+                                                               class="form-control" 
+                                                               name="length" 
+                                                               id="id_length" 
+                                                               step="any" 
+                                                               min="0.1" 
+                                                               value="{{ form.length.value|default:'' }}" 
+                                                               required
+                                                               oninput="console.log('Length input:', this.value)">
+                                                        <span class="input-group-text">cm</span>
+                                                        <div class="invalid-feedback">
+                                                            Please enter a valid length.
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4 mb-3">
+                                                    <label for="id_width" class="form-label">
+                                                        Width (cm) <span class="text-danger">*</span>
+                                                    </label>
+                                                    <div class="input-group">
+                                                        <input type="number" 
+                                                               class="form-control" 
+                                                               name="width" 
+                                                               id="id_width" 
+                                                               step="any" 
+                                                               min="0.1" 
+                                                               value="{{ form.width.value|default:'' }}" 
+                                                               required
+                                                               oninput="console.log('Width input:', this.value)">
+                                                        <span class="input-group-text">cm</span>
+                                                        <div class="invalid-feedback">
+                                                            Please enter a valid width.
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4 mb-3">
+                                                    <label for="id_height" class="form-label">
+                                                        Height (cm) <span class="text-danger">*</span>
+                                                    </label>
+                                                    <div class="input-group">
+                                                        <input type="number" 
+                                                               class="form-control" 
+                                                               name="height" 
+                                                               id="id_height" 
+                                                               step="any" 
+                                                               min="0.1" 
+                                                               value="{{ form.height.value|default:'' }}" 
+                                                               required
+                                                               oninput="console.log('Height input:', this.value)">
+                                                        <span class="input-group-text">cm</span>
+                                                        <div class="invalid-feedback">
+                                                            Please enter a valid height.
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <label for="id_shipping_date" class="form-label">
+                                                    Shipping Date <span class="text-danger">*</span>
+                                                </label>
+                                                {{ form.shipping_date }}
+                                                <div class="form-text">
+                                                    The date when the shipment will be ready for pickup.
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <label for="id_courier_service" class="form-label">
+                                                    Courier Service <span class="text-danger">*</span>
+                                                </label>
+                                                {{ form.courier_service }}
+                                                <div class="form-text">
+                                                    Select the courier service for this shipment.
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="card h-100">
+                                        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                                            <h5 class="mb-0">Addresses</h5>
+                                            <a href="{% url 'shipping:manage_addresses' %}" class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-plus-circle"></i> Manage Addresses
+                                            </a>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="mb-4">
+                                                <h6 class="border-bottom pb-2">Sender Address</h6>
+                                                <div class="form-group mb-2">
+                                                    <label for="id_sender_address" class="form-label">Select Sender Address</label>
+                                                    <div class="input-group mb-2">
+                                                        {{ form.sender_address }}
+                                                        <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#addSenderModal">
+                                                            <i class="bi bi-plus"></i> New
+                                                        </button>
+                                                    </div>
+                                                    <div class="invalid-feedback">
+                                                        Please select a sender address.
+                                                    </div>
+                                                </div>
+                                                <div class="row g-2 mb-2">
+                                                    <div class="col-md-6">
+                                                        <label for="id_sender_first_name" class="form-label">First Name</label>
+                                                        {{ form.sender_first_name }}
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label for="id_sender_last_name" class="form-label">Last Name</label>
+                                                        {{ form.sender_last_name }}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <h6 class="border-bottom pb-2">Recipient Address</h6>
+                                                <div class="form-group mb-2">
+                                                    <label for="id_recipient_address" class="form-label">Select Recipient Address</label>
+                                                    <div class="input-group mb-2">
+                                                        {{ form.recipient_address }}
+                                                        <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#addRecipientModal">
+                                                            <i class="bi bi-plus"></i> New
+                                                        </button>
+                                                    </div>
+                                                    <div class="invalid-feedback">
+                                                        Please select a recipient address.
+                                                    </div>
+                                                </div>
+                                                <div class="row g-2 mb-2">
+                                                    <div class="col-md-6">
+                                                        <label for="id_recipient_first_name" class="form-label">First Name</label>
+                                                        {{ form.recipient_first_name }}
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label for="id_recipient_last_name" class="form-label">Last Name</label>
+                                                        {{ form.recipient_last_name }}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="card mb-4">
+                                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0">Shipment Items</h5>
+                                    <button type="button" class="btn btn-sm btn-primary" id="add-item">
+                                        <i class="bi bi-plus-circle"></i> Add Item
+                                    </button>
+                                </div>
+                                <div class="card-body">
+                                    <div id="items-container">
+                                        {{ items.management_form }}
+                                        {% for item_form in items %}
+                                        <div class="item-row mb-3 border-bottom pb-3">
+                                            <div class="row g-2 align-items-center">
+                                                <div class="col-md-4">
+                                                    <label class="form-label small mb-0">Item Name <span class="text-danger">*</span></label>
+                                                    {{ item_form.name }}
+                                                    <div class="invalid-feedback small">
+                                                        Please enter an item name.
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-1">
+                                                    <label class="form-label small mb-0">Qty <span class="text-danger">*</span></label>
+                                                    {{ item_form.quantity }}
+                                                    <div class="invalid-feedback small">
+                                                        Min: 1
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label class="form-label small mb-0">Description</label>
+                                                    {{ item_form.description }}
+                                                </div>
+                                                <div class="col-md-1 text-end">
+                                                    <button type="button" class="btn btn-sm btn-outline-danger remove-item" {% if forloop.first %}disabled{% endif %}>
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                    <div class="text-muted small">
+                                        <i class="bi bi-info-circle"></i> Add at least one item to this shipment.
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Invoice Options -->
+                            <div class="card mb-4">
+                                <div class="card-header bg-light">
+                                    <h5 class="mb-0">Invoice Options</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="form-check form-switch mb-3">
+                                        <input class="form-check-input" type="checkbox" id="generate_invoice" name="generate_invoice" checked>
+                                        <label class="form-check-label" for="generate_invoice">
+                                            Generate Invoice for this Shipment
+                                        </label>
+                                        <div class="form-text">
+                                            An invoice will be created automatically with the shipment details.
+                                        </div>
+                                    </div>
+                                    <div id="invoice-options" class="ms-4">
+                                        <div class="mb-3">
+                                            <label for="invoice_notes" class="form-label">Invoice Notes (Optional)</label>
+                                            <textarea class="form-control" id="invoice_notes" name="invoice_notes" rows="2" placeholder="Any special notes for the invoice"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-between mt-4">
+                                <a href="{% url 'shipping:shipment_list' %}" class="btn btn-secondary me-md-2">
+                                    <i class="bi bi-x-circle me-1"></i> Cancel
+                                </a>
+                                <div class="d-grid gap-2 d-md-flex">
+                                    <a href="{% url 'shipping:invoice_list' %}" class="btn btn-outline-primary me-md-2">
+                                        <i class="bi bi-receipt me-1"></i> View Invoices
+                                    </a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-check-circle me-1"></i> Create Shipment
+                                    </button>
+                                </div>
+                            </div>
+                            
+
+                        </form>
+                        
+                        <!-- Add Sender Address Modal -->
+                        <div class="modal fade" id="addSenderModal" tabindex="-1" aria-labelledby="addSenderModalLabel" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="addSenderModalLabel">Add New Sender Address</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form id="add-sender-form" onsubmit="event.preventDefault(); saveAddress('sender'); return false;">
+                                            <div class="mb-3">
+                                                <label for="sender-first-name" class="form-label">First Name</label>
+                                                <input type="text" class="form-control" id="sender-first-name" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="sender-last-name" class="form-label">Last Name</label>
+                                                <input type="text" class="form-control" id="sender-last-name" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="sender-address" class="form-label">Address</label>
+                                                <input type="text" class="form-control" id="sender-address" required>
+                                            </div>
+                                            <div class="row mb-3">
+                                                <div class="col-md-6">
+                                                    <label for="sender-city" class="form-label">City</label>
+                                                    <input type="text" class="form-control" id="sender-city" required>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label for="sender-state" class="form-label">State/Province</label>
+                                                    <input type="text" class="form-control" id="sender-state" required>
+                                                </div>
+                                            </div>
+                                            <div class="row mb-3">
+                                                <div class="col-md-6">
+                                                    <label for="sender-postal-code" class="form-label">Postal Code</label>
+                                                    <input type="text" class="form-control" id="sender-postal-code" required>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label for="sender-country" class="form-label">Country</label>
+                                                    <input type="text" class="form-control" id="sender-country" required>
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="sender-phone" class="form-label">Phone</label>
+                                                <input type="tel" class="form-control" id="sender-phone" required>
+                                            </div>
+                                            <div class="form-check mb-3">
+                                                <input class="form-check-input" type="checkbox" id="sender-set-default">
+                                                <label class="form-check-label" for="sender-set-default">
+                                                    Set as default sender address
+                                                </label>
+                                            </div>
+                                        </form>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                        <button type="submit" class="btn btn-primary">Save Address</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Add Recipient Address Modal -->
+                        <div class="modal fade" id="addRecipientModal" tabindex="-1" aria-labelledby="addRecipientModalLabel" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="addRecipientModalLabel">Add New Recipient Address</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form id="add-recipient-form" onsubmit="event.preventDefault(); saveAddress('recipient'); return false;">
+                                            <div class="mb-3">
+                                                <label for="recipient-first-name" class="form-label">First Name</label>
+                                                <input type="text" class="form-control" id="recipient-first-name" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="recipient-last-name" class="form-label">Last Name</label>
+                                                <input type="text" class="form-control" id="recipient-last-name" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="recipient-address" class="form-label">Address</label>
+                                                <input type="text" class="form-control" id="recipient-address" required>
+                                            </div>
+                                            <div class="row mb-3">
+                                                <div class="col-md-6">
+                                                    <label for="recipient-city" class="form-label">City</label>
+                                                    <input type="text" class="form-control" id="recipient-city" required>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label for="recipient-state" class="form-label">State/Province</label>
+                                                    <input type="text" class="form-control" id="recipient-state" required>
+                                                </div>
+                                            </div>
+                                            <div class="row mb-3">
+                                                <div class="col-md-6">
+                                                    <label for="recipient-postal-code" class="form-label">Postal Code</label>
+                                                    <input type="text" class="form-control" id="recipient-postal-code" required>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label for="recipient-country" class="form-label">Country</label>
+                                                    <input type="text" class="form-control" id="recipient-country" required>
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="recipient-phone" class="form-label">Phone</label>
+                                                <input type="tel" class="form-control" id="recipient-phone" required>
+                                            </div>
+                                        </form>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                        <button type="submit" class="btn btn-primary">Save Address</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    
+    <script>
+    // Toggle invoice options
+    document.getElementById('generate_invoice').addEventListener('change', function() {
+        document.getElementById('invoice-options').style.display = this.checked ? 'block' : 'none';
+    });
+    
+    // Initialize invoice options visibility
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('invoice-options').style.display = 
+            document.getElementById('generate_invoice').checked ? 'block' : 'none';
+        // Debug: Log form data on submission
+        const shipmentForm = document.getElementById('shipment-form');
+        if (shipmentForm) {
+            // Debug: Track form field values in real-time
+            const debugFields = ['weight', 'length', 'width', 'height'];
+            
+            function updateDebugDisplay() {
+                debugFields.forEach(fieldName => {
+                    const field = document.getElementById(`id_${fieldName}`);
+                    const debugElement = document.getElementById(`debug-${fieldName}`);
+                    if (field && debugElement) {
+                        debugElement.textContent = field.value || '-';
+                    }
+                });
+            }
+            
+            // Update on input change and on page load
+            debugFields.forEach(fieldName => {
+                const field = document.getElementById(`id_${fieldName}`);
+                if (field) {
+                    field.addEventListener('input', updateDebugDisplay);
+                    field.addEventListener('change', updateDebugDisplay);
+                }
+            });
+            
+            // Initial update
+            updateDebugDisplay();
+
+            shipmentForm.addEventListener('submit', function(e) {
+                console.log('Form submitted');
+                const formData = new FormData(shipmentForm);
+                console.log('Form data:');
+                for (let [key, value] of formData.entries()) {
+                    console.log(`${key}: ${value}`);
+                }
+                
+                // Log specific field values
+                debugFields.forEach(fieldName => {
+                    const field = document.getElementById(`id_${fieldName}`);
+                    if (field) {
+                        console.log(`Field ${fieldName} value on submit:`, field.value);
+                    }
+                });
+            });
+        }
+        // Initialize date picker
+        flatpickr("#id_shipping_date", {
+            dateFormat: "Y-m-d",
+            minDate: "today",
+            defaultDate: new Date(),
+            allowInput: true,
+            disableMobile: true
+        });
+
+        // Completely disable Select2 by default
+        $.fn.select2 = function() {
+            return this;
+        };
+        
+        // Manually initialize only the specific dropdowns we want
+        const initAddressDropdowns = function() {
+            // Remove any existing Select2 instances
+            $('.select2-container').remove();
+            $('select').removeClass('select2-hidden-accessible');
+            $('select').removeAttr('data-select2-id');
+            $('select').css('display', '');
+            
+            // Re-enable Select2 for our specific dropdowns
+            const $select2 = $.fn.select2;
+            $.fn.select2 = $select2;
+            
+            // Initialize only the specific dropdowns we want
+            const $form = $('#shipment-form');
+            
+            $('#id_sender_address', $form).select2({
+                theme: 'bootstrap-5',
+                width: '100%',
+                placeholder: 'Select a sender address',
+                allowClear: true,
+                dropdownParent: $form,
+                minimumResultsForSearch: -1
+            });
+            
+            $('#id_recipient_address', $form).select2({
+                theme: 'bootstrap-5',
+                width: '100%',
+                placeholder: 'Select a recipient address',
+                allowClear: true,
+                dropdownParent: $form,
+                minimumResultsForSearch: -1
+            });
+        };
+        
+        // Initialize on page load
+        initAddressDropdowns();
+        
+        // Re-initialize after any modals are closed
+        $('.modal').on('hidden.bs.modal', function() {
+            initAddressDropdowns();
+        });
+        
+        // Add CSS to hide any stray Select2 elements
+        $('head').append(`
+            <style>
+                .select2-container:not(#select2-id_sender_address-container):not(#select2-id_recipient_address-container) {
+                    display: none !important;
+                }
+                .select2-dropdown {
+                    z-index: 1060 !important;
+                }
+            </style>
+        `);
+
+        // Add item functionality
+        const addItemBtn = document.getElementById('add-item');
+        const itemsContainer = document.getElementById('items-container');
+        const totalForms = document.getElementById('id_items-TOTAL_FORMS');
+        let formCount = document.querySelectorAll('.item-row').length;
+
+        // Function to update form indices and remove buttons state
+        function updateFormIndices() {
+            const itemRows = document.querySelectorAll('.item-row');
+            formCount = itemRows.length;
+            totalForms.value = formCount;
+            
+            itemRows.forEach((row, index) => {
+                // Update form field names and IDs
+                const fields = row.querySelectorAll('input, textarea, select');
+                fields.forEach(field => {
+                    const name = field.name.replace(/items-\d+/, `items-${index}`);
+                    const id = field.id.replace(/id_items-\d+/, `id_items-${index}`);
+                    
+                    field.name = name;
+                    field.id = id;
+                    
+                    // Update labels
+                    const label = row.querySelector(`label[for="${field.dataset.originalId || field.id}"]`);
+                    if (label) {
+                        label.setAttribute('for', id);
+                        field.dataset.originalId = id;
+                    }
+                });
+                
+                // Update remove button state
+                const removeBtn = row.querySelector('.remove-item');
+                if (removeBtn) {
+                    removeBtn.disabled = formCount <= 1;
+                }
+            });
+        }
+
+        // Add new item row
+        addItemBtn.addEventListener('click', function() {
+            const newRow = document.querySelector('.item-row').cloneNode(true);
+            const formId = formCount++;
+            
+            // Clear values
+            const inputs = newRow.querySelectorAll('input, textarea, select');
+            inputs.forEach(input => {
+                if (input.type !== 'hidden') {
+                    input.value = '';
+                }
+            });
+            
+            // Add to container
+            itemsContainer.appendChild(newRow);
+            updateFormIndices();
+        });
+
+        // Remove item row
+        itemsContainer.addEventListener('click', function(e) {
+            if (e.target.closest('.remove-item') && !e.target.closest('.remove-item').disabled) {
+                const row = e.target.closest('.item-row');
+                row.remove();
+                updateFormIndices();
+            }
+        });
+
+        // Initialize form validation
+        const form = document.getElementById('shipment-form');
+        if (form) {
+            form.addEventListener('submit', function(event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        }
+
+        // Function to update name fields when an address is selected
+        function updateNameFields(selectElement, type) {
+            const addressId = selectElement.value;
+            if (!addressId) return;
+            
+            // Make an AJAX request to get the address details
+            fetch(`/shipping/api/addresses/${addressId}/`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Address not found');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Update the name fields
+                    document.getElementById(`id_${type}_first_name`).value = data.first_name || '';
+                    document.getElementById(`id_${type}_last_name`).value = data.last_name || '';
+                })
+                .catch(error => {
+                    console.error('Error fetching address:', error);
+                    showToast('Error', 'Failed to load address details', 'danger');
+                });
+        }
+        
+        // Add event listeners to address selectors
+        const senderSelect = document.getElementById('id_sender_address');
+        const recipientSelect = document.getElementById('id_recipient_address');
+        
+        if (senderSelect) {
+            senderSelect.addEventListener('change', function() {
+                updateNameFields(this, 'sender');
+            });
+        }
+        
+        if (recipientSelect) {
+            recipientSelect.addEventListener('change', function() {
+                updateNameFields(this, 'recipient');
+            });
+        }
+        
+        // Debug: Log when the script loads
+        console.log('Shipping form script loaded');
+        
+        // Handle save address button clicks
+        function setupSaveButtons() {
+            console.log('Setting up save buttons...');
+            
+            // Handle sender address form submission
+            const senderForm = document.querySelector('#addSenderModal form');
+            if (senderForm) {
+                console.log('Found sender form');
+                senderForm.onsubmit = function(e) {
+                    e.preventDefault();
+                    console.log('Sender form submitted');
+                    saveAddress('sender');
+                    return false;
+                };
+            } else {
+                console.error('Sender form not found');
+            }
+            
+            // Handle recipient address form submission
+            const recipientForm = document.querySelector('#addRecipientModal form');
+            if (recipientForm) {
+                console.log('Found recipient form');
+                recipientForm.onsubmit = function(e) {
+                    e.preventDefault();
+                    console.log('Recipient form submitted');
+                    saveAddress('recipient');
+                    return false;
+                };
+            } else {
+                console.error('Recipient form not found');
+            }
+            
+            // Also set up button click handlers as a fallback
+            const saveSenderBtn = document.getElementById('save-sender-address');
+            if (saveSenderBtn) {
+                console.log('Setting up sender button click handler');
+                saveSenderBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    console.log('Save sender address button clicked');
+                    saveAddress('sender');
+                    return false;
+                });
+            }
+            
+            const saveRecipientBtn = document.getElementById('save-recipient-address');
+            if (saveRecipientBtn) {
+                console.log('Setting up recipient button click handler');
+                saveRecipientBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    console.log('Save recipient address button clicked');
+                    saveAddress('recipient');
+                    return false;
+                });
+            }
+        }
+        
+        // Run setup when the DOM is fully loaded
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', setupSaveButtons);
+        } else {
+            setupSaveButtons();
+        }
+        
+        // Function to save a new address
+        function saveAddress(type) {
+            console.log('=== saveAddress called with type:', type);
+            
+            // Show loading state
+            const modalId = `add${type.charAt(0).toUpperCase() + type.slice(1)}Modal`;
+            console.log('Looking for modal with ID:', modalId);
+            const modal = document.getElementById(modalId);
+            if (!modal) {
+                console.error('Modal not found:', modalId);
+                showToast('Error', 'Could not find the address form', 'danger');
+                return false;
+            }
+            
+            // Log form fields for debugging
+            console.log('Form fields in modal:', {
+                firstName: document.getElementById(`${type}-first-name`)?.value,
+                lastName: document.getElementById(`${type}-last-name`)?.value,
+                address: document.getElementById(`${type}-address`)?.value,
+                city: document.getElementById(`${type}-city`)?.value,
+                state: document.getElementById(`${type}-state`)?.value,
+                postalCode: document.getElementById(`${type}-postal-code`)?.value,
+                country: document.getElementById(`${type}-country`)?.value,
+                phone: document.getElementById(`${type}-phone`)?.value,
+                isDefault: document.getElementById(`${type}-set-default`)?.checked
+            });
+            
+            // Get form data
+            const formData = new FormData();
+            const fields = [
+                'first_name', 'last_name', 'address', 'city', 
+                'state', 'postal_code', 'country', 'phone'
+            ];
+            
+            // Get all field values
+            fields.forEach(field => {
+                const fieldId = `${type}-${field.replace('_', '-')}`;
+                const element = document.getElementById(fieldId);
+                if (element) {
+                    formData.append(field, element.value);
+                    console.log(`Field ${fieldId}:`, element.value);
+                } else {
+                    console.error('Element not found:', fieldId);
+                }
+            });
+            
+            // Add checkbox and type
+            const isDefaultId = `${type}-set-default`;
+            const isDefault = document.getElementById(isDefaultId);
+            const isDefaultChecked = isDefault ? isDefault.checked : false;
+            formData.append('is_default', isDefaultChecked);
+            formData.append('address_type', type);
+            
+            // Get CSRF token from the cookie
+            function getCookie(name) {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    const cookies = document.cookie.split(';');
+                    for (let i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+                        if (cookie.startsWith(name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+            
+            const csrftoken = getCookie('csrftoken');
+            if (!csrftoken) {
+                console.error('CSRF token not found');
+                showToast('Error', 'Security error. Please refresh the page and try again.', 'danger');
+                return false;
+            }
+            
+            const saveButton = modal.querySelector('.btn-primary');
+            if (saveButton) {
+                saveButton.disabled = true;
+                saveButton.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Saving...';
+            }
+            
+            // Log the form data being sent
+            const formDataObj = {};
+            for (let [key, value] of formData.entries()) {
+                formDataObj[key] = value;
+            }
+            console.log('Sending form data:', formDataObj);
+            
+            // Send the request
+            const apiUrl = '/shipping/api/addresses/add/';
+            console.log('Sending request to:', apiUrl);
+            
+            fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrftoken,
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams(formData),
+                credentials: 'same-origin'
+            })
+            .then(response => {
+                console.log('Received response, status:', response.status);
+                if (!response.ok) {
+                    console.error('Response not OK, status:', response.status);
+                    return response.text().then(text => {
+                        console.error('Response text:', text);
+                        try {
+                            return JSON.parse(text);
+                        } catch (e) {
+                            throw new Error(`Server returned ${response.status}: ${text}`);
+                        }
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Parsed response data:', data);
+                if (data && data.success) {
+                    console.log('Address saved successfully');
+                    showToast('Success', 'Address saved successfully!', 'success');
+                    // Close the modal
+                    const modalInstance = bootstrap.Modal.getInstance(modal);
+                    if (modalInstance) {
+                        console.log('Hiding modal');
+                        modalInstance.hide();
+                    } else {
+                        console.warn('Could not find modal instance');
+                    }
+                    // Reload the page to update the address dropdowns
+                    console.log('Will reload page in 1 second');
+                    setTimeout(() => {
+                        console.log('Reloading page...');
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    const errorMsg = data && data.error ? data.error : 'No success flag in response';
+                    console.error('Server indicated failure:', errorMsg);
+                    throw new Error(errorMsg);
+                }
+            })
+            .catch(error => {
+                console.error('Error saving address:', error);
+                let errorMessage = 'Failed to save address. Please try again.';
+                
+                if (error.message.includes('NetworkError')) {
+                    errorMessage = 'Network error. Please check your connection.';
+                } else if (error.message.includes('Failed to fetch')) {
+                    errorMessage = 'Could not connect to the server. Please check your connection.';
+                } else if (error.message) {
+                    errorMessage = error.message;
+                }
+                
+                showToast('Error', errorMessage, 'danger');
+            })
+            .finally(() => {
+                // Reset the save button
+                if (saveButton) {
+                    saveButton.disabled = false;
+                    saveButton.innerHTML = 'Save Address';
+                }
+            });
+        }
+        
+        // Function to show toast notifications
+        function showToast(title, message, type = 'info') {
+            const toastContainer = document.getElementById('toast-container');
+            if (!toastContainer) return;
+            
+            const toastId = 'toast-' + Date.now();
+            const toast = document.createElement('div');
+            toast.id = toastId;
+            toast.className = `toast align-items-center text-white bg-${type} border-0`;
+            toast.role = 'alert';
+            toast.setAttribute('aria-live', 'assertive');
+            toast.setAttribute('aria-atomic', 'true');
+            
+            toast.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body">
+                        <strong>${title}</strong><br>${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            `;
+            
+            toastContainer.appendChild(toast);
+            const bsToast = new bootstrap.Toast(toast, { autohide: true, delay: 5000 });
+            bsToast.show();
+            
+            // Remove toast from DOM after it's hidden
+            toast.addEventListener('hidden.bs.toast', function() {
+                toast.remove();
+            });
+        }
+        
+        // Initialize form indices
+        updateFormIndices();
+        
+        // Add click event listener to the submit button for debugging and validation
+        document.addEventListener('DOMContentLoaded', function() {
+            const submitBtn = document.querySelector('#shipment-form button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.addEventListener('click', function(e) {
+                    console.log('Submit button clicked');
+                    const form = document.getElementById('shipment-form');
+                    console.log('Form validity:', form.checkValidity());
+                    
+                    // Log invalid fields
+                    const invalidFields = form.querySelectorAll(':invalid');
+                    console.log('Invalid fields:', invalidFields.length);
+                    invalidFields.forEach(field => {
+                        console.log('Invalid field:', field.name, 'Value:', field.value);
+                    });
+                });
+            } else {
+                console.error('Submit button not found');
+            }
+            
+            // Add real-time validation feedback
+            const form = document.getElementById('shipment-form');
+            if (form) {
+                form.addEventListener('input', function(event) {
+                    if (event.target.matches('input, select, textarea')) {
+                        const input = event.target;
+                        if (input.checkValidity()) {
+                            input.classList.remove('is-invalid');
+                            input.classList.add('is-valid');
+                        } else {
+                            input.classList.remove('is-valid');
+                            input.classList.add('is-invalid');
+                        }
+                    }
+                }, true);
+            }
+        });
+        
+        // Form submission handler
+        window.handleShipmentFormSubmit = async function(event) {
+            console.log('=== Form Submission Started ===');
+            const form = document.getElementById('shipment-form');
+            
+            // Prevent default form submission
+            if (event) {
+                event.preventDefault();
+            }
+            
+            // Show loading state
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalBtnText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Creating...';
+            
+            // Log form data for debugging
+            const debugInfo = document.getElementById('debug-info');
+            const formData = new FormData(form);
+            
+            // Log form data to console
+            console.log('Form action:', form.action);
+            console.log('Form method:', form.method);
+            console.log('Form data:', Object.fromEntries(formData.entries()));
+            
+            // Show debug info if it exists
+            if (debugInfo) {
+                debugInfo.style.display = 'block';
+                debugInfo.innerHTML += `
+                    <div class="mt-2">
+                        <h6>Form Data:</h6>
+                        <pre class="bg-white p-2 rounded">${JSON.stringify(Object.fromEntries(formData.entries()), null, 2)}</pre>
+                    </div>
+                `;
+            }
+            
+            // Reset form validation states
+            form.classList.remove('was-validated');
+            form.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+            
+            // Client-side validation
+            let isValid = true;
+            const requiredFields = form.querySelectorAll('[required]');
+            
+            // Validate required fields
+            requiredFields.forEach(field => {
+                if (!field.value || (field.type === 'checkbox' && !field.checked)) {
+                    field.classList.add('is-invalid');
+                    let feedback = field.nextElementSibling;
+                    
+                    // Create feedback element if it doesn't exist
+                    if (!feedback || !feedback.classList.contains('invalid-feedback')) {
+                        feedback = document.createElement('div');
+                        feedback.className = 'invalid-feedback';
+                        field.parentNode.insertBefore(feedback, field.nextSibling);
+                    }
+                    
+                    feedback.textContent = 'This field is required.';
+                    isValid = false;
+                }
+            });
+            
+            // Validate formset items
+            const itemRows = document.querySelectorAll('.item-row:not(.d-none)');
+            if (itemRows.length === 0) {
+                showToast('Validation Error', 'At least one item is required.', 'danger');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnText;
+                return false;
+            }
+            
+            itemRows.forEach((row, index) => {
+                const nameInput = row.querySelector('input[name$="-name"]');
+                const quantityInput = row.querySelector('input[name$="-quantity"]');
+                
+                if (nameInput && !nameInput.value.trim()) {
+                    nameInput.classList.add('is-invalid');
+                    let feedback = nameInput.nextElementSibling;
+                    if (!feedback || !feedback.classList.contains('invalid-feedback')) {
+                        feedback = document.createElement('div');
+                        feedback.className = 'invalid-feedback';
+                        nameInput.parentNode.insertBefore(feedback, nameInput.nextSibling);
+                    }
+                    feedback.textContent = 'Item name is required.';
+                    isValid = false;
+                }
+                
+                if (quantityInput && (!quantityInput.value || isNaN(quantityInput.value) || parseInt(quantityInput.value) < 1)) {
+                    quantityInput.classList.add('is-invalid');
+                    let feedback = quantityInput.nextElementSibling;
+                    if (!feedback || !feedback.classList.contains('invalid-feedback')) {
+                        feedback = document.createElement('div');
+                        feedback.className = 'invalid-feedback';
+                        quantityInput.parentNode.insertBefore(feedback, quantityInput.nextSibling);
+                    }
+                    feedback.textContent = 'Please enter a valid quantity (minimum 1).';
+                    isValid = false;
+                }
+            });
+            
+            if (!isValid) {
+                // Scroll to first error
+                const firstError = form.querySelector('.is-invalid');
+                if (firstError) {
+                    firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    firstError.focus();
+                }
+                showToast('Validation Error', 'Please correct the errors in the form.', 'danger');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnText;
+                return false;
+            }
+            
+            // Get CSRF token from the form
+            const csrftoken = document.querySelector('input[name=csrfmiddlewaretoken]').value;
+            if (!csrftoken) {
+                console.error('CSRF token not found');
+                showToast('Error', 'CSRF token not found. Please refresh the page and try again.', 'danger');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnText;
+                return false;
+            }
+            
+            // Log request details
+            console.log('Sending AJAX request to:', form.action);
+            console.log('Request method:', form.method);
+            console.log('CSRF Token:', csrftoken);
+            
+            // Show loading state
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
+                
+            try {
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': csrftoken
+                    },
+                    credentials: 'same-origin'
+                });
+                
+                console.log('Response received. Status:', response.status);
+                
+                // Get response content type
+                const contentType = response.headers.get('content-type') || '';
+                
+                // Handle JSON response (expected for AJAX)
+                if (contentType.includes('application/json')) {
+                    const data = await response.json();
+                    console.log('JSON response received:', data);
+                    
+                    // Handle successful response
+                    if (response.ok && data.success !== false) {
+                        // Handle redirect from JSON response
+                        if (data.redirect_url) {
+                            console.log('Redirecting to:', data.redirect_url);
+                            // Show success message before redirect
+                            showToast('Success', data.message || 'Shipment created successfully!', 'success');
+                            setTimeout(() => {
+                                window.location.href = data.redirect_url;
+                            }, 1500);
+                            return;
+                        }
+                        // Default redirect if no URL provided
+                        window.location.href = '{% url "shipping:shipment_list" %}';
+                        return;
+                    }
+                    
+                    // Handle form validation errors
+                    if (data.errors) {
+                        console.log('Form validation errors:', data.errors);
+                        
+                        // Clear previous error states
+                        form.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+                        
+                        // Handle field-specific errors
+                        Object.entries(data.errors).forEach(([field, errors]) => {
+                            // Handle non-field errors
+                            if (field === '__all__' || field === 'non_field_errors') {
+                                const errorMessage = Array.isArray(errors) ? errors[0] : errors;
+                                showToast('Validation Error', errorMessage, 'danger');
+                                return;
+                            }
+                            
+                            // Handle formset fields (items-0-fieldname)
+                            let fieldName = field;
+                            let formsetIndex = null;
+                            
+                            if (field.startsWith('items-')) {
+                                // Extract the field name and index from formset field (items-0-fieldname -> fieldname)
+                                const parts = field.split('-');
+                                if (parts.length >= 3) {
+                                    formsetIndex = parseInt(parts[1]);
+                                    fieldName = parts[2];
+                                }
+                            }
+                            
+                            // Find the input element
+                            let input = form.querySelector(`[name="${field}"]`);
+                            
+                            // If input not found, it might be a formset field
+                            if (!input && formsetIndex !== null) {
+                                // Try to find the formset row by index and field name
+                                const formsetRows = document.querySelectorAll('.item-row:not(.d-none)');
+                                if (formsetIndex < formsetRows.length) {
+                                    input = formsetRows[formsetIndex].querySelector(`[name$="-${fieldName}"]`);
+                                }
+                            }
+                            
+                            if (input) {
+                                input.classList.add('is-invalid');
+                                let feedback = input.nextElementSibling;
+                                
+                                // If no feedback element exists, create one
+                                if (!feedback || !feedback.classList.contains('invalid-feedback')) {
+                                    feedback = document.createElement('div');
+                                    feedback.className = 'invalid-feedback';
+                                    input.parentNode.insertBefore(feedback, input.nextSibling);
+                                }
+                                
+                                // Show the first error message
+                                const errorMessage = Array.isArray(errors) ? errors[0] : errors;
+                                feedback.textContent = errorMessage;
+                                
+                                // Scroll to the first error
+                                const firstError = form.querySelector('.is-invalid');
+                                if (firstError) {
+                                    firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                    firstError.focus();
+                                }
+                            }
+                        });
+                        
+                        showToast('Validation Error', 'Please correct the errors in the form.', 'danger');
+                        return;
+                    }
+                    
+                    // Handle other error cases
+                    throw new Error(data.message || 'An unknown error occurred');
+                }
+                
+                // Handle redirect responses
+                if (response.redirected) {
+                    console.log('Server redirected to:', response.url);
+                    window.location.href = response.url;
+                    return;
+                }
+                    }
+                    
+                    // Handle HTML response (form errors or non-AJAX fallback)
+                    const html = await response.text();
+                    console.log('HTML response received, length:', html.length);
+                    
+                    // Try to extract form errors from the response
+                    const parser = new DOMParser();
+                    const htmlDoc = parser.parseFromString(html, 'text/html');
+                    
+                    // Check for form errors in the response
+                    const errorList = htmlDoc.querySelector('.errorlist');
+                    if (errorList) {
+                        // Show the first error message
+                        const errorMessage = errorList.textContent.trim();
+                        showToast('Error', errorMessage || 'Please check the form for errors', 'danger');
+                    } else {
+                        // Generic error message if no specific errors found
+                        showToast('Error', 'An error occurred while processing your request', 'danger');
+                    }
+                    
+                    // Replace the form with the server's response to show validation errors
+                    const newForm = htmlDoc.getElementById('shipment-form');
+                    if (newForm) {
+                        // Save scroll position
+                        const scrollPosition = window.scrollY;
+                        
+                        // Replace form
+                        form.outerHTML = newForm.outerHTML;
+                        
+                        // Re-initialize any JS that needs to run after form replacement
+                        initAddressDropdowns();
+                        
+                        // Restore scroll position
+                        window.scrollTo(0, scrollPosition);
+                        
+                        // Re-attach event listeners
+                        const newFormElement = document.getElementById('shipment-form');
+                        if (newFormElement) {
+                            newFormElement.onsubmit = handleShipmentFormSubmit;
+                        }
+                    }
+                    
+                    // Log the full response for debugging
+                    console.log('HTML response:', html);
+                    
+            } catch (error) {
+                console.error('Error:', error);
+                
+                // Handle specific error cases
+                let errorMessage = 'An error occurred while processing your request.';
+                if (error.message.includes('Failed to fetch')) {
+                    errorMessage = 'Unable to connect to the server. Please check your internet connection and try again.';
+                } else if (error.message) {
+                    errorMessage = error.message;
+                }
+                
+                showToast('Error', errorMessage, 'danger');
+                
+                // Log the error to the console for debugging
+                console.error('Form submission error details:', error);
+                
+                // Show error in debug info if available
+                const debugInfo = document.getElementById('debug-info');
+                if (debugInfo) {
+                    debugInfo.style.display = 'block';
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'alert alert-danger mt-3';
+                    errorDiv.innerHTML = `
+                        <h6>Error Details:</h6>
+                        <pre class="mb-0">${error.message || 'No error details available'}</pre>
+                    `;
+                    debugInfo.appendChild(errorDiv);
+                }
+            } finally {
+                // Always re-enable the submit button
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnText;
+            }
+            
+            return false;
+        };
+    });
+    </script>
+{% endblock %}

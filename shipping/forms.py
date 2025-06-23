@@ -10,6 +10,8 @@ from .constants import BILL_STATUS_CHOICES, INVOICE_STATUS_CHOICES
 from .models import COURIER_SERVICES
 
 class ShipmentForm(forms.ModelForm):
+    from .models import PACKAGE_TYPE_CHOICES
+    
     sender_first_name = forms.CharField(
         max_length=100,
         required=False,
@@ -30,23 +32,34 @@ class ShipmentForm(forms.ModelForm):
         required=False,
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Recipient Last Name'})
     )
+    package_type = forms.ChoiceField(
+        choices=[('', '-- Select Package Type --')] + list(PACKAGE_TYPE_CHOICES),
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        required=True
+    )
+
+    courier_service = forms.ChoiceField(
+        choices=COURIER_SERVICES,
+        required=True,
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        label='Courier Service'
+    )
 
     class Meta:
         model = Shipment
         fields = [
             'sender_address', 'sender_first_name', 'sender_last_name',
             'recipient_address', 'recipient_first_name', 'recipient_last_name',
-            'package_type', 'weight', 'length', 'width', 'height', 'declared_value', 'shipping_date'
+            'package_type', 'weight', 'length', 'width', 'height', 'shipping_date',
+            'courier_service'
         ]
         widgets = {
             'sender_address': forms.Select(attrs={'class': 'form-select address-select', 'data-type': 'sender'}),
             'recipient_address': forms.Select(attrs={'class': 'form-select address-select', 'data-type': 'recipient'}),
-            'package_type': forms.Select(attrs={'class': 'form-select'}),
             'weight': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.1', 'min': '0.1', 'required': 'required'}),
             'length': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.1', 'min': '0.1', 'required': 'required'}),
             'width': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.1', 'min': '0.1', 'required': 'required'}),
             'height': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.1', 'min': '0.1', 'required': 'required'}),
-            'declared_value': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0.01', 'required': 'required'}),
             'shipping_date': forms.DateInput(attrs={'class': 'form-control datepicker', 'required': 'required'}),
         }
     

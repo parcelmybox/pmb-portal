@@ -1,0 +1,85 @@
+<div class="card h-100 border-0 shadow-sm">
+    <div class="card-header bg-white border-bottom py-3">
+        <h5 class="mb-0 text-primary">
+            <i class="bi bi-card-checklist me-2"></i>Shipment Details
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="mb-3">
+            <label for="{{ form.package_type.id_for_label }}" class="form-label">
+                Package Type <span class="text-danger">*</span>
+            </label>
+            {{ form.package_type }}
+            <div class="invalid-feedback">
+                Please select a package type.
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="{{ form.weight.id_for_label }}" class="form-label">
+                    Weight (kg) <span class="text-danger">*</span>
+                </label>
+                <div class="input-group">
+                    {{ form.weight }}
+                    <span class="input-group-text">kg</span>
+                    <div class="invalid-feedback">
+                        Please enter a valid weight (minimum 0.1 kg).
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="{{ form.declared_value.id_for_label }}" class="form-label">
+                    Declared Value ($) <span class="text-danger">*</span>
+                </label>
+                <div class="input-group">
+                    <span class="input-group-text">$</span>
+                    {{ form.declared_value }}
+                    <div class="invalid-feedback">
+                        Please enter a valid declared value.
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <label for="{{ form.length.id_for_label }}" class="form-label">
+                    Length (cm) <span class="text-danger">*</span>
+                </label>
+                <div class="input-group">
+                    {{ form.length }}
+                    <span class="input-group-text">cm</span>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <label for="{{ form.width.id_for_label }}" class="form-label">
+                    Width (cm) <span class="text-danger">*</span>
+                </label>
+                <div class="input-group">
+                    {{ form.width }}
+                    <span class="input-group-text">cm</span>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <label for="{{ form.height.id_for_label }}" class="form-label">
+                    Height (cm) <span class="text-danger">*</span>
+                </label>
+                <div class="input-group">
+                    {{ form.height }}
+                    <span class="input-group-text">cm</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mb-3">
+            <label for="{{ form.shipping_date.id_for_label }}" class="form-label">
+                Shipping Date <span class="text-danger">*</span>
+            </label>
+            {{ form.shipping_date }}
+            <div class="form-text">
+                The date when the shipment will be ready for pickup.
+            </div>
+        </div>
+    </div>
+</div>

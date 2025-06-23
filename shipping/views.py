@@ -133,8 +133,7 @@ def create_shipment(request):
                                 shipment=shipment,
                                 name=name,
                                 quantity=quantity,
-                                description=description,
-                                declared_value=shipment.declared_value  # Default to shipment's declared value
+                                description=description
                             )
                     
                     # Create initial tracking event

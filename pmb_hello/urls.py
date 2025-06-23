@@ -39,9 +39,21 @@ def admin_logout(request):
     messages.success(request, 'You have been logged out successfully.')
     return HttpResponseRedirect(reverse('admin:login'))
 
+# API URLs - Include first to avoid conflicts with other URL patterns
+api_patterns = [
+    path('', include('api.urls')),  # Our new API endpoints
+]
+
 urlpatterns = [
-    path('', pmb_hello_views.site_home_page, name='site_home_page'),  # New site home page
-    path('admin/logout/', admin_logout, name='admin:logout'),  # Admin logout
+    # API endpoints
+    path('api/', include(api_patterns)),
+    
+    # API Documentation
+    path('api/docs/', RedirectView.as_view(url='/api/swagger/', permanent=False), name='api-docs'),
+    
+    # Main site
+    path('', pmb_hello_views.site_home_page, name='site_home_page'),  # Site home page
+    path('admin/logout/', admin_logout, name='admin-logout'),  # Admin logout - Fixed the URL name to avoid ':'
     path('admin/', custom_admin_site.urls),  # Use our custom admin site
     
     # Shipping app URLs
