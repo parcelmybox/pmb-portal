@@ -1,0 +1,44 @@
+{% extends "admin/change_list.html" %}
+{% load i18n admin_urls static admin_list admin_date_filters %}
+
+{% block result_list %}
+    {% if action_form and actions_on_top and cl.show_admin_actions %}{% admin_actions %}{% endif %}
+    
+    <div class="results">
+    <table id="result_list">
+        <thead>
+            <tr>
+                {% for header in result_headers %}
+                    <th scope="col" {{ header.class_attrib }}>
+                        {% if header.sortable %}
+                            <a href="{{ header.url_primary }}" class="sort-link">
+                                {{ header.text|capfirst }}
+                            </a>
+                        {% else %}
+                            <span>{{ header.text|capfirst }}</span>
+                        {% endif %}
+                    </th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in result_list %}
+                <tr class="{% cycle 'row1' 'row2' %}">
+                    {% for field in item %}
+                        <td>
+                            {% if field.field.name == 'due_date' or field.field.name == 'created_at' %}
+                                {{ field.contents|localtime_pst|date:"M d, Y H:i" }}
+                            {% else %}
+                                {{ field.contents }}
+                            {% endif %}
+                        </td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    </div>
+    
+    {% if action_form and actions_on_bottom and cl.show_admin_actions %}{% admin_actions %}{% endif %}
+    {% pagination cl %}
+{% endblock %}

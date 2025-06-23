@@ -1,0 +1,133 @@
+<div class="card h-100 border-0 shadow-sm">
+    <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+        <h5 class="mb-0 text-primary">
+            <i class="bi bi-geo-alt me-2"></i>Addresses
+        </h5>
+        <a href="{% url 'shipping:manage_addresses' %}" class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-plus-circle"></i> Manage Addresses
+        </a>
+    </div>
+    <div class="card-body">
+        <!-- Sender Address -->
+        <div class="mb-4">
+            <h6 class="border-bottom pb-2">Sender Address</h6>
+            <div class="form-group mb-2">
+                <label for="{{ form.sender_address.id_for_label }}" class="form-label">Select Sender Address</label>
+                <div class="input-group mb-2">
+                    {{ form.sender_address }}
+                    <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#addSenderModal">
+                        <i class="bi bi-plus"></i> New
+                    </button>
+                </div>
+                <div class="invalid-feedback">
+                    Please select a sender address.
+                </div>
+            </div>
+            
+            <div class="row g-2 mb-2">
+                <div class="col-md-6">
+                    <label for="{{ form.sender_first_name.id_for_label }}" class="form-label">First Name</label>
+                    {{ form.sender_first_name }}
+                </div>
+                <div class="col-md-6">
+                    <label for="{{ form.sender_last_name.id_for_label }}" class="form-label">Last Name</label>
+                    {{ form.sender_last_name }}
+                </div>
+            </div>
+            
+            <div class="mb-2">
+                <label for="{{ form.sender_address_line1.id_for_label }}" class="form-label">Address Line 1</label>
+                {{ form.sender_address_line1 }}
+            </div>
+            
+            <div class="mb-2">
+                <label for="{{ form.sender_address_line2.id_for_label }}" class="form-label">Address Line 2 (Optional)</label>
+                {{ form.sender_address_line2 }}
+            </div>
+            
+            <div class="row g-2">
+                <div class="col-md-6">
+                    <label for="{{ form.sender_city.id_for_label }}" class="form-label">City</label>
+                    {{ form.sender_city }}
+                </div>
+                <div class="col-md-6">
+                    <label for="{{ form.sender_state.id_for_label }}" class="form-label">State/Province</label>
+                    {{ form.sender_state }}
+                </div>
+                <div class="col-md-6">
+                    <label for="{{ form.sender_country.id_for_label }}" class="form-label">Country</label>
+                    {{ form.sender_country }}
+                </div>
+                <div class="col-md-6">
+                    <label for="{{ form.sender_postal_code.id_for_label }}" class="form-label">Postal Code</label>
+                    {{ form.sender_postal_code }}
+                </div>
+                <div class="col-12">
+                    <label for="{{ form.sender_phone_number.id_for_label }}" class="form-label">Phone Number</label>
+                    {{ form.sender_phone_number }}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recipient Address -->
+        <div class="mb-3">
+            <h6 class="border-bottom pb-2">Recipient Address</h6>
+            <div class="form-group mb-2">
+                <label for="{{ form.recipient_address.id_for_label }}" class="form-label">Select Recipient Address</label>
+                <div class="input-group mb-2">
+                    {{ form.recipient_address }}
+                    <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#addRecipientModal">
+                        <i class="bi bi-plus"></i> New
+                    </button>
+                </div>
+                <div class="invalid-feedback">
+                    Please select a recipient address.
+                </div>
+            </div>
+            
+            <div class="row g-2 mb-2">
+                <div class="col-md-6">
+                    <label for="{{ form.recipient_first_name.id_for_label }}" class="form-label">First Name</label>
+                    {{ form.recipient_first_name }}
+                </div>
+                <div class="col-md-6">
+                    <label for="{{ form.recipient_last_name.id_for_label }}" class="form-label">Last Name</label>
+                    {{ form.recipient_last_name }}
+                </div>
+            </div>
+            
+            <div class="mb-2">
+                <label for="{{ form.recipient_address_line1.id_for_label }}" class="form-label">Address Line 1</label>
+                {{ form.recipient_address_line1 }}
+            </div>
+            
+            <div class="mb-2">
+                <label for="{{ form.recipient_address_line2.id_for_label }}" class="form-label">Address Line 2 (Optional)</label>
+                {{ form.recipient_address_line2 }}
+            </div>
+            
+            <div class="row g-2">
+                <div class="col-md-6">
+                    <label for="{{ form.recipient_city.id_for_label }}" class="form-label">City</label>
+                    {{ form.recipient_city }}
+                </div>
+                <div class="col-md-6">
+                    <label for="{{ form.recipient_state.id_for_label }}" class="form-label">State/Province</label>
+                    {{ form.recipient_state }}
+                </div>
+                <div class="col-md-6">
+                    <label for="{{ form.recipient_country.id_for_label }}" class="form-label">Country</label>
+                    {{ form.recipient_country }}
+                </div>
+                <div class="col-md-6">
+                    <label for="{{ form.recipient_postal_code.id_for_label }}" class="form-label">Postal Code</label>
+                    {{ form.recipient_postal_code }}
+                </div>
+                <div class="col-12">
+                    <label for="{{ form.recipient_phone_number.id_for_label }}" class="form-label">Phone Number</label>
+                    {{ form.recipient_phone_number }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

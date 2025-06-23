@@ -1,0 +1,42 @@
+{% extends "admin/delete_confirmation.html" %}
+{% load i18n l10n admin_urls %}
+
+{% block content %}
+<div class="delete-confirmation">
+    <p>{% blocktrans %}Are you sure you want to delete the selected {{ objects_name }}? All of the following objects and their related items will be deleted:{% endblocktrans %}</p>
+    
+    <h2>{% trans "Objects" %}</h2>
+    <ul>
+    {% for obj in objects %}
+        <li>
+            <strong>{{ obj.get_invoice_number }}</strong> - 
+            {{ obj.customer.get_full_name|default:obj.customer.username }}
+            {% if obj.shipment %}(Shipment: {{ obj.shipment.tracking_number }}){% endif %}
+        </li>
+    {% endfor %}
+    </ul>
+
+    <form method="post">
+        {% csrf_token %}
+        <div>
+            {% for obj in objects %}
+            <input type="hidden" name="_selected_action" value="{{ obj.pk|unlocalize }}" />
+            {% endfor %}
+            <input type="hidden" name="action" value="delete_selected" />
+            <input type="hidden" name="post" value="yes" />
+            <input type="submit" value="{% trans 'Yes, I\'m sure' %}" class="button" />
+            <a href="#" onclick="window.history.back(); return false;" class="button cancel-link">{% trans 'No, take me back' %}</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block footer %}
+{{ block.super }}
+<script>
+    // Prevent form resubmission on page refresh
+    if (window.history.replaceState) {
+        window.history.replaceState(null, null, window.location.href);
+    }
+</script>
+{% endblock %}

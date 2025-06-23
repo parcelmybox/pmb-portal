@@ -23,10 +23,9 @@ PAYMENT_METHODS = [
 
 COURIER_SERVICES = [
     ('', '-- Select Courier --'),
-    ('DHL', 'DHL'),
     ('UPS', 'UPS'),
     ('FEDEX', 'FedEx'),
-    ('USPS', 'USPS'),
+    ('DHL', 'DHL'),
     ('OTHER', 'Other'),
 ]
 
@@ -40,10 +39,12 @@ SHIPPING_STATUS_CHOICES = [
 
 # Package type choices
 PACKAGE_TYPE_CHOICES = [
-    ('box', 'Box'),
-    ('envelope', 'Envelope'),
-    ('tube', 'Tube'),
-    ('pallet', 'Pallet'),
+    ('document', 'Documents'),
+    ('parcel', 'Parcel'),
+    ('oversized', 'Oversized'),
+    ('liquid', 'Liquid'),
+    ('fragile', 'Fragile'),
+    ('medicine', 'Medicine'),
     ('other', 'Other'),
 ]
 
@@ -84,13 +85,7 @@ SHIPPING_STATUS_CHOICES = [
     ('cancelled', 'Cancelled'),
 ]
 
-PACKAGE_TYPE_CHOICES = [
-    ('document', 'Documents'),
-    ('parcel', 'Parcel'),
-    ('oversized', 'Oversized'),
-    ('liquid', 'Liquid'),
-    ('fragile', 'Fragile'),
-]
+# Removed duplicate PACKAGE_TYPE_CHOICES - using the one defined above
 
 class Contact(models.Model):
     """Model to store contact information"""
@@ -331,12 +326,19 @@ class Shipment(models.Model):
     length = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
     width = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
     height = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
-    declared_value = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
     status = models.CharField(max_length=20, choices=SHIPPING_STATUS_CHOICES, default='pending')
     tracking_number = models.CharField(max_length=50, unique=True)
     shipping_date = models.DateField()
     delivery_date = models.DateField(null=True, blank=True)
     shipping_cost = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
+    courier_service = models.CharField(
+        max_length=20,
+        choices=COURIER_SERVICES,
+        default='',
+        blank=True,
+        null=True,
+        help_text='Courier service used for this shipment'
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -411,7 +413,6 @@ class ShipmentItem(models.Model):
     name = models.CharField(max_length=255)
     quantity = models.PositiveIntegerField()
     description = models.TextField()
-    declared_value = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
 
     def __str__(self):
         return f"{self.name} x{self.quantity}"

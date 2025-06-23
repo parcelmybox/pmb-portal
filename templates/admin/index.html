@@ -267,6 +267,13 @@
                         <i class="fas fa-external-link-alt" style="margin-left: auto; opacity: 0.6; font-size: 12px;"></i>
                     </a>
                     
+                    <!-- Invoices -->
+                    <a href="{% url 'shipping:invoice_list' %}" style="display: flex; align-items: center; padding: 12px; color: #2c5282; text-decoration: none; border-radius: 8px; transition: all 0.2s; background: #ebf8ff; border-left: 4px solid #805ad5;">
+                        <i class="fas fa-file-invoice" style="width: 24px; margin-right: 10px; color: #805ad5; font-size: 16px;"></i>
+                        <span style="font-weight: 500;">Invoices</span>
+                        <i class="fas fa-external-link-alt" style="margin-left: auto; opacity: 0.6; font-size: 12px;"></i>
+                    </a>
+                    
                     <!-- Shipping Addresses -->
                     <a href="{% url 'shipping:manage_addresses' %}" style="display: flex; align-items: center; padding: 12px; color: #5f370e; text-decoration: none; border-radius: 8px; transition: all 0.2s; background: #fefcbf; border-left: 4px solid #d69e2e;">
                         <i class="fas fa-address-book" style="width: 24px; margin-right: 10px; color: #975a16; font-size: 16px;"></i>
@@ -278,6 +285,13 @@
                     <a href="{% url 'admin:auth_user_changelist' %}" style="display: flex; align-items: center; padding: 12px; color: #5f370e; text-decoration: none; border-radius: 8px; transition: all 0.2s; background: #fefcbf; border-left: 4px solid #d69e2e;">
                         <i class="fas fa-users" style="width: 24px; margin-right: 10px; color: #975a16; font-size: 16px;"></i>
                         <span style="font-weight: 500;">Users</span>
+                    </a>
+                    
+                    <!-- API -->
+                    <a href="/api/" style="display: flex; align-items: center; padding: 12px; color: #2c3e50; text-decoration: none; border-radius: 8px; transition: all 0.2s; background: #f0f0f0; border-left: 4px solid #7f8c8d;">
+                        <i class="fas fa-code" style="width: 24px; margin-right: 10px; color: #2c3e50; font-size: 16px;"></i>
+                        <span style="font-weight: 500;">API</span>
+                        <i class="fas fa-external-link-alt" style="margin-left: auto; opacity: 0.6; font-size: 12px;"></i>
                     </a>
                 </div>
             </div>
@@ -408,6 +422,7 @@
                                 <a href="{{ app.app_url }}" style="color: inherit; text-decoration: none;">{{ app.name }}</a>
                             </h2>
                         </div>
+                        
                         <div style="padding: 15px 20px;">
                             <table style="width: 100%; border-collapse: collapse;">
                                 <tbody>
@@ -450,6 +465,7 @@
 {% block extrahead %}
 {{ block.super }}
 <script>
+
 // Update time every second
 function updateTime() {
     const now = new Date();
