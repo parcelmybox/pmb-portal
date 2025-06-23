@@ -5,7 +5,7 @@ const courierPlans = [
     name: 'UPS Shipping',
     tagline: 'Reliable & Progressive Value',
     priceDisplay: '₹2800+',
-    priceDetail: '₹2800 for 1kg + ₹500 per kg (until 10kg)',
+    priceDetail: '740/kg',
     isHighlighted: true,
     features: [
       'Best for standard international shipping',
@@ -19,7 +19,7 @@ const courierPlans = [
     name: 'DHL Shipping',
     tagline: 'Fast & Premium Delivery',
     priceDisplay: '₹3600+',
-    priceDetail: '₹3600 for 1kg + ₹500 per kg (till 5kg), then ₹780/kg',
+    priceDetail: '₹780/kg for above 5kgs',
     isHighlighted: false,
     features: [
       '3–5 Day delivery',
@@ -33,7 +33,7 @@ const courierPlans = [
     name: 'FedEx Shipping',
     tagline: 'Affordable & Consistent',
     priceDisplay: '₹2700+',
-    priceDetail: '₹2700 for 1kg + ₹500 per kg (till 11kg), then ₹730/kg',
+    priceDetail: '₹730/kg above 10 kg',
     isHighlighted: false,
     features: [
       '5–7 Day delivery',
@@ -53,11 +53,11 @@ function Pricing() {
         {courierPlans.map((plan, index) => (
           <div
             key={index}
-            className={`rounded-lg shadow-lg overflow-hidden border-2 flex flex-col justify-between ${
+            className={rounded-lg shadow-lg overflow-hidden border-2 flex flex-col justify-between ${
               plan.isHighlighted ? 'border-orange-500' : 'border-gray-200'
-            } bg-white`}
+            } bg-white}
           >
-            <div className={`p-6 ${plan.isHighlighted ? 'bg-orange-500 text-white' : 'bg-green-100 text-gray-800'}`}>
+            <div className={p-6 ${plan.isHighlighted ? 'bg-orange-500 text-white' : 'bg-green-100 text-gray-800'}}>
               <h2 className="text-xl font-bold">{plan.name}</h2>
               <p className="text-sm mt-1">{plan.tagline}</p>
             </div>
@@ -75,9 +75,9 @@ function Pricing() {
                 ))}
               </ul>
 
-              <button className={`mt-6 w-full py-2 rounded font-semibold text-sm ${
+              <button className={mt-6 w-full py-2 rounded font-semibold text-sm ${
                 plan.isHighlighted ? 'bg-white text-orange-500 border border-orange-500' : 'bg-green-500 text-white hover:bg-green-600'
-              }`}>
+              }}>
                 {plan.cta}
               </button>
             </div>
