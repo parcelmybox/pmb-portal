@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Assign Locker</title>
+</head>
+<body>
+    <h1>Assign a New Locker</h1>
+    <form method="post">
+        Customer Name: <input type="text" name="customer_name" required><br><br>
+        Receiver Address: <textarea name="receiver_address" required></textarea><br><br>
+        Receiver Phone: <input type="text" name="receiver_phone" required><br><br>
+        Sender Address: <textarea name="sender_address" required></textarea><br><br>
+        Sender Phone: <input type="text" name="sender_phone" required><br><br>
+        <input type="submit" value="Assign Locker">
+    </form>
+
+    {% if locker %}
+        <h2>Locker Assigned Successfully!</h2>
+        <p><strong>Customer:</strong> {{ locker.customer_name }}</p>
+        <p><strong>Receiver Address:</strong> {{ locker.receiver_address }}</p>
+        <p><strong>Receiver Phone:</strong> {{ locker.receiver_phone }}</p>
+        <p><strong>Sender Address:</strong> {{ locker.sender_address }}</p>
+        <p><strong>Sender Phone:</strong> {{ locker.sender_phone }}</p>
+        <p><strong>Locker Code:</strong> {{ locker.locker_code }}</p>
+        <p><strong>Warehouse Address:</strong> {{ locker.warehouse_address }}</p>
+    {% endif %}
+    <br>
+    <a href="/all">View All Lockers</a>
+</body>
+</html>
