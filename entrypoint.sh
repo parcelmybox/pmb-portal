@@ -15,6 +15,8 @@ echo "Running migrations..."
 python manage.py makemigrations
 python manage.py migrate
 
+python manage.py load_courier_plans
+
 # Initialize city codes
 echo "Initializing city codes..."
 python manage.py init_city_codes
