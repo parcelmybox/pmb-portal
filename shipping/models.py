@@ -6,7 +6,6 @@ from django.core.validators import MinValueValidator, EmailValidator
 from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
 from .constants import BILL_STATUS_CHOICES
-
 User = get_user_model()
 
 # Status and choice constants
@@ -426,6 +425,15 @@ class TrackingEvent(models.Model):
 
     def __str__(self):
         return f"{self.get_status_display()} at {self.location} - {self.timestamp.strftime('%Y-%m-%d %H:%M')}"
+
+class CourierPlan(models.Model):
+    name = models.CharField(max_length=100)
+    tagline = models.CharField(max_length=255)
+    price_display = models.CharField(max_length=50)
+    price_detail = models.CharField(max_length=255)
+    is_highlighted = models.BooleanField(default=False)
+    features = models.JSONField()
+    cta = models.CharField(max_length=100)
 
 class Bill(models.Model):
     """Model for managing customer bills and invoices."""
