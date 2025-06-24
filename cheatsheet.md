@@ -2,6 +2,8 @@
 
 ## 🔀 Branching & PR Workflow
 
+![Branching Commit Process](examples/branching-commit-process.png)
+
 ### 🌿 Feature Branch Workflow
 
 ```bash
