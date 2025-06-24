@@ -47,52 +47,17 @@ function Dashboard() {
   const locations = [
     "USA – Raleigh",
     "USA – Bay Area",
-    "USA",
     "Hyderabad",
-    "Chennai"
+    "Chennai",
+    "Bangalore"
   ];
 
   return (
     <div className="p-6 space-y-12">
-      <h1 className="text-3xl font-bold text-gray-900 mb-4">Welcome to ParcelMyBox</h1>
-      <p className="text-gray-600">
-        Manage your international shipments between India and USA. Get quotes, track parcels, and manage your shipping needs.
-      </p>
-
-      {/* Feature Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div className={cardClass}>
-          <h2 className="text-xl font-semibold text-gray-700 mb-2">Get a Shipping Quote</h2>
-          <p className="text-gray-600 mb-4">
-            Get an estimate for shipping between India and USA. Choose from standard or priority shipping options.
-          </p>
-          <Link to="/quote" className={linkClass}>Request a Quote &rarr;</Link>
-        </div>
-
-        <div className={cardClass}>
-          <h2 className="text-xl font-semibold text-gray-700 mb-2">Track Your International Shipment</h2>
-          <p className="text-gray-600 mb-4">
-            Track your international shipments between India and USA. Get real-time updates on your parcel's journey.
-          </p>
-          <Link to="/tracking" className={linkClass}>Track a Parcel &rarr;</Link>
-        </div>
-
-        <div className={cardClass}>
-          <h2 className="text-xl font-semibold text-gray-700 mb-2">Your Profile</h2>
-          <p className="text-gray-600 mb-4">
-            Manage your account settings and preferences.
-          </p>
-          <Link to="/profile" className={linkClass}>Go to Profile &rarr;</Link>
-        </div>
-      </div>
-
-      {/* Recent Activity */}
-      <div>
-        <h2 className="text-2xl font-semibold text-gray-700 mb-4">Recent Activity</h2>
-        <div className="bg-white shadow rounded-lg p-4">
-          <p className="text-gray-500">No recent activity to display yet.</p>
-        </div>
-      </div>
+     
+      <h1 className="text-3xl font-bold text-gray-900 mb-4"></h1>
+ 
+      
 
       {/* Why Choose Us */}
       <div>
@@ -142,7 +107,7 @@ function Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-gray-700 text-sm px-4 md:px-0 max-w-6xl mx-auto">
           {/* Column 1: Address & Email */}
           <div>
-            <h4 className="text-blue-800 font-semibold mb-2">Address</h4>
+            <h4 className="text-blue-800 font-semibold mb-2">Warehouse Address</h4>
             <p>Pachavati Apartments</p>
             <p>Pragathi Nagar</p>
             <p>Hyderabad 500090</p>
@@ -176,6 +141,34 @@ function Dashboard() {
 
         <p className="text-center text-gray-500 mt-10 text-xs">&copy; {new Date().getFullYear()} Parcel My Box. All rights reserved.</p>
       </div>
+
+      {/* Feature Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className={cardClass}>
+          <h2 className="text-xl font-semibold text-gray-700 mb-2">Get a Shipping Quote</h2>
+          <p className="text-gray-600 mb-4">
+            Get an estimate for shipping between India and USA. Choose from standard or priority shipping options.
+          </p>
+          <Link to="/quote" className={linkClass}>Request a Quote &rarr;</Link>
+        </div>
+
+        <div className={cardClass}>
+          <h2 className="text-xl font-semibold text-gray-700 mb-2">Track Your International Shipment</h2>
+          <p className="text-gray-600 mb-4">
+            Track your international shipments between India and USA. Get real-time updates on your parcel's journey.
+          </p>
+          <Link to="/tracking" className={linkClass}>Track a Parcel &rarr;</Link>
+        </div>
+
+        <div className={cardClass}>
+          <h2 className="text-xl font-semibold text-gray-700 mb-2">Your Profile</h2>
+          <p className="text-gray-600 mb-4">
+            Manage your account settings and preferences.
+          </p>
+          <Link to="/profile" className={linkClass}>Go to Profile &rarr;</Link>
+        </div>
+      </div>
+
     </div>
   );
 }
