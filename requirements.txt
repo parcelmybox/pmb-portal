@@ -7,7 +7,7 @@ python-dotenv==1.0.0
 PyJWT==2.8.0
 requests==2.31.0
 python-dateutil==2.8.2
-django-environ==0.11.2
+django-environ>=0.4.5
 streamlit==1.29.0
 pandas==2.1.0
 openpyxl==3.1.2  # For Excel file support
@@ -26,3 +26,4 @@ django-debug-toolbar==4.4.0  # For debugging and profiling
 pyyaml==6.0.1  # For API schema generation
 coreapi==2.3.3  # For API documentation
 markdown==3.5.1  # For markdown support in API docs
+django-cors-headers
