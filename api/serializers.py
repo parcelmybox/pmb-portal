@@ -150,3 +150,28 @@ class InvoiceSerializer(serializers.ModelSerializer):
             data['tax_amount'] = tax_amount
             data['total_amount'] = amount + tax_amount
         return data
+
+
+from rest_framework import serializers
+from .models import PickupRequest
+
+class PickupRequestSerializer(serializers.ModelSerializer):
+    user = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    
+    class Meta:
+        model = PickupRequest
+        fields = '__all__'
+        read_only_fields = ('user', 'created_at')
+        extra_kwargs = {
+            # Allow partial updates for PATCH
+            'name': {'required': False},
+            'phone_number': {'required': False},
+            'email': {'required': False},
+            'address': {'required': False},
+            'city': {'required': False},
+            'postal_code': {'required': False},
+            'date': {'required': False},
+            'time': {'required': False},
+            'package_type': {'required': False},
+            'weight': {'required': False}
+        }

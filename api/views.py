@@ -10,9 +10,14 @@ from shipping.models import Shipment, ShippingAddress, Bill, Invoice, ShipmentIt
 from .serializers import (
     UserSerializer, ShipmentSerializer, 
     ShippingAddressSerializer, BillSerializer, InvoiceSerializer,
-    ShipmentItemSerializer, TrackingEventSerializer, ContactSerializer
+    ShipmentItemSerializer, TrackingEventSerializer, ContactSerializer,PickupRequestSerializer
 )
 from .permissions import IsOwnerOrAdmin, IsAdminOrReadOnly
+
+from rest_framework import generics
+from .models import PickupRequest
+
+
 
 User = get_user_model()
 
@@ -200,3 +205,30 @@ class InvoiceViewSet(viewsets.ModelViewSet):
             "status": "PDF generation would happen here",
             "invoice_id": invoice.id
         })
+
+
+#pickupRequest
+
+from rest_framework import viewsets
+from rest_framework.permissions import IsAuthenticated
+from .models import PickupRequest
+from .serializers import PickupRequestSerializer
+
+class PickupRequestViewSet(viewsets.ModelViewSet):
+    """
+    Complete CRUD operations for PickupRequests
+    """
+    serializer_class = PickupRequestSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        """Only show requests belonging to current user"""
+        return PickupRequest.objects.filter(user=self.request.user)
+    
+    def perform_create(self, serializer):
+        """Auto-set user on creation"""
+        serializer.save(user=self.request.user)
+        
+    def perform_update(self, serializer):
+        """Auto-update without changing user"""
+        serializer.save()

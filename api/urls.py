@@ -22,6 +22,7 @@ router.register(r'addresses', views.AddressViewSet, basename='address')
 router.register(r'shipments', views.ShipmentViewSet, basename='shipment')
 router.register(r'bills', views.BillViewSet, basename='bill')
 router.register(r'invoices', views.InvoiceViewSet, basename='invoice')
+router.register(r'pickup-requests', views.PickupRequestViewSet, basename='pickuprequest')
 
 # Schema View for API documentation
 schema_view = get_schema_view(
@@ -30,7 +31,7 @@ schema_view = get_schema_view(
       default_version='v1',
       description="""
       <h2>ParcelMyBox Shipping Management System API</h2>
-      <p>This API provides endpoints for managing shipments, addresses, bills, and invoices.</p>
+      <p>This API provides endpoints for managing shipments, addresses, bills, invoices and pickup request</p>
       <p>To get started, obtain an access token by authenticating with your credentials.</p>
       """,
       terms_of_service="https://www.parcelmybox.com/terms/",
@@ -47,9 +48,12 @@ urlpatterns = [
     path('', include(router.urls)),
     
     # Authentication endpoints
-    path('auth/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    path('auth/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
+    path('auth/', include([
+        path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+        path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+        path('token/verify/', TokenVerifyView.as_view(), name='token_verify'),
+    ])),
+    
     
     # API documentation
     re_path(r'^swagger(?P<format>\.json|\.yaml)$', 
