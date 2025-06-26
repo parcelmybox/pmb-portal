@@ -7,7 +7,9 @@ function Pricing() {
   const [error, setError] = useState(null); console.log("API URL:", process.env.REACT_APP_API_URL);
 
   useEffect(() => {
-    fetch(`${process.env.REACT_APP_API_URL}/shipping/courier-plans/`)
+    const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+    fetch(`${API_URL}/shipping/courier-plans/`)
+    // fetch(`${process.env.REACT_APP_API_URL}/shipping/courier-plans/`)
       .then((response) => {
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         return response.json();
