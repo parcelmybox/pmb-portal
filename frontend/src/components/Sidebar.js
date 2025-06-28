@@ -1,7 +1,11 @@
-import React, { useEffect } from 'react';
-import { Link, NavLink } from 'react-router-dom';
+import React, { forwardRef, useEffect } from 'react';
+import { 
+  Link, 
+  NavLink, 
+  useLocation, 
+  useNavigate 
+} from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
 import { 
   HomeIcon, 
   CalculatorIcon, 
@@ -22,43 +26,33 @@ const activeStyle = {
   color: '#f3f4f6'
 };
 
-export default function Sidebar({ showSidebar, setShowSidebar }) {
+const Sidebar = forwardRef(({ showSidebar, setShowSidebar }, ref) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  
+  const location = useLocation();
+
+  const handleSidebarClick = (e) => {
+    e.stopPropagation();
+  };
+
+  const handleNavigation = (path) => {
+    navigate(path);
+    setShowSidebar(false);
+  };
+
   const handleLogout = () => {
     logout();
     navigate('/');
+    setShowSidebar(false);
   };
-  
-  useEffect(() => {
-    console.log('Sidebar rendering, showSidebar:', showSidebar);
-  }, [showSidebar]);
-
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (showSidebar && !e.target.closest('.sidebar')) {
-        setShowSidebar(false);
-      }
-    };
-
-    document.addEventListener('click', handleClickOutside);
-    return () => {
-      document.removeEventListener('click', handleClickOutside);
-    };
-  }, [showSidebar, setShowSidebar]);
 
   return (
-    <div 
-      className={`w-64 bg-indigo-900 text-white h-full`} 
-      style={{ 
-        zIndex: 999,
-        boxShadow: '0 2px 15px rgba(0,0,0,0.1)'
-      }}
-      role="navigation"
+    <div
+      ref={ref}
+      className={`sidebar fixed top-0 left-0 h-full w-64 bg-indigo-900 text-white z-40 transform transition-transform duration-300 ${
+        showSidebar ? 'translate-x-0' : '-translate-x-full'
+      }`}
       onClick={(e) => e.stopPropagation()}
-      aria-label="Main navigation"
-      data-testid="sidebar"
     >
       <div className="flex flex-col h-full">
         <nav className="mt-6 px-3 space-y-1">
@@ -162,4 +156,8 @@ export default function Sidebar({ showSidebar, setShowSidebar }) {
       </div>
     </div>
   );
-}
+});
+
+Sidebar.displayName = 'Sidebar';
+
+export default Sidebar;

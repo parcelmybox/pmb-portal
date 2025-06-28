@@ -1,0 +1,25 @@
+{% extends "base/base.html" %}
+{% block title %}Shipping Calculator{% endblock %}
+{% block content %}
+  <h2>Calculate Shipping Price</h2>
+  <form method="post" class="mb-4">
+    {% csrf_token %}
+    <div class="mb-3">
+      <label for="source_pin">Source PIN (India)</label>
+      <input type="text" class="form-control" name="source_pin" required>
+    </div>
+    <div class="mb-3">
+      <label for="dest_zip">Destination ZIP (USA)</label>
+      <input type="text" class="form-control" name="dest_zip" required>
+    </div>
+    <div class="mb-3">
+      <label for="weight">Weight (kg)</label>
+      <input type="number" class="form-control" name="weight" step="0.01" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Calculate</button>
+  </form>
+
+  {% if price %}
+    <div class="alert alert-info">Estimated Price: ₹{{ price }}</div>
+  {% endif %}
+{% endblock %}

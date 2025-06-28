@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+{% load static %}
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Invoice #{{ bill.id }} - ParcelMyBox</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 0.5cm;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #2d3748;
+            margin: 0;
+            padding: 0;
+            background-color: #f8fafc;
+        }
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            background: white;
+            box-shadow: 0 0 20px rgba(0,0,0,0.08);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .header {
+            background-color: #1a365d;
+            color: white;
+            padding: 25px 30px;
+            text-align: center;
+            position: relative;
+        }
+        .logo {
+            font-size: 26px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .logo-circle {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 50%;
+            font-size: 20px;
+        }
+        .invoice-title {
+            font-size: 28px;
+            margin: 10px 0 5px;
+            font-weight: 700;
+            color: white;
+            letter-spacing: 0.5px;
+        }
+        .invoice-number {
+            font-size: 14px;
+            color: rgba(255,255,255,0.85);
+            font-weight: 400;
+        }
+        .content {
+            padding: 35px 40px;
+        }
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .date {
+            text-align: right;
+            color: #4a5568;
+            font-size: 14px;
+        }
+        .date strong {
+            color: #2d3748;
+            display: block;
+            margin-bottom: 3px;
+        }
+        .bill-info {
+            background-color: #f8fafc;
+            border-radius: 6px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border: 1px solid #e2e8f0;
+        }
+        .bill-info-title {
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 15px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .bill-info-title:before {
+            content: "📦";
+            font-size: 16px;
+        }
+        .bill-customer {
+            font-weight: 500;
+            color: #2d3748;
+            margin-bottom: 8px;
+            font-size: 15px;
+        }
+        .bill-detail {
+            color: #4a5568;
+            font-size: 14px;
+            line-height: 1.5;
+            margin: 0;
+        }
+        .item-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0 15px;
+        }
+        .item-table th {
+            background-color: #f7fafc;
+            text-align: left;
+            padding: 14px 16px;
+            border-bottom: 2px solid #e2e8f0;
+            font-weight: 600;
+            color: #4a5568;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .item-table td {
+            padding: 16px;
+            border-bottom: 1px solid #edf2f7;
+            vertical-align: top;
+            font-size: 14px;
+        }
+        .item-details {
+            color: #4a5568;
+            font-size: 13px;
+            line-height: 1.6;
+            margin-top: 6px;
+        }
+        .item-details span {
+            display: block;
+            margin-bottom: 4px;
+        }
+        .total-row td {
+            padding: 16px;
+            border-top: 2px solid #e2e8f0;
+            border-bottom: none;
+            font-weight: 600;
+            font-size: 15px;
+            color: #2d3748;
+            background-color: #f8fafc;
+        }
+        .total-row .label {
+            text-align: right;
+            padding-right: 20px;
+        }
+        .payment-info {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f8fafc;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+        }
+        .payment-info p {
+            margin: 0 0 8px;
+            font-size: 14px;
+            color: #4a5568;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .payment-info p:last-child {
+            margin-bottom: 0;
+        }
+        .payment-info strong {
+            color: #2d3748;
+            min-width: 100px;
+            display: inline-block;
+        }
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+            text-align: center;
+        }
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .status-paid { 
+            background-color: #38a169;
+            color: white;
+        }
+        .status-pending { 
+            background-color: #dd6b20;
+            color: white;
+        }
+        .status-overdue { 
+            background-color: #c53030;
+            color: white;
+        }
+        .thank-you {
+            color: #4a5568;
+            font-size: 14px;
+            margin-top: 15px;
+            font-style: italic;
+        }
+        .text-right {
+            text-align: right;
+        }
+        .text-bold {
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">
+                <span class="logo-circle">📦</span>
+                PARCELMYBOX
+            </div>
+            <div class="invoice-title">INVOICE</div>
+            <div class="invoice-number">#{{ bill.id|stringformat:"05d" }}</div>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <div class="header-row">
+                <div class="date">
+                    <strong>Invoice Date</strong>
+                    {{ bill.created_at|date:"F d, Y" }}
+                    {% if bill.due_date %}
+                        <strong>Due Date</strong>
+                        {{ bill.due_date|date:"F d, Y" }}
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Bill Info -->
+            <div class="bill-info">
+                <div class="bill-info-title">Bill To</div>
+                <div class="bill-customer">{{ bill.customer.get_full_name|default:bill.customer.username }}</div>
+                {% if bill.customer.email %}
+                <p class="bill-detail">
+                    <strong>Email:</strong>
+                    <a href="mailto:{{ bill.customer.email }}" style="color: #3182ce; text-decoration: none;">
+                        {{ bill.customer.email }}
+                    </a>
+                </p>
+                {% endif %}
+                {% if bill.customer.profile.phone %}
+                <p class="bill-detail">
+                    <strong>Phone:</strong> {{ bill.customer.profile.phone }}
+                </p>
+                {% endif %}
+                <p class="bill-detail">
+                    <strong>Status:</strong>
+                    <span class="status-badge status-{{ bill.status|lower }}">
+                        {{ bill.get_status_display }}
+                    </span>
+                </p>
+            </div>
+
+            <!-- Items Table -->
+            <table class="item-table">
+                <thead>
+                    <tr>
+                        <th>Description</th>
+                        <th class="text-right">Qty</th>
+                        <th class="text-right">Unit Price</th>
+                        <th class="text-right">Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <div class="text-bold">{{ bill.description|default:"Shipping & Handling" }}</div>
+                            <div class="item-details">
+                                <span>Bill #{{ bill.id|stringformat:"05d" }}</span>
+                                <span>Created: {{ bill.created_at|date:"M d, Y" }}</span>
+                                {% if bill.tracking_number %}
+                                <span>Tracking: {{ bill.tracking_number }}</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td class="text-right">1</td>
+                        <td class="text-right">${{ bill.amount|floatformat:2 }}</td>
+                        <td class="text-right">${{ bill.amount|floatformat:2 }}</td>
+                    </tr>
+                    <tr class="total-row">
+                        <td colspan="3" class="label">Subtotal</td>
+                        <td class="text-right">${{ bill.amount|floatformat:2 }}</td>
+                    </tr>
+                    {% if bill.payment_method %}
+                    <tr class="total-row">
+                        <td colspan="3" class="label">Payment Method</td>
+                        <td class="text-right">{{ bill.get_payment_method_display }}</td>
+                    </tr>
+                    {% endif %}
+                    {% if bill.paid_at %}
+                    <tr class="total-row">
+                        <td colspan="3" class="label">Paid On</td>
+                        <td class="text-right">{{ bill.paid_at|date:"M d, Y" }}</td>
+                    </tr>
+                    {% endif %}
+                    <tr class="total-row">
+                        <td colspan="3" class="label">Total</td>
+                        <td class="text-right"><strong>${{ bill.amount|floatformat:2 }}</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- Payment Information -->
+            <div class="payment-info">
+                <p>
+                    <strong>Payable To:</strong>
+                    <span>ParcelMyBox LLC</span>
+                </p>
+                <p>
+                    <strong>Zelle:</strong>
+                    <span>payments@parcelmybox.com</span>
+                </p>
+                {% if bill.payment_method == 'BANK_TRANSFER' %}
+                <p>
+                    <strong>Bank Transfer:</strong>
+                    <span>Account details available upon request</span>
+                </p>
+                {% endif %}
+            </div>
+
+            <!-- Footer -->
+            <div class="footer">
+                <div class="thank-you">
+                    Thank you for choosing ParcelMyBox. We appreciate your business!
+                </div>
+                <div style="margin-top: 10px; font-size: 12px; color: #a0aec0;">
+                    If you have any questions about this invoice, please contact our support team.
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+            <tr>
+                <td class="text-right text-bold">Subtotal:</td>
+                <td class="text-right">${{ bill.amount|floatformat:2 }}</td>
+            </tr>
+            <tr>
+                <td class="text-right text-bold">Tax (0%):</td>
+                <td class="text-right">$0.00</td>
+            </tr>
+            <tr class="total-row">
+                <td class="text-right text-bold">Total:</td>
+                <td class="text-right text-bold">${{ bill.amount|floatformat:2 }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- Footer -->
+    <div style="margin-top: 30px; padding-top: 10px; color: #999; font-size: 10px; text-align: center; font-style: italic;">
+        Thank you for your business
+    </div>
+</body>
+</html>

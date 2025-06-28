@@ -1,0 +1,55 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block title %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block branding %}
+<h1 id="site-name">
+    <a href="{% url 'admin:index' %}" style="display: flex; align-items: center; text-decoration: none;">
+        <img src="{% static 'images/logo.png' %}" alt="Parcel My Box" style="height: 40px; width: auto; max-width: 200px; object-fit: contain; margin-right: 15px;">
+        <span style="color: white;">Parcel My Box Administration</span>
+    </a>
+</h1>
+{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    /* Hide the sidebar */
+    #content-related, #nav-sidebar {
+        display: none !important;
+    }
+    
+    /* Adjust main content to take full width */
+    #content {
+        margin-left: 0 !important;
+        width: 100% !important;
+    }
+    
+    /* Ensure the page takes full width */
+    .dashboard {
+        max-width: none !important;
+        padding: 0 20px !important;
+    }
+    
+    /* Style the breadcrumbs to align properly */
+    .breadcrumbs {
+        margin: 0 0 15px 0 !important;
+        padding: 8px 0 !important;
+    }
+    
+    /* Custom header styles */
+    #header {
+        background: #2c3e50 !important;
+        color: white !important;
+        padding: 10px 20px !important;
+    }
+    
+    /* Ensure header is visible */
+    #header, #branding, #user-tools {
+        display: block !important;
+    }
+</style>
+{% endblock %}
+
+{% block nav-global %}{% endblock %}

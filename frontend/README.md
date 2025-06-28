@@ -1,6 +1,74 @@
-# Getting Started with Create React App
+# ParcelMyBox Frontend
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This is the frontend for the ParcelMyBox Portal, built with React and Material-UI.
+
+## Project Structure
+
+```
+frontend/
+├── public/          # Static files
+├── src/             # Source code
+│   ├── components/  # Reusable UI components
+│   ├── pages/       # Page components
+│   ├── services/    # API services
+│   ├── utils/       # Utility functions
+│   ├── App.js       # Main App component
+│   └── index.js     # Entry point
+└── package.json     # Dependencies and scripts
+```
+
+## Prerequisites
+
+- Node.js 16+
+- npm or yarn
+
+## Setup
+
+1. Install dependencies:
+   ```bash
+   npm install
+   # or
+   yarn install
+   ```
+
+2. Create a `.env` file in the frontend directory with the following variables:
+   ```
+   REACT_APP_API_URL=http://localhost:8000
+   ```
+
+3. Start the development server:
+   ```bash
+   npm start
+   # or
+   yarn start
+   ```
+
+## Available Scripts
+
+In the project directory, you can run:
+
+### `npm start` or `yarn start`
+
+Runs the app in development mode. Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+
+### `npm test` or `yarn test`
+
+Launches the test runner in interactive watch mode.
+
+### `npm run build` or `yarn build`
+
+Builds the app for production to the `build` folder.
+
+## Development
+
+- Use functional components with hooks
+- Follow the existing code style and structure
+- Add appropriate prop types for components
+- Write tests for new components
+
+## Deployment
+
+For production builds, ensure the `REACT_APP_API_URL` environment variable is set to your production API URL.
 
 ## Available Scripts
 

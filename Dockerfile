@@ -9,7 +9,8 @@ ENV PYTHONUNBUFFERED=1 \
     STREAMLIT_SERVER_PORT=8501 \
     STREAMLIT_SERVER_HEADLESS=true \
     STREAMLIT_BROWSER_GATHER_USAGE_STATS=false \
-    DEBIAN_FRONTEND=noninteractive
+    DEBIAN_FRONTEND=noninteractive \
+    PYTHONPATH="/app/backend:/app/backend/core:/app/backend/apps:/app/backend/customers"
 
 # Install system dependencies
 RUN apt-get update && \
@@ -19,21 +20,27 @@ RUN apt-get update && \
     default-libmysqlclient-dev \
     pkg-config \
     default-mysql-client \
+    mariadb-client \
     dos2unix \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && mkdir -p /etc/mysql/conf.d/ \
+    && echo '[client]\nprotocol=tcp' > /etc/mysql/conf.d/force-tcp.cnf
 
 # Set working directory
 WORKDIR /app
 
 # Copy requirements first to leverage Docker cache
-COPY requirements.txt .
+COPY backend/requirements.txt .
 
 # Install Python dependencies
 RUN pip install --upgrade pip && \
     pip install -r requirements.txt
 
-# Copy project
-COPY . .
+# Copy the rest of the backend
+COPY backend/ ./backend/
+
+# Set the working directory to backend
+WORKDIR /app/backend
 
 # Expose the ports the app runs on
 EXPOSE 8000 8501
