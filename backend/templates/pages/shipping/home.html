@@ -1,0 +1,49 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>My Shipments</h2>
+    
+    {% if shipments %}
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Tracking #</th>
+                        <th>Status</th>
+                        <th>From</th>
+                        <th>To</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for shipment in shipments %}
+                    <tr>
+                        <td>{{ shipment.tracking_number }}</td>
+                        <td>{{ shipment.get_status_display }}</td>
+                        <td>{{ shipment.sender_address.city }}</td>
+                        <td>{{ shipment.recipient_address.city }}</td>
+                        <td>{{ shipment.created_at|date:"M d, Y" }}</td>
+                        <td>
+                            <a href="{% url 'shipping:shipment_detail' pk=shipment.pk %}" class="btn btn-sm btn-primary">View</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            You don't have any shipments yet. <a href="{% url 'shipping:create_shipment' %}">Create your first shipment</a>.
+        </div>
+    {% endif %}
+    
+    <div class="mt-4">
+        <a href="{% url 'shipping:create_shipment' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> New Shipment
+        </a>
+    </div>
+</div>
+{% endblock %}

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Bars3Icon, ShoppingCartIcon, BellIcon, UserCircleIcon } from '@heroicons/react/24/outline';
+import { Bars3Icon, ShoppingCartIcon, BellIcon, UserCircleIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function Header({ showSidebar, setShowSidebar }) {
@@ -9,20 +9,34 @@ export default function Header({ showSidebar, setShowSidebar }) {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
-  const handleSidebarToggle = () => {
-    setShowSidebar(!showSidebar);
+  const handleSidebarToggle = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // Toggle the sidebar state
+    setShowSidebar(prev => {
+      const newState = !prev;
+      // Update body overflow immediately
+      document.body.style.overflow = newState ? 'hidden' : 'auto';
+      return newState;
+    });
   };
 
   return (
-    <header className="bg-white shadow-lg">
-      <div className="max-w-8xl mx-auto px-4 sm:px-8 lg:px-12">
-        <div className="flex justify-between h-20">
+    <header className="bg-white shadow sticky top-0 z-30">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between h-16">
           <div className="flex items-center">
             <button
-              className="text-gray-500 hover:text-gray-700 -ml-4"
+              type="button"
+              className="mr-4 text-gray-500 hover:text-gray-900 focus:outline-none md:hidden"
               onClick={handleSidebarToggle}
+              aria-label="Toggle menu"
             >
-              <Bars3Icon className="h-6 w-6" />
+              {showSidebar ? (
+                <XMarkIcon className="h-6 w-6" aria-hidden="true" />
+              ) : (
+                <Bars3Icon className="h-6 w-6" aria-hidden="true" />
+              )}
             </button>
             <div className="flex-shrink-0 flex items-center space-x-4">
               <Link to="/">

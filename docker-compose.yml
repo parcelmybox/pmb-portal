@@ -12,14 +12,19 @@ services:
     environment:
       - NODE_ENV=development
       - CHOKIDAR_USEPOLLING=true
-      - WDS_SOCKET_PORT=0  # Disable WebSocket for hot reloading in Docker
-      - REACT_APP_API_URL=http://localhost:8000
-      - DANGEROUSLY_DISABLE_HOST_CHECK=true
+      - WDS_SOCKET_PORT=0
+      - REACT_APP_API_URL=http://web:8000
+      - BROWSER=none
+      - HOST=0.0.0.0
+      - PORT=3000
     networks:
       - pmb_network
     stdin_open: true
     tty: true
     restart: unless-stopped
+    depends_on:
+      web:
+        condition: service_healthy
 
   db:
     image: mariadb:10.11
@@ -32,7 +37,7 @@ services:
       MYSQL_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:-rootpassword}
       MYSQL_INITDB_SKIP_TZINFO: 1
     ports:
-      - "${DB_PORT:-3307}:3307"
+      - "${DB_PORT:-3306}:3306"  # Map container's 3306 to host's 3306 (or specified port)
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:
@@ -61,13 +66,14 @@ services:
       - ALLOWED_HOSTS=${ALLOWED_HOSTS:-*}
       - PYTHONUNBUFFERED=1
       - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONPATH=/app/backend:/app/backend/core:/app/backend/apps:/app/backend/customers
       - STREAMLIT_SERVER_PORT=8501
       - STREAMLIT_SERVER_HEADLESS=true
       - STREAMLIT_BROWSER_GATHER_USAGE_STATS=false
       - CORS_ORIGIN_WHITELIST=http://localhost:3000,http://localhost:8000
       - CSRF_TRUSTED_ORIGINS=http://localhost:3000,http://localhost:8000
     volumes:
-      - .:/app
+      - ./backend:/app/backend
       - static_volume:/app/static
       - media_volume:/app/media
     ports:
@@ -77,8 +83,14 @@ services:
       - pmb_network
     restart: unless-stopped
     init: true  # Use tini as init process to handle signals properly
-    working_dir: /app
-    command: ["sh", "-c", "dos2unix /app/entrypoint.sh && chmod +x /app/entrypoint.sh && exec /app/entrypoint.sh"]
+    working_dir: /app/backend
+    command: ["sh", "-c", "dos2unix /app/backend/scripts/entrypoint.sh && chmod +x /app/backend/scripts/entrypoint.sh && exec /app/backend/scripts/entrypoint.sh"]
+    healthcheck:
+      test: ["CMD", "python", "manage.py", "check", "--deploy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
 networks:
   pmb_network:

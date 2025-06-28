@@ -1,15 +1,40 @@
 # Parcel My Box Portal
-## “Tech that ships, and code that clicks!”
+## "Tech that ships, and code that clicks!"
+
+## Project Structure
+
+```
+pmb-portal/
+├── backend/                 # Backend Django application
+│   ├── apps/               # Django apps (api, shipping, category, etc.)
+│   │   ├── api/           # API endpoints
+│   │   ├── category/      # Category management
+│   │   ├── shipping/      # Shipping functionality
+│   │   └── customerData/  # Customer data management
+│   ├── core/               # Core Django project
+│   │   └── pmb_core/      # Project settings and configurations
+│   ├── static/             # Static files (CSS, JS, images)
+│   └── media/              # User-uploaded files
+└── frontend/               # Frontend React app
+    ├── public/            # Static files
+    ├── src/               # Source code
+    │   ├── components/    # Reusable UI components
+    │   ├── pages/         # Page components
+    │   ├── services/      # API services
+    │   ├── utils/         # Utility functions
+    │   ├── App.js         # Main App component
+    │   └── index.js       # Entry point
+    └── package.json       # Dependencies and scripts
+```
+
 ## Prerequisites
 
-- Docker
-  - Windows: [Download Docker Desktop](https://www.docker.com/products/docker-desktop)
-  - macOS: [Download Docker Desktop](https://www.docker.com/products/docker-desktop)
-  - Linux: [Install Docker Engine](https://docs.docker.com/engine/install/)
-- Docker Compose
-  - Included with Docker Desktop for Windows and macOS
-  - Linux: [Install Docker Compose](https://docs.docker.com/compose/install/)
-
+- **Docker & Docker Compose**
+  - Windows/macOS: [Docker Desktop](https://www.docker.com/products/docker-desktop)
+  - Linux: [Docker Engine](https://docs.docker.com/engine/install/) & [Docker Compose](https://docs.docker.com/compose/install/)
+- **Node.js** 16+ (for frontend development)
+- **Python** 3.10+ (for backend development)
+- **MySQL/MariaDB** (or use Docker container)
 
 ## Getting Started
 
@@ -20,24 +45,34 @@ git clone https://github.com/parcelmybox/pmb-portal.git
 cd pmb-portal
 ```
 
-### 2. Start the Application with Docker
+### 2. Setup Development Environment
 
-The application uses Docker Compose for easy setup. All services (web application and database) are configured in `docker-compose.yml`.
+#### Option A: Using Docker (Recommended)
 
-To start the application:
+1. Start all services:
+   ```bash
+   docker compose up -d
+   ```
+   This will start:
+   - Django backend (port 8000)
+   - React frontend (port 3000)
+   - MariaDB database (port 3306)
 
-```bash
-docker compose up -d
-```
+2. Access the application:
+   - Frontend: http://localhost:3000
+   - Backend API: http://localhost:8000
+   - Admin interface: http://localhost:8000/admin
 
-This will:
-1. Build the Docker containers
-2. Start the MariaDB database
-3. Start the Django application
+#### Option B: Manual Setup
 
-### 3. Access the Application
+1. **Backend Setup**
+   ```bash
+   # Create and activate virtual environment
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
 
-Once the containers are running, you can access:
+   # Install dependencies
+   pip install -r requirements.txt
 
 - Main application: http://127.0.0.1:8000/
 - Admin interface: http://127.0.0.1:8000/admin/

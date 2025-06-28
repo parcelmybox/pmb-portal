@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Invoice #{{ bill.id }} - {{ company_name }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; font-size: 12px; line-height: 1.4; margin: 0; padding: 20px; color: #333; }
+        .header { margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid #ddd; }
+        .company-name { font-size: 18px; font-weight: bold; margin: 0 0 5px 0; color: #0066cc; }
+        .document-title { text-align: right; }
+        .document-title h1 { margin: 0 0 5px 0; font-size: 24px; color: #0066cc; }
+        .bill-info { margin: 15px 0; padding: 10px; background: #f9f9f9; border: 1px solid #eee; }
+        .info-row { margin-bottom: 10px; overflow: hidden; }
+        .info-group { width: 50%; float: left; }
+        .info-label { font-weight: bold; margin-bottom: 3px; }
+        .section-title { font-size: 14px; font-weight: bold; margin: 15px 0 10px 0; padding-bottom: 5px; border-bottom: 1px solid #ddd; }
+        table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        th { background: #0066cc; color: white; text-align: left; padding: 8px; font-weight: bold; }
+        td { padding: 8px; border-bottom: 1px solid #eee; }
+        .totals { float: right; width: 300px; margin: 20px 0; }
+        .total-row { margin-bottom: 5px; overflow: hidden; }
+        .total-label { float: left; }
+        .total-amount { float: right; font-weight: bold; }
+        .grand-total { font-size: 14px; font-weight: bold; margin-top: 10px; padding-top: 5px; border-top: 2px solid #0066cc; }
+        .footer { margin-top: 30px; padding-top: 10px; border-top: 1px solid #ddd; text-align: center; font-size: 10px; color: #777; }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div style="float: left; width: 60%;">
+            <div class="company-name">{{ company_name }}</div>
+            <div>{{ company_address|default:""|linebreaksbr }}</div>
+            <div>{{ company_phone|default:"" }}</div>
+            <div>{{ company_email|default:"" }}</div>
+        </div>
+        <div class="document-title">
+            <h1>INVOICE</h1>
+            <div>#{{ bill.id }}</div>
+            <div>Date: {{ bill.created_at|date:"F j, Y" }}</div>
+            {% if bill.due_date %}
+                <div>Due: {{ bill.due_date|date:"F j, Y" }}</div>
+            {% endif %}
+        </div>
+        <div style="clear: both;"></div>
+    </div>
+    <!-- Bill Info -->
+    <div class="bill-info">
+        <div class="info-row">
+            <div class="info-group">
+                <div class="info-label">Bill To:</div>
+                <div class="info-value">{{ bill.customer_name }}</div>
+            </div>
+            <div class="info-group">
+                <div class="info-label">Bill Date:</div>
+                <div class="info-value">{{ bill.created_at|date:"F j, Y" }}</div>
+            </div>
+        </div>
+        <div class="info-row">
+            <div class="info-group">
+                <div class="info-label">Due Date:</div>
+                <div class="info-value">{{ bill.due_date|date:"F j, Y" }}</div>
+            </div>
+            <div class="info-group">
+                <div class="info-label">Amount Due:</div>
+                <div class="info-value">{{ bill.amount_due }}</div>
+            </div>
+        </div>
+    </div>
+    <!-- Table -->
+    <table>
+        <tr>
+            <th>Item</th>
+            <th>Quantity</th>
+            <th>Unit Price</th>
+            <th>Total</th>
+        </tr>
+        {% for item in bill.items %}
+        <tr>
+            <td>{{ item.name }}</td>
+            <td>{{ item.quantity }}</td>
+            <td>{{ item.unit_price }}</td>
+            <td>{{ item.total }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <!-- Totals -->
+    <div class="totals">
+        <div class="total-row">
+            <div class="total-label">Subtotal:</div>
+            <div class="total-amount">{{ bill.subtotal }}</div>
+        </div>
+        <div class="total-row">
+            <div class="total-label">Tax:</div>
+            <div class="total-amount">{{ bill.tax }}</div>
+        </div>
+        <div class="total-row">
+            <div class="total-label">Total:</div>
+            <div class="total-amount">{{ bill.total }}</div>
+        </div>
+    </div>
+    <!-- Footer -->
+    <div class="footer">
+        Thank you for your business!
+    </div>
+</body>
+</html>
+            position: relative;
+        }
+        
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 100px;
+            height: 3px;
+            background: #3b82f6;
+        }
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 25px;
+        }
+        .logo-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .logo {
+            height: 50px;
+            margin-right: 20px;
+        }
+        .company-info {
+            flex: 1;
+        }
+        .company-name {
+            font-size: 24px;
+            font-weight: 800;
+            color: #1e40af;
+            margin: 0 0 8px 0;
+            letter-spacing: -0.5px;
+            text-transform: uppercase;
+        }
+        .company-details {
+            color: #64748b;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+        .document-title {
+            text-align: right;
+        }
+        .document-title h1 {
+            font-size: 28px;
+            color: #1e40af;
+            margin: 0 0 5px 0;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            text-transform: uppercase;
+        }
+        .document-number {
+            color: #64748b;
+            font-size: 13px;
+            margin-bottom: 10px;
+        }
+        .status {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .status-paid {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+        .status-pending {
+            background-color: #fef9c3;
+            color: #854d0e;
+        }
+        .status-overdue, .status-unpaid {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+        .status-cancelled {
+            background-color: #f1f5f9;
+            color: #475569;
+        }
+        .bill-info {
+            margin: 25px 0;
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 20px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        .info-group {
+            width: 48%;
+        }
+        .info-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: #64748b;
+            font-weight: 600;
+            margin-bottom: 5px;
+            letter-spacing: 0.5px;
+        }
+        .info-value {
+            font-size: 14px;
+            font-weight: 500;
+            color: #1e293b;
+        }
+        .bill-to {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+        }
+        
+        .bill-to .section-title {
+            color: #1e40af;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 8px;
+            margin-bottom: 15px;
+            font-weight: 600;
+            font-size: 15px;
+            letter-spacing: 0.3px;
+        }
+        .section-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #1e40af;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e2e8f0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0 35px 0;
+            font-size: 13px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        th {
+            background-color: #1e40af;
+            color: white;
+            font-weight: 600;
+            text-align: left;
+            padding: 14px 18px;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+            border: none;
+        }
+        
+        th:first-child {
+            border-top-left-radius: 8px;
+        }
+        
+        th:last-child {
+            border-top-right-radius: 8px;
+        }
+        td {
+            padding: 16px 18px;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: middle;
+            background: white;
+        }
+        
+        tr:last-child td {
+            border-bottom: none;
+        }
+        
+        tr:nth-child(even) td {
+            background-color: #f8fafc;
+        }
+        tr:last-child td {
+            border-bottom: 2px solid #e2e8f0;
+        }
+        .text-right {
+            text-align: right;
+        }
+        .totals {
+            float: right;
+            width: 300px;
+            margin: 20px 0 30px 0;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+        }
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding: 10px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .total-label {
+            color: #64748b;
+        }
+        .total-amount {
+            font-weight: 600;
+            color: #1e293b;
+        }
+        .grand-total {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1e40af;
+            border-top: 2px solid #1e40af;
+            padding-top: 15px;
+            margin-top: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .footer {
+            margin-top: 60px;
+            padding: 20px 0;
+            text-align: center;
+            font-size: 11px;
+            color: #94a3b8;
+            border-top: 1px solid #e2e8f0;
+            position: relative;
+        }
+        
+        .footer::before {
+            content: '';
+            position: absolute;
+            top: -1px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 2px;
+            background: #3b82f6;
+        }
+        .payment-info {
+            margin: 30px 0;
+            padding: 20px;
+            background: #f8fafc;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+        }
+        
+        .payment-info h3 {
+            color: #1e40af;
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 15px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .payment-info p {
+            margin: 8px 0;
+            color: #334155;
+            font-size: 12.5px;
+            line-height: 1.6;
+        }
+        
+        .payment-info .highlight {
+            background: #eff6ff;
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+            border-right: 3px solid #3b82f6;
+        }
+        
+        .payment-methods {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .payment-method {
+            flex: 1;
+            min-width: 200px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+        }
+        
+        .payment-method h4 {
+            margin: 0 0 10px 0;
+            color: #1e40af;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        
+        .payment-method p {
+            margin: 5px 0 0 0;
+            font-size: 12px;
+            color: #64748b;
+        }
+        .terms {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8fafc;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+        }
+        
+        .terms h3 {
+            color: #1e40af;
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 15px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .terms ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        
+        .terms li {
+            margin-bottom: 8px;
+            color: #334155;
+            font-size: 12.5px;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header Section -->
+    <div class="header">
+        <div class="header-content">
+            <div class="company-info">
+                <div class="logo-container">
+                    <div>
+                        <h1 class="company-name">{{ company_name }}</h1>
+                        <div class="company-details">
+                            {{ company_address|default:""|linebreaksbr }}
+                            {% if company_phone or company_email %}
+                                <br>{{ company_phone|default:"" }}{% if company_phone and company_email %} | {% endif %}{{ company_email|default:"" }}
+                            {% endif %}
+                            {% if company_website or company_tax_id %}
+                                <br>{{ company_website|default:"" }}{% if company_website and company_tax_id %} | {% endif %}
+                                {% if company_tax_id %}Tax ID: {{ company_tax_id }}{% endif %}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="document-title">
+                <h1>INVOICE</h1>
+                <div class="document-number">#{{ bill.id }}</div>
+                <div class="status status-{{ bill.status|lower }}">
+                    {{ bill.get_status_display|upper }}
+                </div>
+            </div>
+        </div>
+
+        <div class="bill-info">
+            <div class="info-row">
+                <div class="info-group">
+                    <div class="info-label">Invoice Date</div>
+                    <div class="info-value">{{ bill.created_at|date:"F j, Y" }}</div>
+                </div>
+                <div class="info-group">
+                    <div class="info-label">Due Date</div>
+                    <div class="info-value">{{ due_date|date:"F j, Y" }}</div>
+                </div>
+            </div>
+            {% if bill.paid_at %}
+            <div class="info-row">
+                <div class="info-group">
+                    <div class="info-label">Paid On</div>
+                    <div class="info-value">{{ bill.paid_at|date:"F j, Y" }}</div>
+                </div>
+                <div class="info-group">
+                    <div class="info-label">Payment Method</div>
+                    <div class="info-value">
+                        {% if bill.payment_method %}
+                            {{ bill.get_payment_method_display|upper }}
+                        {% else %}
+                            NOT SPECIFIED
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Bill To & From Section -->
+    <div style="display: flex; gap: 30px; margin-bottom: 30px;">
+        <div class="bill-to" style="flex: 1;">
+            <div class="section-title">Bill To</div>
+            <div style="margin-bottom: 10px;">
+                <div style="font-weight: 600; margin-bottom: 8px; font-size: 14px;">{{ bill.customer.get_full_name|default:bill.customer.username|upper }}</div>
+                <div style="color: #475569; margin-bottom: 5px;">{{ bill.customer.email|default:'' }}</div>
+                {% if bill.customer.profile.phone %}
+                    <div style="color: #475569;">{{ bill.customer.profile.phone }}</div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="bill-to" style="flex: 1;">
+            <div class="section-title">From</div>
+            <div style="margin-bottom: 10px;">
+                <div style="font-weight: 600; margin-bottom: 8px; font-size: 14px;">{{ company_name|default:""|upper }}</div>
+                {% if company_email %}
+                    <div style="color: #475569; margin-bottom: 5px;">{{ company_email }}</div>
+                {% endif %}
+                {% if company_phone %}
+                    <div style="color: #475569;">{{ company_phone }}</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Invoice Items Table -->
+    <table>
+        <thead>
+            <tr>
+                <th>Description</th>
+                <th style="text-align: right;">Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    <div style="font-weight: 500; margin-bottom: 5px;">{{ bill.description|default:"Shipping Charges"|upper }}</div>
+                    <div style="color: #64748b; font-size: 11px;">
+                        Invoice #{{ bill.id }} | Created on {{ bill.created_at|date:"M d, Y" }}
+                    </div>
+                </td>
+                <td style="text-align: right; font-weight: 600;">${{ bill.amount|floatformat:2 }}</td>
+            </tr>
+            
+            <!-- Subtotal, Tax, and Total -->
+            <tr>
+                <td colspan="2" style="padding: 0; border: none;">
+                    <div class="totals">
+                        <div class="total-row">
+                            <span class="total-label">Subtotal</span>
+                            <span class="total-amount">${{ bill.amount|floatformat:2 }}</span>
+                        </div>
+                        <div class="total-row">
+                            <span class="total-label">Tax (0%)</span>
+                            <span class="total-amount">$0.00</span>
+                        </div>
+                        <div class="total-row" style="margin-top: 15px; padding-top: 10px; border-top: 1px dashed #e2e8f0;">
+                            <span class="total-label" style="font-weight: 700;">Total</span>
+                            <span class="total-amount" style="font-weight: 700; color: #1e40af;">${{ bill.amount|floatformat:2 }}</span>
+                        </div>
+                        <div class="total-row">
+                            <span class="total-label">Amount Due</span>
+                            <span class="total-amount" style="font-weight: 700;">${{ bill.amount|floatformat:2 }}</span>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- Payment Information -->
+    <div class="payment-info">
+        <h3>Payment Information</h3>
+        <div class="payment-methods">
+            <div class="payment-method">
+                <h4>Bank Transfer</h4>
+                <p>Account #1234567890</p>
+                <p>Routing #987654321</p>
+                <p>Bank Name: Chase Bank</p>
+            </div>
+            <div class="payment-method">
+                <h4>Credit Card</h4>
+                <p>Pay online at:</p>
+                <p>portal.parcelmybox.com/pay/{{ bill.id }}</p>
+            </div>
+            <div class="payment-method">
+                <h4>Check</h4>
+                <p>Make payable to:</p>
+                <p>ParcelMyBox Inc.</p>
+                <p>{{ company_address|linebreaksbr }}</p>
+            </div>
+        </div>
+        
+        <div class="highlight">
+            <p style="margin: 0; font-weight: 500;">Please include invoice number <strong>#{{ bill.id }}</strong> with your payment.</p>
+        </div>
+        
+        <p style="margin: 20px 0 10px 0; font-size: 13px; color: #475569;">
+            <strong>Payment Terms:</strong> {{ payment_terms }}
+        </p>
+    </div>
+
+    <!-- Notes -->
+    {% if bill.notes %}
+    <div class="payment-info" style="background-color: #fefce8; border-color: #fef08a;">
+        <h3>Notes</h3>
+        <p style="color: #854d0e; margin: 0;">{{ bill.notes }}</p>
+    </div>
+    {% endif %}
+
+    <!-- Terms & Conditions -->
+    <div class="terms">
+        <h3>Terms & Conditions</h3>
+        <ul>
+            <li>Payment is due within {{ payment_terms }} of the invoice date.</li>
+            <li>A late payment charge of 1.5% per month will be applied to overdue balances.</li>
+            <li>Please make checks payable to <strong>{{ company_name }}</strong>.</li>
+            <li>For any questions regarding this invoice, please contact our billing department at {{ company_email }}.</li>
+        </ul>
+    </div>
+
+    <!-- Footer with Page Number -->
+    <div class="footer">
+        <p style="margin: 0 0 5px 0; font-weight: 500;">{{ company_name }}</p>
+        <p style="margin: 0 0 5px 0; color: #64748b;">{{ company_phone }} | {{ company_email }} | {{ company_website }}</p>
+        <p style="margin: 0; font-size: 10px; color: #94a3b8;">
+            This is an automatically generated invoice. No signature is required.
+        </p>
+        <div style="text-align: center; font-size: 10px; color: #94a3b8; margin-top: 10px;">
+            Page <pdf:pagenumber />
+        </div>
+    </div>
+</body>
+</html>

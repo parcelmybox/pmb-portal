@@ -1,0 +1,397 @@
+{% extends 'base/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}{% if is_shipment_form %}Create Shipment{% else %}{{ title }}{% endif %} | {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="mb-0">
+                        {% if is_shipment_form %}
+                            <i class="bi bi-box-seam me-2"></i>Create New Shipment
+                        {% else %}
+                            {{ title }}
+                        {% endif %}
+                    </h2>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                    
+                    {% if is_shipment_form %}
+                        <!-- Shipment Form -->
+                        <form method="post" id="shipment-form" class="needs-validation" novalidate>
+                            {% csrf_token %}
+                            
+                            <!-- Sender Information -->
+                            <div class="card mb-4">
+                                <div class="card-header bg-light">
+                                    <h5 class="mb-0">Sender Information</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            {{ form.sender_first_name|as_crispy_field }}
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            {{ form.sender_last_name|as_crispy_field }}
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-12 mb-3">
+                                            {{ form.sender_address|as_crispy_field }}
+                                            <div class="text-end mt-2">
+                                                <a href="{% url 'shipping:add_address' %}?address_type=sender&next={% url 'shipping:create_shipment' %}" class="btn btn-sm btn-outline-primary">
+                                                    <i class="bi bi-plus-lg"></i> Add New Sender Address
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Recipient Information -->
+                            <div class="card mb-4">
+                                <div class="card-header bg-light">
+                                    <h5 class="mb-0">Recipient Information</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            {{ form.recipient_first_name|as_crispy_field }}
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            {{ form.recipient_last_name|as_crispy_field }}
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-12 mb-3">
+                                            {{ form.recipient_address|as_crispy_field }}
+                                            <div class="text-end mt-2">
+                                                <a href="{% url 'shipping:add_address' %}?address_type=recipient&next={% url 'shipping:create_shipment' %}" class="btn btn-sm btn-outline-primary">
+                                                    <i class="bi bi-plus-lg"></i> Add New Recipient Address
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Package Information -->
+                            <div class="card mb-4">
+                                <div class="card-header bg-light">
+                                    <h5 class="mb-0">Package Information</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            {{ form.package_type|as_crispy_field }}
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            {{ form.courier_service|as_crispy_field }}
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-3 mb-3">
+                                            {{ form.weight|as_crispy_field }}
+                                        </div>
+                                        <div class="col-md-3 mb-3">
+                                            {{ form.length|as_crispy_field }}
+                                        </div>
+                                        <div class="col-md-3 mb-3">
+                                            {{ form.width|as_crispy_field }}
+                                        </div>
+                                        <div class="col-md-3 mb-3">
+                                            {{ form.height|as_crispy_field }}
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            {{ form.shipping_date|as_crispy_field }}
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            {{ form.insurance_amount|as_crispy_field }}
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-12 mb-3">
+                                            {{ form.special_instructions|as_crispy_field }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <a href="{% url 'shipping:shipping_home' %}" class="btn btn-outline-secondary me-md-2">
+                                    <i class="bi bi-x-circle"></i> Cancel
+                                </a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-check-circle"></i> Create Shipment
+                                </button>
+                            </div>
+                        </form>
+                    {% else %}
+                        <!-- Address Form -->
+                        <form method="post" id="address-form">
+                            {% csrf_token %}
+                            <input type="hidden" name="next" value="{{ next_url }}">
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    {{ form.first_name|as_crispy_field }}
+                                </div>
+                                <div class="col-md-6">
+                                    {{ form.last_name|as_crispy_field }}
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-12">
+                                    {{ form.address_line1|as_crispy_field }}
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-12">
+                                    {{ form.address_line2|as_crispy_field }}
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    {{ form.city|as_crispy_field }}
+                                </div>
+                                <div class="col-md-6">
+                                    {{ form.state|as_crispy_field }}
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    {{ form.country|as_crispy_field }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.postal_code|as_crispy_field }}
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-12">
+                                {{ form.phone_number|as_crispy_field }}
+                            </div>
+                        </div>
+                        
+                        <div class="form-check mb-3">
+                            {{ form.is_default|as_crispy_field }}
+                            <label class="form-check-label" for="{{ form.is_default.id_for_label }}">
+                                Set as default shipping address
+                            </label>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{{ next_url }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-1"></i> Back
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i> Save Address
+                            </button>
+                        </div>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize any datepickers if needed
+        $('.datepicker').datepicker({
+            format: 'yyyy-mm-dd',
+            autoclose: true,
+            todayHighlight: true,
+            startDate: 'today'
+        });
+        
+        // Only run shipment form specific JS if this is a shipment form
+        if (document.getElementById('shipment-form')) {
+            initShipmentForm();
+        }
+    });
+    
+    function initShipmentForm() {
+        const form = document.getElementById('shipment-form');
+        const itemsContainer = document.getElementById('shipment-items');
+        const addItemBtn = document.getElementById('add-item');
+        
+        // Add initial item row if none exists
+        if (itemsContainer && itemsContainer.children.length === 0) {
+            addItemRow();
+        }
+        
+        // Add event listener for adding items
+        if (addItemBtn) {
+            addItemBtn.addEventListener('click', addItemRow);
+        }
+        
+        // Handle address selection
+        const addressSelects = document.querySelectorAll('select[name^="sender"], select[name^="recipient"]');
+        addressSelects.forEach(select => {
+            select.addEventListener('change', handleAddressSelect);
+        });
+        
+        // Calculate shipping cost when dimensions change
+        const dimensionFields = ['weight', 'length', 'width', 'height', 'package_type'];
+        dimensionFields.forEach(field => {
+            const element = document.querySelector(`[name="${field}"]`);
+            if (element) {
+                element.addEventListener('change', calculateShippingCost);
+            }
+        });
+    }
+    
+    /**
+     * Add a new item row to the shipment
+     */
+    function addItemRow() {
+        const itemsContainer = document.getElementById('shipment-items');
+        if (!itemsContainer) return;
+        
+        const itemCount = itemsContainer.children.length;
+        const newRow = document.createElement('div');
+        newRow.className = 'item-row row mb-3';
+        newRow.innerHTML = `
+            <div class="col-md-4">
+                <input type="text" name="item_name" class="form-control" placeholder="Item name" required>
+            </div>
+            <div class="col-md-2">
+                <input type="number" name="item_quantity" class="form-control" min="1" value="1" required>
+            </div>
+            <div class="col-md-5">
+                <input type="text" name="item_description" class="form-control" placeholder="Description (optional)">
+            </div>
+            <div class="col-md-1">
+                <button type="button" class="btn btn-danger btn-remove-item" ${itemCount === 0 ? 'disabled' : ''}>
+                    <i class="bi bi-trash"></i>
+                </button>
+            </div>
+        `;
+        
+        itemsContainer.appendChild(newRow);
+        
+        // Enable remove buttons if there's more than one item
+        if (itemCount > 0) {
+            document.querySelectorAll('.btn-remove-item').forEach(btn => {
+                btn.disabled = false;
+            });
+        }
+        
+        // Add event listener to the new remove button
+        const removeBtn = newRow.querySelector('.btn-remove-item');
+        if (removeBtn) {
+            removeBtn.addEventListener('click', function() {
+                removeItemRow(this);
+            });
+        }
+    }
+    
+    /**
+     * Remove an item row from the shipment
+     * @param {HTMLElement} button - The remove button that was clicked
+     */
+    function removeItemRow(button) {
+        const row = button.closest('.item-row');
+        if (row && document.querySelectorAll('.item-row').length > 1) {
+            row.remove();
+            
+            // Disable remove button if only one item remains
+            if (document.querySelectorAll('.item-row').length === 1) {
+                document.querySelector('.btn-remove-item').disabled = true;
+            }
+        }
+    }
+    
+    /**
+     * Handle address selection from dropdown
+     * @param {Event} event - The change event
+     */
+    function handleAddressSelect(event) {
+        const select = event.target;
+        const addressId = select.value;
+        const addressType = select.name === 'sender_address' ? 'sender' : 'recipient';
+        
+        if (!addressId) return;
+        
+        // Show loading state
+        const originalText = select.selectedOptions[0].textContent;
+        select.disabled = true;
+        
+        // Fetch address details
+        fetch(`/shipping/addresses/${addressId}/json/`)
+            .then(response => response.json())
+            .then(data => {
+                if (data) {
+                    // Update name fields
+                    document.querySelector(`input[name="${addressType}_first_name"]`).value = data.first_name || '';
+                    document.querySelector(`input[name="${addressType}_last_name"]`).value = data.last_name || '';
+                }
+                
+                // Re-enable select
+                select.disabled = false;
+            })
+            .catch(error => {
+                console.error('Error fetching address:', error);
+                select.disabled = false;
+            });
+    }
+    
+    /**
+     * Calculate shipping cost based on package details
+     */
+    function calculateShippingCost() {
+        const weight = parseFloat(document.querySelector('[name="weight"]')?.value) || 0;
+        const packageType = document.querySelector('[name="package_type"]')?.value;
+        
+        // Only calculate if we have required fields
+        if (!weight || !packageType) return;
+        
+        // Show loading state
+        const shippingCostElement = document.getElementById('shipping-cost');
+        if (shippingCostElement) {
+            shippingCostElement.textContent = 'Calculating...';
+        }
+        
+        // This would be an AJAX call to your backend in a real implementation
+        // For now, we'll simulate a calculation
+        setTimeout(() => {
+            const baseRates = {
+                'document': 5.00,
+                'parcel': 10.00,
+                'oversized': 25.00,
+                'liquid': 15.00,
+                'fragile': 20.00,
+            };
+            
+            const baseRate = baseRates[packageType] || 10.00;
+            const totalCost = (baseRate + (weight * 0.5)).toFixed(2);
+            
+            if (shippingCostElement) {
+                shippingCostElement.textContent = `$${totalCost}`;
+            }
+        }, 500);
+    }
+</script>
+{% endblock %}
