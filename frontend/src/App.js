@@ -19,6 +19,10 @@ import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import About from './pages/About';
 
+// ✅ NEW IMPORTS
+import LocationsPage from './pages/LocationsPage';
+import ServicesPage from './pages/ServicesPage';
+
 function App() {
   const [showSidebar, setShowSidebar] = useState(true);
 
@@ -51,8 +55,20 @@ function App() {
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/create-account" element={<CreateAccount />} />
                 <Route path="/admin/login" element={<AdminLogin />} />
-                <Route path="/admin/dashboard" element={<ProtectedRoute isAdminRoute={true}><AdminDashboard /></ProtectedRoute>} />
-                <Route path="/admin" element={<ProtectedRoute isAdminRoute={true}><Admin /></ProtectedRoute>} />
+                <Route path="/admin/dashboard" element={
+                  <ProtectedRoute isAdminRoute={true}>
+                    <AdminDashboard />
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin" element={
+                  <ProtectedRoute isAdminRoute={true}>
+                    <Admin />
+                  </ProtectedRoute>
+                } />
+
+                {/* NEW ROUTES ADDED BELOW */}
+                <Route path="/LocationsPage" element={<LocationsPage />} />
+                <Route path="/services/:locationId" element={<ServicesPage />} />
               </Routes>
             </div>
           </div>
@@ -61,4 +77,5 @@ function App() {
     </AuthProvider>
   );
 }
+
 export default App;
