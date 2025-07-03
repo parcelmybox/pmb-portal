@@ -19,7 +19,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Branding info
 COMPANY_NAME = "ParcelMyBox"
-COMPANY_LOGO = "images/logo.png"  # path relative to STATIC
+COMPANY_LOGO = "images/pmb-logo.png"  # path relative to STATIC
 COMPANY_COPYRIGHT = "© 2025 ParcelMyBox. All rights reserved."
 COMPANY_ADDRESS = "15914 brownstone ave lathrop CA "
 
@@ -35,7 +35,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-
+CORS_ALLOW_ALL_ORIGINS = True
 # Application definition
 
 INSTALLED_APPS = [
@@ -45,6 +45,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders',
+    'rest_framework',
     'shipping',
 ]
 
@@ -55,6 +57,7 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 

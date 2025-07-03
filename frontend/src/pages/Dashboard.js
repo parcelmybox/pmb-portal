@@ -159,12 +159,28 @@ function Dashboard() {
           {/* Column 3: Help & Social */}
           <div>
             <h4 className="text-blue-800 font-semibold mb-2">Help</h4>
-            <a href="#" className="block text-blue-600 hover:underline">Pickup Request</a>
+            <Link to="/pickup" className="block text-blue-600 hover:underline">Pickup Request</Link>
+            <Link to="/support" className="block text-blue-600 hover:underline">Customer Support</Link>
+            <Link to="/feedback" className="block text-blue-600 hover:underline">Customer Feedback</Link>
 
             <h4 className="text-blue-800 font-semibold mt-4 mb-2">Follow Us</h4>
             <div className="flex space-x-4">
-              <a href="#" className="text-blue-600 hover:text-blue-800">Facebook</a>
-              <a href="#" className="text-blue-600 hover:text-blue-800">Instagram</a>
+              <a
+                href="https://www.facebook.com/parcelmybox/"
+                className="text-blue-600 hover:text-blue-800"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Facebook
+              </a>
+              <a
+                href="https://www.instagram.com/parcel_mybox?igsh=OXBhMTZnYnQyNzlw"
+                className="text-blue-600 hover:text-blue-800"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Instagram
+              </a>
             </div>
           </div>
         </div>

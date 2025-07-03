@@ -27,7 +27,21 @@ class UserViewSet(viewsets.ModelViewSet):
         if not self.request.user.is_staff:
             return User.objects.filter(id=self.request.user.id)
         return super().get_queryset()
-
+    @action(detail=False, methods=['get'], url_path='profile')
+    def profile(self, request):
+        user = request.user
+        # Dummy values to simulate – later query from related models
+        data = {
+            "name": user.get_full_name(),
+            "email": user.email,
+            "phone": getattr(user, 'phone', 'N/A'),  # if you have a phone field
+            "locker_code": f"PMB-{user.id:04}",
+            "warehouse_address": "15914 Brownstone Ave, Lathrop, CA",
+            "total_pickups": Shipment.objects.filter(sender_address__user=user).count(),
+            "total_bills": Bill.objects.filter(customer=user).count()
+        }
+        return Response(data)
+    
 class AddressViewSet(viewsets.ModelViewSet):
     serializer_class = ShippingAddressSerializer
     permission_classes = [IsAuthenticated, IsOwnerOrAdmin]
