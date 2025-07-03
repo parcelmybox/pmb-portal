@@ -150,3 +150,50 @@ class InvoiceSerializer(serializers.ModelSerializer):
             data['tax_amount'] = tax_amount
             data['total_amount'] = amount + tax_amount
         return data
+
+class QuoteSerializer(serializers.Serializer):
+    shipping_route = serializers.ChoiceField(choices=["india-to-usa", "usa-to-india"])
+    type = serializers.ChoiceField(choices=["document", "package"])
+    origin = serializers.ChoiceField(choices=["Mumbai", "New Delhi", "Bangalore", "Chennai", "Hyderabad", "New York", "Los Angeles", "Chicago", "Houston", "Atlanta"])
+    destination = serializers.ChoiceField(choices=["Mumbai", "New Delhi", "Bangalore", "Chennai", "Hyderabad", "New York", "Los Angeles", "Chicago", "Houston", "Atlanta"])
+    weight = serializers.FloatField()
+    weight_metric = serializers.ChoiceField(choices=["kg", "lb"])
+    dim_length = serializers.FloatField()
+    dim_width = serializers.FloatField()
+    dim_height = serializers.FloatField()
+
+    def validate(self, data):
+        route = data.get("shipping_route")
+        origin = data.get("origin")
+        destination = data.get("destination")
+
+        india_cities = ["Mumbai", "New Delhi", "Bangalore", "Chennai", "Hyderabad"]
+        usa_cities = ["New York", "Los Angeles", "Chicago", "Houston", "Atlanta"]
+
+        if route == "india-to-usa":
+            valid_origins = india_cities
+            valid_destinations = usa_cities
+        elif route == "usa-to-india":
+            valid_origins = usa_cities
+            valid_destinations = india_cities
+        else:
+            raise serializers.ValidationError("Invalid shipping route.")
+
+        errors = {}
+
+        if origin not in valid_origins:
+            errors["origin"] = (
+                f"'{origin}' is not valid for route '{route}'. "
+                f"Valid origins: {valid_origins}"
+            )
+
+        if destination not in valid_destinations:
+            errors["destination"] = (
+                f"'{destination}' is not valid for route '{route}'. "
+                f"Valid destinations: {valid_destinations}"
+            )
+
+        if errors:
+            raise serializers.ValidationError(errors)
+
+        return data
