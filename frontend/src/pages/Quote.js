@@ -271,7 +271,7 @@ function Quote() {
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex-1">
-                  <span className="text-gray-600">Price in USDa</span>
+                  <span className="text-gray-600">Price in USD</span>
                   <br />
                   <span className="text-2xl font-bold text-indigo-600">${quote.usdPrice.toLocaleString()}</span>
                 </div>
