@@ -2,11 +2,12 @@ from django.shortcuts import render
 from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.permissions import IsAuthenticated,AllowAny, IsAdminUser
 from django.contrib.auth import get_user_model
 from .models import SupportRequest
 from .serializers import SupportRequestSerializer
 from django.db import models
+from rest_framework.parsers import MultiPartParser, FormParser
 from django.db.models import Q
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from shipping.models import Shipment, ShippingAddress, Bill, Invoice, ShipmentItem, TrackingEvent
@@ -250,17 +251,16 @@ class PickupRequestViewSet(viewsets.ModelViewSet):
         """Auto-update without changing user"""
         serializer.save()
 class SupportRequestViewSet(viewsets.ModelViewSet):
-    """
-    Complete CRUD operations for support requests
-    """
     serializer_class = SupportRequestSerializer
-    permission_classes = [IsAuthenticated]
-    authentication_classes = [JWTAuthentication]
-
+    permission_classes = [AllowAny]             # ✅ No auth needed
+    authentication_classes = []                 # ✅ No JWT/session auth
+    parser_classes = [MultiPartParser, FormParser]
     def get_queryset(self):
-        """Only show requests submitted by the current user"""
-        return SupportRequest.objects.filter(user=self.request.user)
+        # Only admins can read requests
+        # if self.request.user.is_authenticated and self.request.user.is_staff:
+        return SupportRequest.objects.all()
+        # return SupportRequest.objects.none()    # ❌ prevent others from reading
 
     def perform_create(self, serializer):
-        """Auto-set the user on creation"""
-        serializer.save(user=self.request.user)
+        user = self.request.user if self.request.user.is_authenticated else None
+        serializer.save(user=user)

@@ -32,6 +32,7 @@ class PickupRequest(models.Model):
 
 # ✅ New SupportRequest model added here
 class SupportRequest(models.Model):
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     subject = models.CharField(max_length=255)
     message = models.TextField()
     attachment = models.FileField(upload_to='support_attachments/', null=True, blank=True)
