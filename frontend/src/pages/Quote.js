@@ -47,6 +47,7 @@ function Quote() {
           dim_height: formData.height,
           origin: formData.originCity,
           destination: formData.destinationCity,
+          usd_rate: usdRate
         })
       })
         .then((response) => {
@@ -89,6 +90,10 @@ function Quote() {
 
     fetchExchangeRate();
   }, []);
+
+  useEffect(() => {
+    console.log(usdRate);
+  }, [usdRate]);
 
 
   const handleChange = (e) => {
