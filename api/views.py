@@ -1,32 +1,36 @@
 from django.shortcuts import render
-from rest_framework import viewsets, status, filters
+from rest_framework import viewsets, status, filters, generics, views
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
 from rest_framework.views import APIView
+from rest_framework.renderers import JSONRenderer
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.contrib.auth import get_user_model
 from django.db import models
-from rest_framework import generics, permissions
-from .models import Feedback, Order
-from .serializers import FeedbackSerializer, OrderSerializer
 from django.db.models import Q
 from django.utils import timezone
-from shipping.models import Shipment, ShippingAddress, Bill, Invoice, ShipmentItem, TrackingEvent, SupportRequest
-from .serializers import (
-    UserSerializer, ShipmentSerializer, 
-    ShippingAddressSerializer, BillSerializer, InvoiceSerializer,
-    ShipmentItemSerializer, TrackingEventSerializer, ContactSerializer, PickupRequestSerializer,
-    QuoteSerializer, SupportRequestSerializer,
+import math
+
+# Import models
+from .models import SupportRequest, Feedback, Order, PickupRequest
+from shipping.models import (
+    Shipment, ShippingAddress, Bill, Invoice, 
+    ShipmentItem, TrackingEvent, Contact
 )
+
+# Import serializers
+from .serializers import (
+    UserSerializer, ShipmentSerializer, ShippingAddressSerializer, 
+    BillSerializer, InvoiceSerializer, ShipmentItemSerializer, 
+    TrackingEventSerializer, ContactSerializer, PickupRequestSerializer,
+    QuoteSerializer, SupportRequestSerializer, FeedbackSerializer, OrderSerializer
+)
+
+# Import permissions
 from .permissions import IsOwnerOrAdmin, IsAdminOrReadOnly
 
-from rest_framework import generics
-from .models import PickupRequest
-
-from rest_framework import views
-from rest_framework.response import Response
-from rest_framework.renderers import JSONRenderer
-import math
+User = get_user_model()
 
 User = get_user_model()
 
@@ -285,6 +289,7 @@ class SupportRequestViewSet(viewsets.ModelViewSet):
     """
     serializer_class = SupportRequestSerializer
     permission_classes = [IsAuthenticated, IsOwnerOrAdmin]
+    authentication_classes = [JWTAuthentication]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['ticket_number', 'subject', 'message', 'status']
     ordering_fields = ['created_at', 'updated_at', 'status']
@@ -301,7 +306,7 @@ class SupportRequestViewSet(viewsets.ModelViewSet):
         return SupportRequest.objects.filter(user=user)
 
     def perform_create(self, serializer):
-        # Automatically set the user to the current user
+        # Auto-set the user to the current user on creation
         serializer.save(user=self.request.user)
 
     @action(detail=True, methods=['post'])
@@ -314,20 +319,14 @@ class SupportRequestViewSet(viewsets.ModelViewSet):
         
         if not new_status:
             return Response(
-                {'status': 'Status is required'},
+                {'error': 'Status is required'}, 
                 status=status.HTTP_400_BAD_REQUEST
             )
-            
-        if new_status not in dict(SupportRequest.STATUS_CHOICES).keys():
-            return Response(
-                {'status': 'Invalid status'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-            
+        
         support_request.status = new_status
         support_request.save()
         
-        return Response({'status': 'Status updated successfully'})
+        return Response({'status': 'status updated'})
 
     @action(detail=True, methods=['post'])
     def add_note(self, request, pk=None):
@@ -339,52 +338,63 @@ class SupportRequestViewSet(viewsets.ModelViewSet):
         
         if not note:
             return Response(
-                {'error': 'Note is required'},
+                {'error': 'Note is required'}, 
                 status=status.HTTP_400_BAD_REQUEST
             )
-            
-        if support_request.resolution_notes:
-            support_request.resolution_notes += f"\n\n{timezone.now().strftime('%Y-%m-%d %H:%M')} - {note}"
-        else:
-            support_request.resolution_notes = f"{timezone.now().strftime('%Y-%m-%d %H:%M')} - {note}"
-            
+        
+        # In a real app, you might want to create a separate model for notes
+        # For now, we'll just append to the message
+        support_request.message = f"{support_request.message}\n\n---\n{timezone.now().strftime('%Y-%m-%d %H:%M')} - {request.user.username}:\n{note}"
         support_request.save()
-        return Response({'status': 'Note added successfully'})
+        
+        return Response({'status': 'note added'})
 
 class PickupRequestViewSet(viewsets.ModelViewSet):
-    """
-    Complete CRUD operations for PickupRequests
-    """
+    """Complete CRUD operations for PickupRequests"""
     serializer_class = PickupRequestSerializer
     permission_classes = [IsAuthenticated]
-    
+    authentication_classes = [JWTAuthentication]
+
     def get_queryset(self):
-        """Only show requests belonging to current user"""
+        # Only show requests belonging to current user
         return PickupRequest.objects.filter(user=self.request.user)
-    
+
     def perform_create(self, serializer):
-        """Auto-set user on creation"""
+        # Auto-set user on creation
         serializer.save(user=self.request.user)
-        
+
     def perform_update(self, serializer):
-        """Auto-update without changing user"""
+        # Auto-update without changing user
         serializer.save()
 
-
-# class FeedbackViewSet(viewsets.ModelViewSet):
 class FeedbackViewSet(viewsets.ModelViewSet):
     queryset = Feedback.objects.all()
     serializer_class = FeedbackSerializer
     permission_classes = [AllowAny]
+    authentication_classes = [JWTAuthentication]
+
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid():
-            self.perform_create(serializer)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        else:
-            print("Serializer Errors:", serializer.errors)  # 🔴 This will print the actual reason
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        # You can add custom logic here if needed
+        return super().create(request, *args, **kwargs)
+
 class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
     permission_classes = [AllowAny]
+=======
+class SupportRequestViewSet(viewsets.ModelViewSet):
+    """
+    Complete CRUD operations for support requests
+    """
+    serializer_class = SupportRequestSerializer
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+
+    def get_queryset(self):
+        """Only show requests submitted by the current user"""
+        return SupportRequest.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        """Auto-set the user on creation"""
+        serializer.save(user=self.request.user)
+>>>>>>> 95606f0 (contact support page updates(with token))

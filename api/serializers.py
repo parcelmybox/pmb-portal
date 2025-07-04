@@ -1,9 +1,9 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from .models import Feedback, Order
+from .models import PickupRequest, Feedback, Order, SupportRequest
 from shipping.models import (
     Shipment, ShippingAddress, Bill, Invoice, 
-    ShipmentItem, TrackingEvent, Contact, SupportRequest
+    ShipmentItem, TrackingEvent, Contact
 )
 from django.utils import timezone
 
@@ -200,6 +200,7 @@ class PickupRequestSerializer(serializers.ModelSerializer):
             'package_type': {'required': False},
             'weight': {'required': False}
         }
+
 class QuoteSerializer(serializers.Serializer):
     shipping_route = serializers.ChoiceField(choices=["india-to-usa", "usa-to-india"])
     type = serializers.ChoiceField(choices=["document", "package"])
@@ -247,16 +248,15 @@ class QuoteSerializer(serializers.Serializer):
             raise serializers.ValidationError(errors)
 
         return data
-    
-from rest_framework import serializers
-from .models import Feedback, Order
 
 class FeedbackSerializer(serializers.ModelSerializer):
     class Meta:
         model = Feedback
-        fields = '__all__'
+        fields = ['id', 'order', 'rating', 'message', 'image', 'submitted_at']
+        read_only_fields = ['id', 'submitted_at']
 
 class OrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
-        fields = '__all__'
+        fields = ['id', 'order_id', 'customer_name', 'created_at']
+        read_only_fields = ['id', 'created_at']
