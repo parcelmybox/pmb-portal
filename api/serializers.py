@@ -154,8 +154,8 @@ class InvoiceSerializer(serializers.ModelSerializer):
 class QuoteSerializer(serializers.Serializer):
     shipping_route = serializers.ChoiceField(choices=["india-to-usa", "usa-to-india"])
     type = serializers.ChoiceField(choices=["document", "package"])
-    origin = serializers.ChoiceField(choices=["Mumbai", "New Delhi", "Bangalore", "Chennai", "Hyderabad", "New York", "Los Angeles", "Chicago", "Houston", "Atlanta"])
-    destination = serializers.ChoiceField(choices=["Mumbai", "New Delhi", "Bangalore", "Chennai", "Hyderabad", "New York", "Los Angeles", "Chicago", "Houston", "Atlanta"])
+    origin = serializers.ChoiceField(choices=["mumbai", "delhi", "bangalore", "chennai", "hyderabad", "new-york", "los-angeles", "chicago", "houston", "atlanta"])
+    destination = serializers.ChoiceField(choices=["mumbai", "delhi", "bangalore", "chennai", "hyderabad", "new-york", "los-angeles", "chicago", "houston", "atlanta"])
     weight = serializers.FloatField()
     weight_metric = serializers.ChoiceField(choices=["kg", "lb"])
     dim_length = serializers.FloatField()
@@ -167,8 +167,8 @@ class QuoteSerializer(serializers.Serializer):
         origin = data.get("origin")
         destination = data.get("destination")
 
-        india_cities = ["Mumbai", "New Delhi", "Bangalore", "Chennai", "Hyderabad"]
-        usa_cities = ["New York", "Los Angeles", "Chicago", "Houston", "Atlanta"]
+        india_cities = ["mumbai", "delhi", "bangalore", "chennai", "hyderabad"]
+        usa_cities = ["new-york", "los-angeles", "chicago", "houston", "atlanta"]
 
         if route == "india-to-usa":
             valid_origins = india_cities

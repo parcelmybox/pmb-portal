@@ -46,6 +46,8 @@ schema_view = get_schema_view(
 urlpatterns = [
     # API endpoints
     path('', include(router.urls)),
+
+    # Quote calculation API endpoint
     path('quote/', QuoteView.as_view(), name='quote'),
     
     # Authentication endpoints

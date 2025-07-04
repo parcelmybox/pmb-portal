@@ -2,7 +2,7 @@ from django.shortcuts import render
 from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models import Q
@@ -17,7 +17,6 @@ from .permissions import IsOwnerOrAdmin, IsAdminOrReadOnly
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
-from rest_framework.permissions import AllowAny
 import math
 
 User = get_user_model()
@@ -207,6 +206,8 @@ class InvoiceViewSet(viewsets.ModelViewSet):
             "invoice_id": invoice.id
         })
 
+# Quote Calculation API
+
 class QuoteView(APIView):
     renderer_classes = [JSONRenderer]
     permission_classes = [AllowAny]
@@ -218,10 +219,9 @@ class QuoteView(APIView):
     def post(self, request):
         serializer = QuoteSerializer(data = request.data)
         if serializer.is_valid():
+            print(serializer.validated_data)
             shipping_route = serializer.validated_data["shipping_route"]
             type = serializer.validated_data["type"]
-            origin_city = serializer.validated_data["origin"]
-            destination_city = serializer.validated_data["destination"]
             weight = serializer.validated_data["weight"]
             weight_metric = serializer.validated_data["weight_metric"]
             dim_length = serializer.validated_data["dim_length"]
@@ -241,5 +241,12 @@ class QuoteView(APIView):
             inr_price = math.ceil(base_price * route_multiplier * package_multiplier)
             usd_price = math.ceil(inr_price / 82.5)
 
-            return Response({"inrPrice": inr_price, "usd_price": usd_price, "chargeable_Weight": chargeable_weight})
+            shipping_time = "10-15 business days" if shipping_route == "india-to-usa" else "7-10 business days"
+
+            return Response({
+                "inr_price": inr_price, 
+                "usd_price": usd_price, 
+                "chargeable_Weight": chargeable_weight, 
+                "shipping_time": shipping_time
+            })
         return Response(serializer.errors, status=400)
