@@ -41,9 +41,14 @@ const PACKAGE_OPTIONS = [
   }
 ];
 
-const CITY_OPTIONS = [
+const USA_CITIES = [
   'New York', 'Los Angeles', 'Chicago', 'Houston', 'Phoenix',
   'Philadelphia', 'San Antonio', 'San Diego', 'Dallas', 'San Jose'
+];
+
+const INDIA_CITIES = [
+  'Mumbai', 'Delhi', 'Bangalore', 'Hyderabad', 'Chennai',
+  'Kolkata', 'Pune', 'Ahmedabad', 'Jaipur', 'Surat'
 ];
 
 const TIME_SLOTS = [
@@ -72,7 +77,8 @@ const INITIAL_FORM_STATE = {
   terms: false,
   weightUnit: 'kg',
   packageWeight: '',
-  packageType: ''
+  packageType: '',
+  shippingDirection: 'usa_to_india'
 };
 
 // Reusable Components
@@ -248,20 +254,20 @@ const SuccessMessage = ({ pickupAddress, city, onNewRequest }) => {
             <i className="fab fa-whatsapp mr-2 text-lg"></i> WhatsApp
           </a>
           <a 
-  href="https://mail.google.com/mail/?view=cm&fs=1&to=parcelmybox3@gmail.com" 
-  target="_blank"
-  className="flex flex-col items-center justify-center px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-all"
->
-  <i className="fas fa-envelope text-lg mb-1"></i>
-  <span className="text-xs">parcelmybox3@gmail.com</span>
-</a>
+            href="https://mail.google.com/mail/?view=cm&fs=1&to=parcelmybox3@gmail.com" 
+            target="_blank"
+            className="flex flex-col items-center justify-center px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-all"
+          >
+            <i className="fas fa-envelope text-lg mb-1"></i>
+            <span className="text-xs">parcelmybox3@gmail.com</span>
+          </a>
           <a 
-  href="tel:+15107146946" 
-  className="flex flex-col items-center justify-center px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg transition-all"
->
-  <i className="fas fa-phone text-lg mb-1"></i>
-  <span className="text-xs">+1 (510) 714-6946</span>
-</a>
+            href="tel:+15107146946" 
+            className="flex flex-col items-center justify-center px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg transition-all"
+          >
+            <i className="fas fa-phone text-lg mb-1"></i>
+            <span className="text-xs">+1 (510) 714-6946</span>
+          </a>
         </div>
       </div>
     </div>
@@ -274,7 +280,7 @@ const PickupForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Refs for all input fields
+  // Refs
   const nameRef = useRef();
   const emailRef = useRef();
   const phoneRef = useRef();
@@ -287,27 +293,12 @@ const PickupForm = () => {
   const packageWeightRef = useRef();
   const notesRef = useRef();
 
-  // Load external resources
-  useEffect(() => {
-    const tailwindScript = document.createElement('script');
-    tailwindScript.src = 'https://cdn.tailwindcss.com';
-    document.head.appendChild(tailwindScript);
+  // Get cities based on shipping direction
+  const getCities = () => {
+    return formData.shippingDirection === 'usa_to_india' ? USA_CITIES : INDIA_CITIES;
+  };
 
-    const fontAwesome = document.createElement('link');
-    fontAwesome.rel = 'stylesheet';
-    fontAwesome.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css';
-    document.head.appendChild(fontAwesome);
-
-    // Auto-focus first field on mount
-    nameRef.current?.focus();
-
-    return () => {
-      document.head.removeChild(tailwindScript);
-      document.head.removeChild(fontAwesome);
-    };
-  }, []);
-
-  // Form handlers
+  // Handlers
   const handleChange = useCallback((e) => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({
@@ -324,6 +315,14 @@ const PickupForm = () => {
     window.open('https://wa.me/15107146946', '_blank');
   }, []);
 
+  const toggleShippingDirection = useCallback(() => {
+    setFormData(prev => ({
+      ...prev,
+      shippingDirection: prev.shippingDirection === 'usa_to_india' ? 'india_to_usa' : 'usa_to_india',
+      city: ''
+    }));
+  }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -331,7 +330,6 @@ const PickupForm = () => {
 
     try {
       const authToken = btoa('bharat:bharat');
-
       await axios.post(
         'http://localhost:8000/api/pickup-requests/',
         {
@@ -354,9 +352,7 @@ const PickupForm = () => {
           },
         }
       );
-
       setIsSubmitted(true);
-      createConfetti();
     } catch (error) {
       console.error('Error:', error.response?.data || error.message);
       setError(error.response?.data?.message || 'Failed to submit. Please try again.');
@@ -372,31 +368,17 @@ const PickupForm = () => {
     nameRef.current?.focus();
   }, []);
 
-  const createConfetti = () => {
-    const container = document.createElement('div');
-    container.className = 'fixed inset-0 pointer-events-none z-50';
-    document.body.appendChild(container);
+  // Load external resources
+  useEffect(() => {
+    const fontAwesome = document.createElement('link');
+    fontAwesome.rel = 'stylesheet';
+    fontAwesome.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css';
+    document.head.appendChild(fontAwesome);
 
-    for (let i = 0; i < 50; i++) {
-      const dot = document.createElement('div');
-      dot.className = 'absolute w-2 h-2 rounded-full bg-blue-500';
-      dot.style.left = `${Math.random() * 100}vw`;
-      dot.style.top = `${Math.random() * 100}vh`;
-      dot.style.opacity = '0.8';
-      dot.style.transform = `scale(${Math.random() * 0.5 + 0.5})`;
-      container.appendChild(dot);
-
-      setTimeout(() => {
-        dot.style.transition = 'all 1s ease-out';
-        dot.style.transform += ' translateY(-20px)';
-        dot.style.opacity = '0';
-      }, 100);
-    }
-
-    setTimeout(() => {
-      container.remove();
-    }, 1000);
-  };
+    return () => {
+      document.head.removeChild(fontAwesome);
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-blue-50 flex items-center justify-center p-4">
@@ -408,7 +390,7 @@ const PickupForm = () => {
               <i className="fas fa-truck-fast text-3xl text-white glow-icon"></i>
             </div>
             <h1 className="text-4xl font-bold mb-3">Pickup Request</h1>
-            <p className="text-white/90 max-w-md">Schedule your pickup with our lightning-fast delivery network </p>
+            <p className="text-white/90 max-w-md">Schedule your pickup with our lightning-fast delivery network</p>
           </div>
         </div> 
         
@@ -422,22 +404,16 @@ const PickupForm = () => {
           {!isSubmitted ? (
             <form onSubmit={handleSubmit}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                    <i className="fas fa-user text-blue-400 text-lg"></i>
-                  </div>
-                  <input
-                    ref={nameRef}
-                    type="text"
-                    id="name"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl transition-all focus:border-blue-500 focus:ring-blue-200"
-                    placeholder="Full Name"
-                    required
-                  />
-                </div>
+                <InputWithIcon 
+                  inputRef={nameRef}
+                  icon="fa-user" 
+                  type="text" 
+                  name="name" 
+                  value={formData.name} 
+                  onChange={handleChange} 
+                  placeholder="Full Name" 
+                  required 
+                />
                 
                 <div className="flex gap-3">
                   <div className="relative flex items-center flex-grow border-2 border-gray-200 rounded-xl focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-300 transition-all">
@@ -489,9 +465,30 @@ const PickupForm = () => {
                   placeholder="Email Address" 
                   required 
                 />
+                <div className="mt-1 text-xs text-gray-500 flex items-center pl-10">
+                </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+              {/* Pickup Address Section with Direction Toggle */}
+              <div className="mt-6">
+                <div className="flex justify-start mb-2">
+                  <div className="bg-gray-100 rounded-lg p-1 flex">
+                    <button
+                      type="button"
+                      onClick={() => toggleShippingDirection()}
+                      className={`px-4 py-2 rounded-md transition-all ${formData.shippingDirection === 'usa_to_india' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+                    >
+                      USA 
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => toggleShippingDirection()}
+                      className={`px-4 py-2 rounded-md transition-all ${formData.shippingDirection === 'india_to_usa' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+                    >
+                      India
+                    </button>
+                  </div>
+                </div>
                 <InputWithIcon 
                   inputRef={pickupAddressRef}
                   icon="fa-map-marker-alt" 
@@ -501,7 +498,9 @@ const PickupForm = () => {
                   placeholder="Pickup Address" 
                   required 
                 />
-                
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                 <InputWithIcon 
                   inputRef={postalCodeRef}
                   icon="fa-mail-bulk" 
@@ -518,11 +517,12 @@ const PickupForm = () => {
                   name="city"
                   value={formData.city}
                   onChange={handleChange}
-                  options={CITY_OPTIONS}
-                  placeholder="Select City"
+                  options={getCities()}
+                  placeholder={`Select ${formData.shippingDirection === 'usa_to_india' ? 'USA' : 'India'} City`}
                   required
                 />
               </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                 <InputWithIcon 
                   inputRef={dateRef}
