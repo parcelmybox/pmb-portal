@@ -4,8 +4,11 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from django.contrib.auth import get_user_model
+from .models import SupportRequest
+from .serializers import SupportRequestSerializer
 from django.db import models
 from django.db.models import Q
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from shipping.models import Shipment, ShippingAddress, Bill, Invoice, ShipmentItem, TrackingEvent
 from .serializers import (
     UserSerializer, ShipmentSerializer, 
@@ -246,3 +249,18 @@ class PickupRequestViewSet(viewsets.ModelViewSet):
     def perform_update(self, serializer):
         """Auto-update without changing user"""
         serializer.save()
+class SupportRequestViewSet(viewsets.ModelViewSet):
+    """
+    Complete CRUD operations for support requests
+    """
+    serializer_class = SupportRequestSerializer
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+
+    def get_queryset(self):
+        """Only show requests submitted by the current user"""
+        return SupportRequest.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        """Auto-set the user on creation"""
+        serializer.save(user=self.request.user)
