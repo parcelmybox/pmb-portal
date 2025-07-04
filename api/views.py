@@ -212,14 +212,10 @@ class QuoteView(APIView):
     renderer_classes = [JSONRenderer]
     permission_classes = [AllowAny]
     # permission_classes = [IsAuthenticated, IsOwnerOrAdmin]
-
-    def get(self, request):
-        return Response({"Hello": "hi"})
     
     def post(self, request):
         serializer = QuoteSerializer(data = request.data)
         if serializer.is_valid():
-            print(serializer.validated_data)
             shipping_route = serializer.validated_data["shipping_route"]
             type = serializer.validated_data["type"]
             weight = serializer.validated_data["weight"]
@@ -227,6 +223,7 @@ class QuoteView(APIView):
             dim_length = serializer.validated_data["dim_length"]
             dim_width = serializer.validated_data["dim_width"]
             dim_height = serializer.validated_data["dim_height"]
+            usd_rate = serializer.validated_data["usd_rate"]
 
             if weight_metric == "lb":
                 weight *= 0.453592
@@ -239,7 +236,7 @@ class QuoteView(APIView):
             route_multiplier = 1.5 if shipping_route == "india-to-usa" else 2.5
             package_multiplier = 1.0 if type == "document" else 1.5
             inr_price = math.ceil(base_price * route_multiplier * package_multiplier)
-            usd_price = math.ceil(inr_price / 82.5)
+            usd_price = math.ceil(inr_price / usd_rate)
 
             shipping_time = "10-15 business days" if shipping_route == "india-to-usa" else "7-10 business days"
 

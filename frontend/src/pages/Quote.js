@@ -24,6 +24,8 @@ function Quote() {
     error: ''
   });
 
+  const [usdRate, setUsdRate] = useState(82.5);
+
   const calculateQuote = async () => {
     try {
       setQuote(prev => ({ ...prev, loading: true, error: '' }));
@@ -77,6 +79,17 @@ function Quote() {
       });
     }
   };
+
+  useEffect(() => {
+    async function fetchExchangeRate() {
+      const exchangeRate = await fetch('https://api.frankfurter.app/latest?from=USD&to=INR');
+      const response = await exchangeRate.json();
+      setUsdRate(response.rates.INR);
+    }
+
+    fetchExchangeRate();
+  }, []);
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -189,7 +202,7 @@ function Quote() {
             </div>
           </div>
 
-          <h2 className="text-lg font-medium text-gray-900 pt-4">Package Dimensions (inches)</h2>
+          <h2 className="text-lg font-medium text-gray-900 pt-4">Package Dimensions (centimetres)</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label htmlFor="length" className={labelClass}>Length</label>
@@ -272,7 +285,7 @@ function Quote() {
                 <div className="flex-1">
                   <span className="text-gray-600">Current Exchange Rate</span>
                   <br />
-                  <span className="text-indigo-600 font-semibold text-lg">1 USD = {formData.usdRate} INR</span>
+                  <span className="text-indigo-600 font-semibold text-lg">1 USD = {usdRate} INR</span>
                 </div>
               </div>
             </div>

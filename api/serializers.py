@@ -161,6 +161,7 @@ class QuoteSerializer(serializers.Serializer):
     dim_length = serializers.FloatField()
     dim_width = serializers.FloatField()
     dim_height = serializers.FloatField()
+    usd_rate = serializers.FloatField()
 
     def validate(self, data):
         route = data.get("shipping_route")
