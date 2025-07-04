@@ -10,7 +10,8 @@ export default function Header({ showSidebar, setShowSidebar }) {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
   const handleSidebarToggle = () => {
-    setShowSidebar(!showSidebar);
+    console.log('Toggle clicked');
+    setShowSidebar(prev => !prev);
   };
 
   return (
@@ -27,12 +28,12 @@ export default function Header({ showSidebar, setShowSidebar }) {
             <div className="flex-shrink-0 flex items-center space-x-4">
               <Link to="/">
                 <img
-                  className="h-20 w-20 object-contain"
-                  src="/images/pmb-logo.png"
+                  className="h-12 max-h-14 w-auto object-contain"
+                  src="/images/pmb-logo1.png"
                   alt="ParcelMyBox Logo"
                 />
               </Link>
-              <h1 className="ml-4 text-2xl font-bold text-indigo-900">ParcelMyBox</h1>
+              
             </div>
           </div>
 
