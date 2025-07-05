@@ -243,6 +243,10 @@ class QuoteView(APIView):
             dim_width = serializer.validated_data["dim_width"]
             dim_height = serializer.validated_data["dim_height"]
             usd_rate = serializer.validated_data["usd_rate"]
+            carrier_preference_type = serializer.validated_data["carrier_preference_type"]
+            carrier_preference = serializer.validated_data["carrier_preference"]
+
+            print(carrier_preference_type + " " + carrier_preference)
 
             if weight_metric == "lb":
                 weight *= 0.453592

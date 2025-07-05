@@ -186,6 +186,8 @@ class QuoteSerializer(serializers.Serializer):
     dim_width = serializers.FloatField()
     dim_height = serializers.FloatField()
     usd_rate = serializers.FloatField()
+    carrier_preference_type = serializers.ChoiceField(choices=["fastest", "cheapest", "choose-manually"])
+    carrier_preference = serializers.ChoiceField(choices=["", "ups", "dhl", "fedex"])
 
     def validate(self, data):
         route = data.get("shipping_route")
@@ -194,6 +196,8 @@ class QuoteSerializer(serializers.Serializer):
 
         india_cities = ["mumbai", "delhi", "bangalore", "chennai", "hyderabad"]
         usa_cities = ["new-york", "los-angeles", "chicago", "houston", "atlanta"]
+
+        # validates origin and destination are in their respective countries
 
         if route == "india-to-usa":
             valid_origins = india_cities
@@ -217,8 +221,23 @@ class QuoteSerializer(serializers.Serializer):
                 f"'{destination}' is not valid for route '{route}'. "
                 f"Valid destinations: {valid_destinations}"
             )
-
+        
         if errors:
             raise serializers.ValidationError(errors)
+
+        # validates that carrier provider is chosen only if manual-selection option is selected
+
+        preference_type = data.get("carrier_preference_type")
+        preference = data.get("carrier_preference")
+
+        if preference_type in ["fastest", "cheapest"] and preference != "":
+            raise serializers.ValidationError({
+                "carrier_preference": "Must be empty when preference type is 'fastest' or 'cheapest'."
+            })
+
+        if preference_type == "choose-manually" and preference not in ["ups", "dhl", "fedex"]:
+            raise serializers.ValidationError({
+                "carrier_preference": "Must be one of 'ups', 'dhl', or 'fedex' when preference type is 'choose-manually'."
+            })
 
         return data
