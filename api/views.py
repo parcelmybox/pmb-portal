@@ -2,7 +2,7 @@ from django.shortcuts import render
 from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models import Q
@@ -10,7 +10,8 @@ from shipping.models import Shipment, ShippingAddress, Bill, Invoice, ShipmentIt
 from .serializers import (
     UserSerializer, ShipmentSerializer, 
     ShippingAddressSerializer, BillSerializer, InvoiceSerializer,
-    ShipmentItemSerializer, TrackingEventSerializer, ContactSerializer,PickupRequestSerializer
+    ShipmentItemSerializer, TrackingEventSerializer, ContactSerializer,PickupRequestSerializer,
+    QuoteSerializer,
 )
 from .permissions import IsOwnerOrAdmin, IsAdminOrReadOnly
 
@@ -18,6 +19,10 @@ from rest_framework import generics
 from .models import PickupRequest
 
 
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.renderers import JSONRenderer
+import math
 
 User = get_user_model()
 
@@ -219,6 +224,48 @@ class InvoiceViewSet(viewsets.ModelViewSet):
             "status": "PDF generation would happen here",
             "invoice_id": invoice.id
         })
+
+# Quote Calculation API
+
+class QuoteView(APIView):
+    renderer_classes = [JSONRenderer]
+    permission_classes = [AllowAny]
+    # permission_classes = [IsAuthenticated, IsOwnerOrAdmin]
+    
+    def post(self, request):
+        serializer = QuoteSerializer(data = request.data)
+        if serializer.is_valid():
+            shipping_route = serializer.validated_data["shipping_route"]
+            type = serializer.validated_data["type"]
+            weight = serializer.validated_data["weight"]
+            weight_metric = serializer.validated_data["weight_metric"]
+            dim_length = serializer.validated_data["dim_length"]
+            dim_width = serializer.validated_data["dim_width"]
+            dim_height = serializer.validated_data["dim_height"]
+            usd_rate = serializer.validated_data["usd_rate"]
+
+            if weight_metric == "lb":
+                weight *= 0.453592
+
+            volumetric_weight = (dim_length * dim_width * dim_height) / 5000
+
+            chargeable_weight = max(volumetric_weight, weight)
+
+            base_price = chargeable_weight * 1000
+            route_multiplier = 1.5 if shipping_route == "india-to-usa" else 2.5
+            package_multiplier = 1.0 if type == "document" else 1.5
+            inr_price = math.ceil(base_price * route_multiplier * package_multiplier)
+            usd_price = math.ceil(inr_price / usd_rate)
+
+            shipping_time = "10-15 business days" if shipping_route == "india-to-usa" else "7-10 business days"
+
+            return Response({
+                "inr_price": inr_price, 
+                "usd_price": usd_price, 
+                "chargeable_Weight": chargeable_weight, 
+                "shipping_time": shipping_time
+            })
+        return Response(serializer.errors, status=400)
 
 
 #pickupRequest

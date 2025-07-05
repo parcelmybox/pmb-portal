@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 function Quote() {
@@ -12,32 +12,64 @@ function Quote() {
     height: '',
     packageType: 'document',
     currency: '₹',
-    usdRate: 82.5 // Approximate USD to INR rate
+    usdRate: 82.5, // Approximate USD to INR rate
+    weightUnit: 'kg',
   });
+
+  const [quote, setQuote] = useState({
+    inrPrice: 0,
+    usdPrice: 0,
+    shippingTime: '',
+    loading: false,
+    error: ''
+  });
+
+  const [usdRate, setUsdRate] = useState(82.5);
 
   const calculateQuote = async () => {
     try {
       setQuote(prev => ({ ...prev, loading: true, error: '' }));
       
-      // Mock calculation based on weight, route, and package type
-      const basePrice = formData.weight ? parseFloat(formData.weight) * 1000 : 0;
-      const routeMultiplier = formData.shippingRoute === 'india-to-usa' ? 1.5 : 2.5;
-      const packageMultiplier = formData.packageType === 'document' ? 1.0 : 1.5; // Documents cost less
-      const inrPrice = Math.ceil(basePrice * routeMultiplier * packageMultiplier);
-      const usdPrice = Math.ceil(inrPrice / formData.usdRate);
-      
-      // Mock shipping time based on route
-      const shippingTime = formData.shippingRoute === 'india-to-usa' 
-        ? '10-15 business days' 
-        : '7-10 business days';
+      // fetching calculated data from api
+      const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+      fetch(`${API_URL}/api/quote/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          shipping_route: formData.shippingRoute,
+          type: formData.packageType,
+          weight: formData.weight,
+          weight_metric: formData.weightUnit,
+          dim_length: formData.length,
+          dim_width: formData.width,
+          dim_height: formData.height,
+          origin: formData.originCity,
+          destination: formData.destinationCity,
+          usd_rate: usdRate
+        })
+      })
+        .then((response) => {
+          if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+          return response.json();
+        })
+        .then((data) => {
+          setQuote({
+            inrPrice: data.inr_price,
+            usdPrice: data.usd_price,
+            shippingTime: data.shipping_time,
+            loading: false,
+            error: ''
+          });
+        });
+        // .catch((err) => {
+        //   setQuote(prevState => ({
+        //     ...prevState,
+        //     error: 
+        //   }))
+        // })
 
-      setQuote({
-        inrPrice,
-        usdPrice,
-        shippingTime,
-        loading: false,
-        error: ''
-      });
     } catch (error) {
       setQuote({
         inrPrice: 0,
@@ -49,13 +81,20 @@ function Quote() {
     }
   };
 
-  const [quote, setQuote] = useState({
-    inrPrice: 0,
-    usdPrice: 0,
-    shippingTime: '',
-    loading: false,
-    error: ''
-  });
+  useEffect(() => {
+    async function fetchExchangeRate() {
+      const exchangeRate = await fetch('https://api.frankfurter.app/latest?from=USD&to=INR');
+      const response = await exchangeRate.json();
+      setUsdRate(response.rates.INR);
+    }
+
+    fetchExchangeRate();
+  }, []);
+
+  useEffect(() => {
+    console.log(usdRate);
+  }, [usdRate]);
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -168,7 +207,7 @@ function Quote() {
             </div>
           </div>
 
-          <h2 className="text-lg font-medium text-gray-900 pt-4">Package Dimensions (inches)</h2>
+          <h2 className="text-lg font-medium text-gray-900 pt-4">Package Dimensions (centimetres)</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label htmlFor="length" className={labelClass}>Length</label>
@@ -201,7 +240,7 @@ function Quote() {
           </div>
         </form>
 
-        {quote.inrPrice > 0 && (
+        {(quote.inrPrice > 0 && quote.usdPrice > 0 && quote.error === '' && quote.shippingTime !== '') && (
           <div className="mt-8 bg-white rounded-lg shadow-lg p-6">
             <h2 className="text-xl font-semibold text-gray-800 mb-4">Your Quote</h2>
             <div className="space-y-4">
@@ -251,7 +290,7 @@ function Quote() {
                 <div className="flex-1">
                   <span className="text-gray-600">Current Exchange Rate</span>
                   <br />
-                  <span className="text-indigo-600 font-semibold text-lg">1 USD = {formData.usdRate} INR</span>
+                  <span className="text-indigo-600 font-semibold text-lg">1 USD = {usdRate} INR</span>
                 </div>
               </div>
             </div>
