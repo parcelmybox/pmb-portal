@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from .models import SupportRequest
 from django.contrib.auth import get_user_model
 from shipping.models import (
     Shipment, ShippingAddress, Bill, Invoice, 
@@ -175,3 +176,8 @@ class PickupRequestSerializer(serializers.ModelSerializer):
             'package_type': {'required': False},
             'weight': {'required': False}
         }
+class SupportRequestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SupportRequest
+        fields = ['id', 'subject', 'message', 'attachment', 'created_at']
+        read_only_fields = ['id', 'created_at']
