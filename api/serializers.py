@@ -182,6 +182,7 @@ class QuoteSerializer(serializers.Serializer):
     destination = serializers.ChoiceField(choices=["mumbai", "delhi", "bangalore", "chennai", "hyderabad", "new-york", "los-angeles", "chicago", "houston", "atlanta"])
     weight = serializers.FloatField()
     weight_metric = serializers.ChoiceField(choices=["kg", "lb"])
+    include_dimensions = serializers.BooleanField()
     dim_length = serializers.FloatField()
     dim_width = serializers.FloatField()
     dim_height = serializers.FloatField()
@@ -197,47 +198,67 @@ class QuoteSerializer(serializers.Serializer):
         india_cities = ["mumbai", "delhi", "bangalore", "chennai", "hyderabad"]
         usa_cities = ["new-york", "los-angeles", "chicago", "houston", "atlanta"]
 
-        # validates origin and destination are in their respective countries
+        errors = {}
 
+        # validates origin and destination are in their respective countries
         if route == "india-to-usa":
             valid_origins = india_cities
             valid_destinations = usa_cities
+            if origin not in valid_origins:
+                errors["origin"] = (
+                    f"'{origin}' is not valid for route '{route}'. "
+                    f"Valid origins: {valid_origins}"
+                )
+            if destination not in valid_destinations:
+                errors["destination"] = (
+                    f"'{destination}' is not valid for route '{route}'. "
+                    f"Valid destinations: {valid_destinations}"
+                )
         elif route == "usa-to-india":
             valid_origins = usa_cities
             valid_destinations = india_cities
+            if origin not in valid_origins:
+                errors["origin"] = (
+                    f"'{origin}' is not valid for route '{route}'. "
+                    f"Valid origins: {valid_origins}"
+                )
+            if destination not in valid_destinations:
+                errors["destination"] = (
+                    f"'{destination}' is not valid for route '{route}'. "
+                    f"Valid destinations: {valid_destinations}"
+                )
         else:
             raise serializers.ValidationError("Invalid shipping route.")
 
-        errors = {}
-
-        if origin not in valid_origins:
-            errors["origin"] = (
-                f"'{origin}' is not valid for route '{route}'. "
-                f"Valid origins: {valid_origins}"
-            )
-
-        if destination not in valid_destinations:
-            errors["destination"] = (
-                f"'{destination}' is not valid for route '{route}'. "
-                f"Valid destinations: {valid_destinations}"
-            )
-        
-        if errors:
-            raise serializers.ValidationError(errors)
-
-        # validates that carrier provider is chosen only if manual-selection option is selected
-
+        # validate carrier preference
         preference_type = data.get("carrier_preference_type")
         preference = data.get("carrier_preference")
 
         if preference_type in ["fastest", "cheapest"] and preference != "":
-            raise serializers.ValidationError({
-                "carrier_preference": "Must be empty when preference type is 'fastest' or 'cheapest'."
-            })
+            errors["carrier_preference"] = (
+                "Must be empty when preference type is 'fastest' or 'cheapest'."
+            )
 
         if preference_type == "choose-manually" and preference not in ["ups", "dhl", "fedex"]:
-            raise serializers.ValidationError({
-                "carrier_preference": "Must be one of 'ups', 'dhl', or 'fedex' when preference type is 'choose-manually'."
-            })
+            errors["carrier_preference"] = (
+                "Must be one of 'ups', 'dhl', or 'fedex' when preference type is 'choose-manually'."
+            )
+
+        # validate dimensions based on include_dimensions
+        include_dimensions = data.get("include_dimensions")
+        length = data.get("dim_length")
+        width = data.get("dim_width")
+        height = data.get("dim_height")
+
+        if include_dimensions:
+            if length <= 0:
+                errors["dim_length"] = "Must be greater than 0 if dimensions are included."
+            if width <= 0:
+                errors["dim_width"] = "Must be greater than 0 if dimensions are included."
+            if height <= 0:
+                errors["dim_height"] = "Must be greater than 0 if dimensions are included."
+
+        if errors:
+            raise serializers.ValidationError(errors)
 
         return data

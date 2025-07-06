@@ -7,6 +7,7 @@ function Quote() {
 		originCity: '',
 		destinationCity: '',
 		weight: '',
+		includeDimensions: false,
 		length: '',
 		width: '',
 		height: '',
@@ -44,6 +45,7 @@ function Quote() {
 					type: formData.packageType,
 					weight: formData.weight,
 					weight_metric: formData.weightUnit,
+					include_dimensions: formData.includeDimensions,
 					dim_length: formData.length,
 					dim_width: formData.width,
 					dim_height: formData.height,
@@ -211,26 +213,44 @@ function Quote() {
 						</div>
 					</div>
 
-					<h2 className="text-lg font-medium text-gray-900 pt-4">Package Dimensions (centimetres)</h2>
-					<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-						<div>
-							<label htmlFor="length" className={labelClass}>Length</label>
-							<input type="number" name="length" id="length" value={formData.length} onChange={handleChange}
-								className={inputClass} required min="0" step="0.1" />
-						</div>
-						<div>
-							<label htmlFor="width" className={labelClass}>Width</label>
-							<input type="number" name="width" id="width" value={formData.width} onChange={handleChange}
-								className={inputClass} required min="0" step="0.1" />
-						</div>
-						<div>
-							<label htmlFor="height" className={labelClass}>Height</label>
-							<input type="number" name="height" id="height" value={formData.height} onChange={handleChange}
-								className={inputClass} required min="0" step="0.1" />
-						</div>
+					<div className="flex items-center">
+						<input
+							id="include-dimensions"
+							name="include-dimensions"
+							type="checkbox"
+							className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+							checked={formData.includeDimensions}
+							onChange={() => setFormData((prevState) => ({...prevState, includeDimensions: !prevState.includeDimensions}))}
+						/>
+						<label htmlFor="include-dimensions" className="ml-2 block text-sm text-gray-900">
+							Input package dimensions (optional)
+						</label>
 					</div>
 
-					<h2 className="text-lg font-medium text-gray-900 pt-4">Carrier Preference</h2>
+					{formData.includeDimensions && (
+						<>
+							<h2 className="text-lg font-medium text-gray-900 pt-4">Package Dimensions (centimetres)</h2>
+							<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+								<div>
+									<label htmlFor="length" className={labelClass}>Length</label>
+									<input type="number" name="length" id="length" value={formData.length} onChange={handleChange}
+										className={inputClass} required min="0" step="0.1" />
+								</div>
+								<div>
+									<label htmlFor="width" className={labelClass}>Width</label>
+									<input type="number" name="width" id="width" value={formData.width} onChange={handleChange}
+										className={inputClass} required min="0" step="0.1" />
+								</div>
+								<div>
+									<label htmlFor="height" className={labelClass}>Height</label>
+									<input type="number" name="height" id="height" value={formData.height} onChange={handleChange}
+										className={inputClass} required min="0" step="0.1" />
+								</div>
+							</div>
+						</>
+					)}
+
+					{/* <h2 className="text-lg font-medium text-gray-900 pt-4">Carrier Preference</h2>
 					<div className="flex items-center space-x-4">
 						<input type="radio" id="fastest" name="carrierPreferenceType" value="fastest"
 							checked={formData.carrierPreferenceType === "fastest"}
@@ -249,7 +269,7 @@ function Quote() {
 							onChange={(e) => setFormData({ ...formData, carrierPreferenceType: e.target.value })}
 							className="h-4 w-4 text-indigo-600 focus:ring-indigo-500" />
 						<label htmlFor="choose-manually" className="text-sm font-medium text-gray-700">Choose Manually</label>
-					</div>
+					</div> */}
 
 					{formData.carrierPreferenceType === 'choose-manually' && (
 						<div>
@@ -261,7 +281,7 @@ function Quote() {
 								<option value="fedex">FedEx</option>
 							</select>
 						</div>
-					)} 
+					)}
 
 					<div>
 						<button

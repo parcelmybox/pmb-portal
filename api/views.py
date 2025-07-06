@@ -234,7 +234,11 @@ class QuoteView(APIView):
     
     def post(self, request):
         serializer = QuoteSerializer(data = request.data)
+        print("before")
+        print(request.data)
         if serializer.is_valid():
+            print("after")
+            print(serializer.validated_data)
             shipping_route = serializer.validated_data["shipping_route"]
             type = serializer.validated_data["type"]
             weight = serializer.validated_data["weight"]
