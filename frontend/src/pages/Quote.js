@@ -20,8 +20,6 @@ function Quote() {
 	});
 
 	const [quote, setQuote] = useState({
-		inrPrice: 0,
-		usdPrice: 0,
 		prices: [],
 		shippingTime: '',
 		loading: false,
@@ -64,17 +62,25 @@ function Quote() {
 					return response.json();
 				})
 				.then((data) => {
-					console.log(data);
-					setQuote({
-						inrPrice: 0,
-						usdPrice: 0,
-						prices: data.prices,
-						shippingTime: data.shipping_time,
-						chargeableWeight: data.chargeable_weight,
-						volumetric_used: data.volumetric_used,
-						loading: false,
-						error: ''
-					});
+					if (data.chargeable_weight > 70) {
+						setQuote({
+							prices: [],
+							shippingTime: '',
+							chargeableWeight: 0,
+							volumetric_used: false,
+							loading: false,
+							error: 'Weight exceeds 70 kg weight limit!'
+						});
+					} else {
+						setQuote({
+							prices: data.prices,
+							shippingTime: data.shipping_time,
+							chargeableWeight: data.chargeable_weight,
+							volumetric_used: data.volumetric_used,
+							loading: false,
+							error: ''
+						});
+					}
 				});
 			// .catch((err) => {
 			//   setQuote(prevState => ({
@@ -122,9 +128,9 @@ function Quote() {
 
 	const formatPrice = (prices, currency) => {
 		if (currency == '₹') {
-			return Math.ceil(prices.fixed_price === null ? `${prices.per_kg_price}/kg` : prices.fixed_price).toLocaleString();
+			return `${Math.ceil(prices.fixed_price === null ? (prices.per_kg_price) : (prices.fixed_price)).toLocaleString()}${(prices.fixed_price === null) ? "/kg" : ''}`;
 		} else {
-			return Math.ceil(prices.fixed_price === null ? `${(prices.per_kg_price / formData.usdRate)}/kg` : (prices.fixed_price / formData.usdRate)).toLocaleString();
+			return `${Math.ceil(prices.fixed_price === null ? (prices.per_kg_price / formData.usdRate) : (prices.fixed_price / formData.usdRate)).toLocaleString()}${prices.fixed_price === null ? "/kg" : ''}`;
 		}
 	}
 
