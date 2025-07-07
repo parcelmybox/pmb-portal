@@ -16,7 +16,7 @@ from .serializers import (
 from .permissions import IsOwnerOrAdmin, IsAdminOrReadOnly
 
 from rest_framework import generics
-from .models import PickupRequest
+from .models import PickupRequest, ShippingRates
 
 
 from rest_framework.views import APIView
@@ -230,19 +230,15 @@ class InvoiceViewSet(viewsets.ModelViewSet):
 class QuoteView(APIView):
     renderer_classes = [JSONRenderer]
     permission_classes = [AllowAny]
-    # permission_classes = [IsAuthenticated, IsOwnerOrAdmin]
     
     def post(self, request):
         serializer = QuoteSerializer(data = request.data)
-        print("before")
-        print(request.data)
         if serializer.is_valid():
-            print("after")
-            print(serializer.validated_data)
             shipping_route = serializer.validated_data["shipping_route"]
             type = serializer.validated_data["type"]
             weight = serializer.validated_data["weight"]
             weight_metric = serializer.validated_data["weight_metric"]
+            include_dimensions = serializer.validated_data["include_dimensions"]
             dim_length = serializer.validated_data["dim_length"]
             dim_width = serializer.validated_data["dim_width"]
             dim_height = serializer.validated_data["dim_height"]
@@ -250,28 +246,38 @@ class QuoteView(APIView):
             carrier_preference_type = serializer.validated_data["carrier_preference_type"]
             carrier_preference = serializer.validated_data["carrier_preference"]
 
-            print(carrier_preference_type + " " + carrier_preference)
-
             if weight_metric == "lb":
                 weight *= 0.453592
 
-            volumetric_weight = (dim_length * dim_width * dim_height) / 5000
-
-            chargeable_weight = max(volumetric_weight, weight)
-
-            base_price = chargeable_weight * 1000
-            route_multiplier = 1.5 if shipping_route == "india-to-usa" else 2.5
-            package_multiplier = 1.0 if type == "document" else 1.5
-            inr_price = math.ceil(base_price * route_multiplier * package_multiplier)
-            usd_price = math.ceil(inr_price / usd_rate)
+            volumetric_used = False
+            if include_dimensions:
+                volumetric_weight = (dim_length * dim_width * dim_height) / 5000
+                if volumetric_weight > weight:
+                    chargeable_weight = math.ceil(volumetric_weight)
+                    volumetric_used = True
+            else: chargeable_weight = math.ceil(weight)
 
             shipping_time = "10-15 business days" if shipping_route == "india-to-usa" else "7-10 business days"
 
+            prices = []
+            relevant_prices = ShippingRates.objects.filter(min_kg__lte = chargeable_weight, max_kg__gte = chargeable_weight)
+            for price in relevant_prices:
+                if price.courier == "ups": price.courier = "UPS"
+                elif price.courier == "dhl": price.courier = "DHL"
+                elif price.courier == "fedex": price.courier = "FedEx"
+                prices.append({
+                    "fixed_price": price.fixed_price,
+                    "per_kg_price": price.per_kg_price,
+                    "courier_name": price.courier
+                })
+            print(prices)
+
+
             return Response({
-                "inr_price": inr_price, 
-                "usd_price": usd_price, 
-                "chargeable_Weight": chargeable_weight, 
-                "shipping_time": shipping_time
+                "prices": prices, 
+                "chargeable_weight": chargeable_weight,
+                "shipping_time": shipping_time,
+                "volumetric_used": volumetric_used,
             })
         return Response(serializer.errors, status=400)
 

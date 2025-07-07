@@ -8,9 +8,9 @@ function Quote() {
 		destinationCity: '',
 		weight: '',
 		includeDimensions: false,
-		length: '',
-		width: '',
-		height: '',
+		length: 0,
+		width: 0,
+		height: 0,
 		packageType: 'document',
 		currency: '₹',
 		usdRate: 82.5, // Approximate USD to INR rate
@@ -22,9 +22,12 @@ function Quote() {
 	const [quote, setQuote] = useState({
 		inrPrice: 0,
 		usdPrice: 0,
+		prices: [],
 		shippingTime: '',
 		loading: false,
-		error: ''
+		error: '',
+		chargeableWeight: 0,
+		volumetric_used: false,
 	});
 
 	const [usdRate, setUsdRate] = useState(82.5);
@@ -61,10 +64,14 @@ function Quote() {
 					return response.json();
 				})
 				.then((data) => {
+					console.log(data);
 					setQuote({
-						inrPrice: data.inr_price,
-						usdPrice: data.usd_price,
+						inrPrice: 0,
+						usdPrice: 0,
+						prices: data.prices,
 						shippingTime: data.shipping_time,
+						chargeableWeight: data.chargeable_weight,
+						volumetric_used: data.volumetric_used,
 						loading: false,
 						error: ''
 					});
@@ -78,9 +85,10 @@ function Quote() {
 
 		} catch (error) {
 			setQuote({
-				inrPrice: 0,
-				usdPrice: 0,
+				prices: [],
 				shippingTime: '',
+				chargeableWeight: 0,
+				volumetric_used: false,
 				loading: false,
 				error: 'Error calculating quote. Please try again.'
 			});
@@ -97,11 +105,6 @@ function Quote() {
 		fetchExchangeRate();
 	}, []);
 
-	useEffect(() => {
-		console.log(usdRate);
-	}, [usdRate]);
-
-
 	const handleChange = (e) => {
 		const { name, value } = e.target;
 		setFormData(prevState => ({
@@ -116,6 +119,14 @@ function Quote() {
 		console.log('Form Data Submitted:', formData);
 		alert('Quote request submitted! Check console for data. Calculation logic coming soon.');
 	};
+
+	const formatPrice = (prices, currency) => {
+		if (currency == '₹') {
+			return Math.ceil(prices.fixed_price === null ? `${prices.per_kg_price}/kg` : prices.fixed_price).toLocaleString();
+		} else {
+			return Math.ceil(prices.fixed_price === null ? `${(prices.per_kg_price / formData.usdRate)}/kg` : (prices.fixed_price / formData.usdRate)).toLocaleString();
+		}
+	}
 
 	const inputClass = "mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm";
 	const labelClass = "block text-sm font-medium text-gray-700";
@@ -220,7 +231,7 @@ function Quote() {
 							type="checkbox"
 							className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
 							checked={formData.includeDimensions}
-							onChange={() => setFormData((prevState) => ({...prevState, includeDimensions: !prevState.includeDimensions}))}
+							onChange={() => setFormData((prevState) => ({ ...prevState, includeDimensions: !prevState.includeDimensions }))}
 						/>
 						<label htmlFor="include-dimensions" className="ml-2 block text-sm text-gray-900">
 							Input package dimensions (optional)
@@ -296,7 +307,7 @@ function Quote() {
 					</div>
 				</form>
 
-				{(quote.inrPrice > 0 && quote.usdPrice > 0 && quote.error === '' && quote.shippingTime !== '') && (
+				{(quote.prices.length != 0 && quote.error === '' && quote.shippingTime !== '') && (
 					<div className="mt-8 bg-white rounded-lg shadow-lg p-6">
 						<h2 className="text-xl font-semibold text-gray-800 mb-4">Your Quote</h2>
 						<div className="space-y-4">
@@ -309,10 +320,10 @@ function Quote() {
 									</span>
 								</div>
 								<div className="flex-1 text-right">
-									<span className="text-gray-600">Weight</span>
+									<span className="text-gray-600">Chargeable Weight</span>
 									<br />
 									<span className="text-indigo-600 font-semibold text-lg">
-										{formData.weight} {formData.shippingRoute === 'india-to-usa' ? 'kg' : 'lbs'}
+										{quote.chargeableWeight} {formData.weightUnit}
 									</span>
 								</div>
 							</div>
@@ -327,33 +338,63 @@ function Quote() {
 								<div className="flex-1 text-right">
 									<span className="text-gray-600">Price in INR</span>
 									<br />
-									<span className="text-2xl font-bold text-indigo-600">₹{quote.inrPrice.toLocaleString()}</span>
+									<span className="text-black-600 mr-1">{`${quote.prices[0].courier_name}:`}</span>
+									<span className="text-indigo-600 font-semibold">
+										₹{formatPrice(quote.prices[0], '₹')}
+									</span><br />
+									<span className="text-black-600 mr-1">{`${quote.prices[1].courier_name}:`}</span>
+									<span className="text-indigo-600 font-semibold">
+										₹{formatPrice(quote.prices[1], '₹')}
+									</span><br />
+									<span className="text-black-600 mr-1">{`${quote.prices[2].courier_name}:`}</span>
+									<span className="text-indigo-600 font-semibold">
+										₹{formatPrice(quote.prices[2], '₹')}
+									</span><br />
 								</div>
 							</div>
 							<div className="flex items-center justify-between">
-								<div className="flex-1">
+								<div>
 									<span className="text-gray-600">Price in USD</span>
 									<br />
-									<span className="text-2xl font-bold text-indigo-600">${quote.usdPrice.toLocaleString()}</span>
+									<span className="text-black-600 mr-1">{`${quote.prices[0].courier_name}:`}</span>
+									<span className="text-indigo-600 font-semibold">
+										${formatPrice(quote.prices[0], '$')}
+									</span><br />
+									<span className="text-black-600 mr-1">{`${quote.prices[1].courier_name}:`}</span>
+									<span className="text-indigo-600 font-semibold">
+										${formatPrice(quote.prices[1], '$')}
+									</span><br />
+									<span className="text-black-600 mr-1">{`${quote.prices[2].courier_name}:`}</span>
+									<span className="text-indigo-600 font-semibold">
+										${formatPrice(quote.prices[2], '$')}
+									</span><br />
 								</div>
-								<div className="flex-1 text-right">
-									<span className="text-gray-600">Estimated Delivery</span>
-									<br />
-									<span className="text-indigo-600 font-semibold text-lg">{quote.shippingTime}</span>
+								<div className="flex items-center justify-between">
+									<div className="flex-1">
+										<span className="text-gray-600">Current Exchange Rate</span>
+										<br />
+										<span className="text-indigo-600 font-semibold text-lg">1 USD = {usdRate} INR</span>
+									</div>
 								</div>
-							</div>
-							<div className="flex items-center justify-between">
-								<div className="flex-1">
-									<span className="text-gray-600">Current Exchange Rate</span>
-									<br />
-									<span className="text-indigo-600 font-semibold text-lg">1 USD = {usdRate} INR</span>
-								</div>
-							</div>
+							</div>	
 						</div>
+
 						<div className="mt-6">
-							<p className="text-sm text-gray-600">
-								* Prices include all handling and customs fees. Delivery times and estimates may vary.
-							</p>
+							{quote.volumetric_used && (
+								<div className="flex text-sm">
+									<p className="text-gray-600 text-gray-600">
+										* Volumetric Weight is being used for pricing. &nbsp;
+									</p>
+									<a href='https://www.parcelhero.com/en-gb/support/volumetric-weight-calculator'>
+										<span className="text-indigo-600 semibold">What is Volumetric Weight?</span>
+									</a>
+								</div>
+							)}
+							<div className="mt-1">
+								<p className="text-sm text-gray-600">
+									** Prices include all handling and customs fees. Delivery times and estimates may vary.
+								</p>
+							</div>
 						</div>
 					</div>
 				)}
