@@ -585,7 +585,7 @@ class CustomAdminSite(admin.AdminSite):
 
     def index(self, request, extra_context=None):
         """
-        Display the admin index page with billing statistics.
+        Display the admin index page with billing statistics and quick links.
         """
         # Get the default context
         context = {}
@@ -603,8 +603,39 @@ class CustomAdminSite(admin.AdminSite):
         billing_stats.setdefault('order_change', 0)
         billing_stats.setdefault('pending_percentage', 0)
         
-        # Add billing stats to the context
-        context['billing_stats'] = billing_stats
+        # Add quick links
+        quick_links = [
+            {
+                'name': 'Support Requests',
+                'url': '/admin/shipping/supportrequest/',
+                'icon': 'fas fa-headset',
+                'description': 'View and manage support requests',
+                'permission': request.user.has_perm('shipping.view_supportrequest')
+            },
+            {
+                'name': 'Billing Dashboard',
+                'url': '/admin/billing/',
+                'icon': 'fas fa-money-bill-wave',
+                'description': 'View billing statistics and reports',
+                'permission': True
+            },
+            {
+                'name': 'Shipments',
+                'url': '/admin/shipping/shipment/',
+                'icon': 'fas fa-shipping-fast',
+                'description': 'Manage shipments',
+                'permission': request.user.has_perm('shipping.view_shipment')
+            },
+        ]
+        
+        # Filter out links the user doesn't have permission to see
+        quick_links = [link for link in quick_links if link['permission']]
+        
+        # Add billing stats and quick links to the context
+        context.update({
+            'billing_stats': billing_stats,
+            'quick_links': quick_links,
+        })
         
         # Add app list to the context
         app_list = self.get_app_list(request)

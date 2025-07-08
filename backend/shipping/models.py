@@ -2,6 +2,9 @@ import re
 import logging
 from django.db import models
 from django.utils import timezone
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 from django.core.validators import MinValueValidator, EmailValidator
 from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
@@ -486,7 +489,7 @@ class Bill(models.Model):
         ]
     
     def __str__(self):
-        return f'Bill #{self.id} - {self.customer.get_username()} - ${self.amount:.2f}'
+        return f'Bill #{self.id} - {self.customer.username} - ${self.amount:.2f}'
     
     @property
     def is_paid(self):
@@ -542,3 +545,69 @@ class Bill(models.Model):
             return True
             
         return False
+
+
+class SupportRequest(models.Model):
+    """
+    Model for managing support requests from users.
+    """
+    STATUS_CHOICES = [
+        ('OPEN', 'Open'),
+        ('IN_PROGRESS', 'In Progress'),
+        ('RESOLVED', 'Resolved'),
+        ('CLOSED', 'Closed'),
+    ]
+    
+    PRIORITY_CHOICES = [
+        ('LOW', 'Low'),
+        ('MEDIUM', 'Medium'),
+        ('HIGH', 'High'),
+        ('URGENT', 'Urgent'),
+    ]
+    
+    title = models.CharField(max_length=200, help_text='Brief summary of the issue')
+    description = models.TextField(help_text='Detailed description of the issue')
+    status = models.CharField(
+        max_length=20, 
+        choices=STATUS_CHOICES, 
+        default='OPEN',
+        help_text='Current status of the support request'
+    )
+    priority = models.CharField(
+        max_length=10, 
+        choices=PRIORITY_CHOICES, 
+        default='MEDIUM',
+        help_text='Priority level of the request'
+    )
+    created_by = models.ForeignKey(
+        User, 
+        on_delete=models.CASCADE, 
+        related_name='support_requests_created',
+        help_text='User who created the support request'
+    )
+    assigned_to = models.ForeignKey(
+        User, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='support_requests_assigned',
+        help_text='Staff member assigned to handle this request',
+        limit_choices_to={'is_staff': True}
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    resolved_at = models.DateTimeField(null=True, blank=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Support Request'
+        verbose_name_plural = 'Support Requests'
+    
+    def __str__(self):
+        return f"{self.title} ({self.get_status_display()})"
+    
+    def save(self, *args, **kwargs):
+        # Update resolved_at when status changes to RESOLVED or CLOSED
+        if self.status in ['RESOLVED', 'CLOSED'] and not self.resolved_at:
+            self.resolved_at = timezone.now()
+        super().save(*args, **kwargs)

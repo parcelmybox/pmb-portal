@@ -19,42 +19,152 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+*.pyc
+*.pyo
+*.pyd
+.python-version
+.python-version.*
+.pytest_cache/
+.mypy_cache/
+.coverage
+.coverage.*
+htmlcov/
 
 # Virtual Environment
 venv/
 env/
 ENV/
+.venv/
+.venv*
 
-# IDE
+# IDE and Editor files
 .idea/
 .vscode/
 *.swp
 *.swo
+*~
+.project
+.pydevproject
+.settings/
+.ropeproject/
+*.sublime-*
+*.sublime-workspace
+*.sublime-project
+*.code-workspace
 
 # Django
 *.log
 local_settings.py
-*.pyc
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
+local_settings.py.*
+!*/local_settings.example.py
+*.sqlite3
+*.sqlite3-journal
+*.sqlite3-*
+*.db
+*.db.*
+*.sql
+*.sql.gz
+*.sqlite
+*.sqlite3
+*.db-journal
+*.db-*
+
+# Media and static files
+/media/
+/static/
+/backend/static/
+/backend/media/
+/staticfiles/
+/static_root/
+/media_root/
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnp/
+.pnp.js
+.yarn-integrity
+
+# Frontend
+/frontend/node_modules/
+/frontend/build/
+/frontend/dist/
+/frontend/.next/
+/frontend/out/
+/frontend/.cache/
+/frontend/coverage/
+/frontend/.env*
+!/frontend/.env.example
+/frontend/.eslintcache
+/frontend/.next/
+/frontend/npm-debug.log*
+/frontend/yarn-debug.log*
+/frontend/yarn-error.log*
+
+# Database
+*.sqlite3
+*.sqlite3-*
+*.db
+*.db-journal
+*.db-*
+*.sql
+*.sql.gz
+*.sqlite
+*.sqlite3-*
+
+# Docker
+docker-compose.override.yml
+.docker/
+*.dockerfile
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Testing
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Backup files
+*.bak
+*.backup
+*~
+*#
+*#*
+.#*
+
+# Project specific
+/backend/staticfiles/
+/backend/mediafiles/
+/backend/.env
+/backend/.env.*
+!/backend/.env.example
+
+# Local development
+.local/
+.cache/
 
 # Media and static files
 /media/

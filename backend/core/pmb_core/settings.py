@@ -91,7 +91,7 @@ INSTALLED_APPS = [
     
     # Local apps
     'apps.category.apps.CategoryConfig',  # Using full app config path
-    'shipping.apps.ShippingConfig',
+    'shipping',  # Shipping app
     'customers.apps.CustomersConfig',
     'django.contrib.sessions',
     'django.contrib.messages',

@@ -4,12 +4,13 @@ from django.shortcuts import render, redirect
 from django.utils.html import format_html
 from django.contrib.admin.views.decorators import staff_member_required
 from django.utils.safestring import mark_safe
-from .models import ShippingAddress, Shipment, ShipmentItem, TrackingEvent, Bill
+from django.contrib.auth.models import User
+from .models import ShippingAddress, Shipment, ShipmentItem, TrackingEvent, Bill, SupportRequest
 from .admin_views import billing_dashboard
 from .admin_index import get_billing_stats
 
-# Get the admin instance
-site = admin.site
+# Import the custom admin site from the core app
+from core.pmb_core.admin import custom_admin_site as site
 
 # Inline Models
 class ShipmentItemInline(admin.TabularInline):
@@ -23,6 +24,85 @@ class TrackingEventInline(admin.TabularInline):
     extra = 1
     readonly_fields = ('timestamp',)
     fields = ('status', 'location', 'description', 'timestamp')
+
+@admin.register(SupportRequest, site=site)
+class SupportRequestAdmin(admin.ModelAdmin):
+    list_display = ('title', 'status_badge', 'priority_badge', 'created_by_link', 'assigned_to_link', 'created_at', 'resolved_at')
+    list_filter = ('status', 'priority', 'created_at', 'resolved_at')
+    search_fields = ('title', 'description', 'created_by__username', 'assigned_to__username')
+    list_select_related = ('created_by', 'assigned_to')
+    readonly_fields = ('created_at', 'updated_at', 'resolved_at')
+    date_hierarchy = 'created_at'
+    
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == 'assigned_to':
+            # Get the base queryset (respecting limit_choices_to if any)
+            queryset = db_field.remote_field.model._default_manager.complex_filter(
+                db_field.get_limit_choices_to() or {}
+            )
+            # Ensure we only show staff users
+            queryset = queryset.filter(is_staff=True)
+            # Order by username for better UX
+            kwargs['queryset'] = queryset.order_by('username')
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+    
+    fieldsets = (
+        ('Request Information', {
+            'fields': ('title', 'description', 'status', 'priority')
+        }),
+        ('Assignment', {
+            'fields': ('created_by', 'assigned_to')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at', 'resolved_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    def created_by_link(self, obj):
+        if obj.created_by:
+            url = reverse('admin:auth_user_change', args=[obj.created_by.id])
+            return mark_safe(f'<a href="{url}">{obj.created_by.username}</a>')
+        return "-"
+    created_by_link.short_description = 'Created By'
+    created_by_link.admin_order_field = 'created_by__username'
+    
+    def assigned_to_link(self, obj):
+        if obj.assigned_to:
+            url = reverse('admin:auth_user_change', args=[obj.assigned_to.id])
+            return mark_safe(f'<a href="{url}">{obj.assigned_to.username}</a>')
+        return "-"
+    assigned_to_link.short_description = 'Assigned To'
+    assigned_to_link.admin_order_field = 'assigned_to__username'
+    
+    def status_badge(self, obj):
+        status_colors = {
+            'OPEN': 'blue',
+            'IN_PROGRESS': 'orange',
+            'RESOLVED': 'green',
+            'CLOSED': 'gray'
+        }
+        color = status_colors.get(obj.status, 'gray')
+        return mark_safe(f'<span class="badge" style="background-color: {color}; color: white; padding: 2px 6px; border-radius: 4px;">{obj.get_status_display()}</span>')
+    status_badge.short_description = 'Status'
+    status_badge.admin_order_field = 'status'
+    
+    def priority_badge(self, obj):
+        priority_colors = {
+            'LOW': 'blue',
+            'MEDIUM': 'green',
+            'HIGH': 'orange',
+            'URGENT': 'red'
+        }
+        color = priority_colors.get(obj.priority, 'gray')
+        return mark_safe(f'<span class="badge" style="background-color: {color}; color: white; padding: 2px 6px; border-radius: 4px;">{obj.get_priority_display()}</span>')
+    priority_badge.short_description = 'Priority'
+    priority_badge.admin_order_field = 'priority'
+    
+    def save_model(self, request, obj, form, change):
+        if not obj.pk:  # If this is a new object
+            obj.created_by = request.user
+        super().save_model(request, obj, form, change)
 
 # Register models with the custom admin site
 @admin.register(ShippingAddress, site=site)
