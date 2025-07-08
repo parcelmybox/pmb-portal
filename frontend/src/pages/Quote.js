@@ -30,64 +30,74 @@ function Quote() {
 
 	const [usdRate, setUsdRate] = useState(82.5);
 
+	const checkAllRequiredFields = () => {
+		const { originCity, destinationCity, weight, includeDimensions, length, height, width } = formData;
+		if (originCity === '' || destinationCity === '' || weight === '') return false;
+		else if (includeDimensions === true && (length == 0 || width == 0 || height == 0)) return false;
+		return true;
+	}
+
 	const calculateQuote = async () => {
 		try {
-			setQuote(prev => ({ ...prev, loading: true, error: '' }));
-
-			// fetching calculated data from api
-			const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
-			fetch(`${API_URL}/api/quote/`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify({
-					shipping_route: formData.shippingRoute,
-					type: formData.packageType,
-					weight: formData.weight,
-					weight_metric: formData.weightUnit,
-					include_dimensions: formData.includeDimensions,
-					dim_length: formData.length,
-					dim_width: formData.width,
-					dim_height: formData.height,
-					origin: formData.originCity,
-					destination: formData.destinationCity,
-					usd_rate: usdRate,
-					carrier_preference_type: formData.carrierPreferenceType,
-					carrier_preference: formData.carrierPreference,
+			setQuote(prev => ({ ...prev, loading: true, error: [] }));
+			if (checkAllRequiredFields()) {
+				const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+				fetch(`${API_URL}/api/quote/`, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify({
+						shipping_route: formData.shippingRoute,
+						type: formData.packageType,
+						weight: formData.weight,
+						weight_metric: formData.weightUnit,
+						include_dimensions: formData.includeDimensions,
+						dim_length: formData.length,
+						dim_width: formData.width,
+						dim_height: formData.height,
+						origin: formData.originCity,
+						destination: formData.destinationCity,
+						usd_rate: usdRate,
+						carrier_preference_type: formData.carrierPreferenceType,
+						carrier_preference: formData.carrierPreference,
+					})
 				})
-			})
-				.then((response) => {
-					if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-					return response.json();
-				})
-				.then((data) => {
-					if (data.chargeable_weight > 70) {
-						setQuote({
-							prices: [],
-							shippingTime: '',
-							chargeableWeight: 0,
-							volumetric_used: false,
-							loading: false,
-							error: 'Weight exceeds 70 kg weight limit!'
-						});
-					} else {
-						setQuote({
-							prices: data.prices,
-							shippingTime: data.shipping_time,
-							chargeableWeight: data.chargeable_weight,
-							volumetric_used: data.volumetric_used,
-							loading: false,
-							error: ''
-						});
-					}
+					.then((response) => {
+						if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+						return response.json();
+					})
+					.then((data) => {
+						if (data.chargeable_weight > 70) {
+							setQuote({
+								prices: [],
+								shippingTime: '',
+								chargeableWeight: 0,
+								volumetric_used: false,
+								loading: false,
+								error: 'Weight exceeds 70 kg limit'
+							});
+						} else {
+							setQuote({
+								prices: data.prices,
+								shippingTime: data.shipping_time,
+								chargeableWeight: data.chargeable_weight,
+								volumetric_used: data.volumetric_used,
+								loading: false,
+								error: ''
+							});
+						}
+					});
+			} else {
+				setQuote({
+					prices: [],
+					shippingTime: '',
+					chargeableWeight: 0,
+					volumetric_used: false,
+					loading: false,
+					error: 'Fill all relevant details'
 				});
-			// .catch((err) => {
-			//   setQuote(prevState => ({
-			//     ...prevState,
-			//     error: 
-			//   }))
-			// })
+			}
 
 		} catch (error) {
 			setQuote({
@@ -234,23 +244,23 @@ function Quote() {
 									<option value="lbs">lbs</option>
 								</select>
 							</div>)
-						: (
-							<div className="flex items-center space-x-4 mt-4">
-							<input type="radio" id="0.5kg" name="weight" value='0.5'
-								checked={formData.weight === '0.5'}
-								onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
-								className="h-4 w-4 text-indigo-600 focus:ring-indigo-500" />
-							<label htmlFor="0.5kg" className="text-sm font-medium text-gray-700">0.5 kg</label>
+							: (
+								<div className="flex items-center space-x-4 mt-4">
+									<input type="radio" id="0.5kg" name="weight" value='0.5'
+										checked={formData.weight === '0.5'}
+										onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
+										className="h-4 w-4 text-indigo-600 focus:ring-indigo-500" />
+									<label htmlFor="0.5kg" className="text-sm font-medium text-gray-700">0.5 kg</label>
 
-							<input type="radio" id="1kg" name="weight" value='1'
-								checked={formData.weight === '1'}
-								onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
-								className="h-4 w-4 text-indigo-600 focus:ring-indigo-500" />
-							<label htmlFor="1kg" className="text-sm font-medium text-gray-700">1 kg</label>
-						</div>
-						)}
+									<input type="radio" id="1kg" name="weight" value='1'
+										checked={formData.weight === '1'}
+										onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
+										className="h-4 w-4 text-indigo-600 focus:ring-indigo-500" />
+									<label htmlFor="1kg" className="text-sm font-medium text-gray-700">1 kg</label>
+								</div>
+							)}
 					</div>
-					
+
 
 					<div className="flex items-center">
 						<input
@@ -412,7 +422,7 @@ function Quote() {
 										<span className="text-indigo-600 font-semibold text-lg">1 USD = {usdRate} INR</span>
 									</div>
 								</div>
-							</div>	
+							</div>
 						</div>
 
 						<div className="mt-6">
