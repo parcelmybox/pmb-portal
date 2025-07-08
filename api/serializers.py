@@ -177,7 +177,7 @@ class PickupRequestSerializer(serializers.ModelSerializer):
         }
 class QuoteSerializer(serializers.Serializer):
     shipping_route = serializers.ChoiceField(choices=["india-to-usa", "usa-to-india"])
-    type = serializers.ChoiceField(choices=["document", "package"])
+    type = serializers.ChoiceField(choices=["document", "package", "medicine"])
     origin = serializers.ChoiceField(choices=["mumbai", "delhi", "bangalore", "chennai", "hyderabad", "new-york", "los-angeles", "chicago", "houston", "atlanta"])
     destination = serializers.ChoiceField(choices=["mumbai", "delhi", "bangalore", "chennai", "hyderabad", "new-york", "los-angeles", "chicago", "houston", "atlanta"])
     weight = serializers.FloatField()

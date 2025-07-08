@@ -11,7 +11,7 @@ function Quote() {
 		length: 0,
 		width: 0,
 		height: 0,
-		packageType: 'document',
+		packageType: 'package',
 		currency: '₹',
 		usdRate: 82.5, // Approximate USD to INR rate
 		weightUnit: 'kg',
@@ -134,6 +134,10 @@ function Quote() {
 		}
 	}
 
+	useEffect(() => {
+		console.log(formData);
+	}, [formData]);
+
 	const inputClass = "mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm";
 	const labelClass = "block text-sm font-medium text-gray-700";
 
@@ -165,6 +169,7 @@ function Quote() {
 							<select name="packageType" id="packageType" value={formData.packageType} onChange={handleChange} className={inputClass} required>
 								<option value="document">Document</option>
 								<option value="package">Package</option>
+								<option value="medicine">Medicine</option>
 							</select>
 						</div>
 					</div>
@@ -218,17 +223,34 @@ function Quote() {
 
 					<div>
 						<label htmlFor="weight" className={labelClass}>Package Weight</label>
-						<div className="flex space-x-2">
-							<input type="number" name="weight" id="weight" value={formData.weight} onChange={handleChange}
-								className={inputClass} required min="0.1" step="0.1" />
-							<select name="weightUnit" id="weightUnit" value={formData.shippingRoute === 'india-to-usa' ? 'kg' : 'lbs'}
-								onChange={(e) => setFormData({ ...formData, weightUnit: e.target.value })}
-								className={inputClass}>
-								<option value="kg">kg</option>
-								<option value="lbs">lbs</option>
-							</select>
+						{formData.packageType === "package" ? (
+							<div className="flex space-x-2">
+								<input type="number" name="weight" id="weight" value={formData.weight} onChange={handleChange}
+									className={inputClass} required min="0.1" step="0.1" />
+								<select name="weightUnit" id="weightUnit" value={formData.shippingRoute === 'india-to-usa' ? 'kg' : 'lbs'}
+									onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
+									className={inputClass}>
+									<option value="kg">kg</option>
+									<option value="lbs">lbs</option>
+								</select>
+							</div>)
+						: (
+							<div className="flex items-center space-x-4 mt-4">
+							<input type="radio" id="0.5kg" name="weight" value='0.5'
+								checked={formData.weight === '0.5'}
+								onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
+								className="h-4 w-4 text-indigo-600 focus:ring-indigo-500" />
+							<label htmlFor="0.5kg" className="text-sm font-medium text-gray-700">0.5 kg</label>
+
+							<input type="radio" id="1kg" name="weight" value='1'
+								checked={formData.weight === '1'}
+								onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
+								className="h-4 w-4 text-indigo-600 focus:ring-indigo-500" />
+							<label htmlFor="1kg" className="text-sm font-medium text-gray-700">1 kg</label>
 						</div>
+						)}
 					</div>
+					
 
 					<div className="flex items-center">
 						<input
@@ -338,42 +360,50 @@ function Quote() {
 									<span className="text-gray-600">Package Type</span>
 									<br />
 									<span className="text-indigo-600 font-semibold text-lg">
-										{formData.packageType === 'document' ? 'Document' : 'Package'}
+										{formData.packageType.charAt(0).toUpperCase() + formData.packageType.slice(1)}
 									</span>
 								</div>
 								<div className="flex-1 text-right">
 									<span className="text-gray-600">Price in INR</span>
 									<br />
-									<span className="text-black-600 mr-1">{`${quote.prices[0].courier_name}:`}</span>
+									<span className="text-black-600 mr-1">{`${quote.prices[0].courier_name}`}&nbsp;</span>
 									<span className="text-indigo-600 font-semibold">
 										₹{formatPrice(quote.prices[0], '₹')}
 									</span><br />
-									<span className="text-black-600 mr-1">{`${quote.prices[1].courier_name}:`}</span>
-									<span className="text-indigo-600 font-semibold">
-										₹{formatPrice(quote.prices[1], '₹')}
-									</span><br />
-									<span className="text-black-600 mr-1">{`${quote.prices[2].courier_name}:`}</span>
-									<span className="text-indigo-600 font-semibold">
-										₹{formatPrice(quote.prices[2], '₹')}
-									</span><br />
+									{formData.packageType === "package" && (
+										<>
+											<span className="text-black-600 mr-1">{`${quote.prices[1].courier_name}`}&nbsp;</span>
+											<span className="text-indigo-600 font-semibold">
+												₹{formatPrice(quote.prices[1], '₹')}
+											</span><br />
+											<span className="text-black-600 mr-1">{`${quote.prices[2].courier_name}`}&nbsp;</span>
+											<span className="text-indigo-600 font-semibold">
+												₹{formatPrice(quote.prices[2], '₹')}
+											</span><br />
+										</>
+									)}
 								</div>
 							</div>
 							<div className="flex items-center justify-between">
 								<div>
 									<span className="text-gray-600">Price in USD</span>
 									<br />
-									<span className="text-black-600 mr-1">{`${quote.prices[0].courier_name}:`}</span>
+									<span className="text-black-600 mr-1">{`${quote.prices[0].courier_name}`}</span>
 									<span className="text-indigo-600 font-semibold">
 										${formatPrice(quote.prices[0], '$')}
 									</span><br />
-									<span className="text-black-600 mr-1">{`${quote.prices[1].courier_name}:`}</span>
-									<span className="text-indigo-600 font-semibold">
-										${formatPrice(quote.prices[1], '$')}
-									</span><br />
-									<span className="text-black-600 mr-1">{`${quote.prices[2].courier_name}:`}</span>
-									<span className="text-indigo-600 font-semibold">
-										${formatPrice(quote.prices[2], '$')}
-									</span><br />
+									{formData.packageType === "package" && (
+										<>
+											<span className="text-black-600 mr-1">{`${quote.prices[1].courier_name}`}</span>
+											<span className="text-indigo-600 font-semibold">
+												${formatPrice(quote.prices[1], '$')}
+											</span><br />
+											<span className="text-black-600 mr-1">{`${quote.prices[2].courier_name}`}</span>
+											<span className="text-indigo-600 font-semibold">
+												${formatPrice(quote.prices[2], '$')}
+											</span><br />
+										</>
+									)}
 								</div>
 								<div className="flex items-center justify-between">
 									<div className="flex-1">

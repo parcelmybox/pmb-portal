@@ -234,6 +234,7 @@ class QuoteView(APIView):
     def post(self, request):
         serializer = QuoteSerializer(data = request.data)
         if serializer.is_valid():
+            print(serializer.validated_data)
             shipping_route = serializer.validated_data["shipping_route"]
             type = serializer.validated_data["type"]
             weight = serializer.validated_data["weight"]
@@ -246,36 +247,49 @@ class QuoteView(APIView):
             carrier_preference_type = serializer.validated_data["carrier_preference_type"]
             carrier_preference = serializer.validated_data["carrier_preference"]
 
-            if weight_metric == "lb":
-                weight *= 0.453592
+            chargeable_weight = 0
+            if type == "package":
+                if weight_metric == "lb":
+                    weight *= 0.453592
 
+
+                if include_dimensions:
+                    volumetric_weight = (dim_length * dim_width * dim_height) / 5000
+                    if volumetric_weight > weight:
+                        chargeable_weight = math.ceil(volumetric_weight)
+                        volumetric_used = True
+                    else: chargeable_weight = math.ceil(weight)
+                else: chargeable_weight = math.ceil(weight)
+
+                prices = []
+                relevant_prices = ShippingRates.objects.filter(min_kg__lte = chargeable_weight, max_kg__gte = chargeable_weight)
+                for price in relevant_prices:
+                    if price.courier == "ups": price.courier = "UPS"
+                    elif price.courier == "dhl": price.courier = "DHL"
+                    elif price.courier == "fedex": price.courier = "FedEx"
+                    prices.append({
+                        "fixed_price": price.fixed_price,
+                        "per_kg_price": price.per_kg_price,
+                        "courier_name": price.courier
+                    })
+            elif type == "medicine":
+                if weight == 0.5:
+                    prices = [{"fixed_price": 4000, "per_kg_price": None, "courier_name": ''}]
+                elif weight == 1:
+                    prices = [{"fixed_price": 4800, "per_kg_price": None, "courier_name": ''}]
+            elif type == "document":
+                if weight == 0.5:
+                    prices = [{"fixed_price": 3000, "per_kg_price": None, "courier_name": ''}]
+                elif weight == 1.0:
+                    prices = [{"fixed_price": 3500, "per_kg_price": None, "courier_name": ''}]
+            
             volumetric_used = False
-            if include_dimensions:
-                volumetric_weight = (dim_length * dim_width * dim_height) / 5000
-                if volumetric_weight > weight:
-                    chargeable_weight = math.ceil(volumetric_weight)
-                    volumetric_used = True
-            else: chargeable_weight = math.ceil(weight)
-
             shipping_time = "10-15 business days" if shipping_route == "india-to-usa" else "7-10 business days"
-
-            prices = []
-            relevant_prices = ShippingRates.objects.filter(min_kg__lte = chargeable_weight, max_kg__gte = chargeable_weight)
-            for price in relevant_prices:
-                if price.courier == "ups": price.courier = "UPS"
-                elif price.courier == "dhl": price.courier = "DHL"
-                elif price.courier == "fedex": price.courier = "FedEx"
-                prices.append({
-                    "fixed_price": price.fixed_price,
-                    "per_kg_price": price.per_kg_price,
-                    "courier_name": price.courier
-                })
-            print(prices)
-
+                
 
             return Response({
                 "prices": prices, 
-                "chargeable_weight": chargeable_weight,
+                "chargeable_weight": chargeable_weight if chargeable_weight else weight,
                 "shipping_time": shipping_time,
                 "volumetric_used": volumetric_used,
             })
