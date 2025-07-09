@@ -234,7 +234,6 @@ class QuoteView(APIView):
     def post(self, request):
         serializer = QuoteSerializer(data = request.data)
         if serializer.is_valid():
-            print(serializer.validated_data)
             shipping_route = serializer.validated_data["shipping_route"]
             type = serializer.validated_data["type"]
             weight = serializer.validated_data["weight"]
@@ -248,6 +247,10 @@ class QuoteView(APIView):
             carrier_preference = serializer.validated_data["carrier_preference"]
 
             chargeable_weight = 0
+            prices = []
+            volumetric_used = False
+            shipping_time = "10-15 business days" if shipping_route == "india-to-usa" else "7-10 business days"
+
             if type == "package":
                 if weight_metric == "lb":
                     weight *= 0.453592
@@ -261,7 +264,6 @@ class QuoteView(APIView):
                     else: chargeable_weight = math.ceil(weight)
                 else: chargeable_weight = math.ceil(weight)
 
-                prices = []
                 relevant_prices = ShippingRates.objects.filter(min_kg__lte = chargeable_weight, max_kg__gte = chargeable_weight)
                 for price in relevant_prices:
                     if price.courier == "ups": price.courier = "UPS"
@@ -272,21 +274,14 @@ class QuoteView(APIView):
                         "per_kg_price": price.per_kg_price,
                         "courier_name": price.courier
                     })
-            elif type == "medicine":
-                if weight == 0.5:
-                    prices = [{"fixed_price": 4000, "per_kg_price": None, "courier_name": ''}]
-                elif weight == 1:
-                    prices = [{"fixed_price": 4800, "per_kg_price": None, "courier_name": ''}]
-            elif type == "document":
-                if weight == 0.5:
-                    prices = [{"fixed_price": 3000, "per_kg_price": None, "courier_name": ''}]
-                elif weight == 1.0:
-                    prices = [{"fixed_price": 3500, "per_kg_price": None, "courier_name": ''}]
+            else:
+                relevant_prices = ShippingRates.objects.filter(min_kg__lte = weight, max_kg__gte = weight, package_type=type)
+                prices.append({
+                    "fixed_price": relevant_prices[0].fixed_price,
+                    "per_kg_price": relevant_prices[0].per_kg_price,
+                    "courier_name": ""
+                })
             
-            volumetric_used = False
-            shipping_time = "10-15 business days" if shipping_route == "india-to-usa" else "7-10 business days"
-                
-
             return Response({
                 "prices": prices, 
                 "chargeable_weight": chargeable_weight if chargeable_weight else weight,

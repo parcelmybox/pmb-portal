@@ -177,8 +177,8 @@ function Quote() {
 						<div>
 							<label htmlFor="packageType" className={labelClass}>Package Type</label>
 							<select name="packageType" id="packageType" value={formData.packageType} onChange={handleChange} className={inputClass} required>
-								<option value="document">Document</option>
 								<option value="package">Package</option>
+								<option value="document">Document</option>
 								<option value="medicine">Medicine</option>
 							</select>
 						</div>
@@ -196,7 +196,7 @@ function Quote() {
 
 						{formData.packageType === 'document' && (
 							<div className="mt-4 bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-lg">
-								<h3 className="font-semibold text-blue-700">Required Documents for Document:</h3>
+								<h3 className="font-semibold text-yellow-700">Required Documents for Document:</h3>
 								<p className="text-sm text-gray-700 mt-2">No additional documents required.</p>
 							</div>
 						)}
@@ -280,7 +280,7 @@ function Quote() {
 					</div>
 
 
-					{formData.packageType === 'courier' && (
+					{formData.packageType === 'package' && (
 						<div className="flex items-center">
 							<input
 								id="include-dimensions"
@@ -402,13 +402,13 @@ function Quote() {
 									</span><br />
 									{formData.packageType === "package" && (
 										<>
-											<span className="text-black-600 mr-1">{`${quote.prices[1].courier_name}`}&nbsp;</span>
+											<span className="text-black-600 mr-1">{`${quote.prices[1].courier_name || ''}`}&nbsp;</span>
 											<span className="text-indigo-600 font-semibold">
-												₹{formatPrice(quote.prices[1], '₹')}
+												₹{formatPrice(quote.prices[1] || 0, '₹')}
 											</span><br />
-											<span className="text-black-600 mr-1">{`${quote.prices[2].courier_name}`}&nbsp;</span>
+											<span className="text-black-600 mr-1">{`${quote.prices[2].courier_name || ''}`}&nbsp;</span>
 											<span className="text-indigo-600 font-semibold">
-												₹{formatPrice(quote.prices[2], '₹')}
+												₹{formatPrice(quote.prices[2] || 0, '₹')}
 											</span><br />
 										</>
 									)}
