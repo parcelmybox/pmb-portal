@@ -19,6 +19,7 @@ function Quote() {
 		carrierPreference: '',
 	});
 
+	// quote calculation output
 	const [quote, setQuote] = useState({
 		prices: [],
 		shippingTime: '',
@@ -28,6 +29,7 @@ function Quote() {
 		volumetric_used: false,
 	});
 
+	// state variable for fetching USD -> INR conversion rate
 	const [usdRate, setUsdRate] = useState(82.5);
 
 	const checkAllRequiredFields = () => {
@@ -41,6 +43,7 @@ function Quote() {
 		try {
 			setQuote(prev => ({ ...prev, loading: true, error: [] }));
 			if (checkAllRequiredFields()) {
+				// fetching from quote API endpoint
 				const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 				fetch(`${API_URL}/api/quote/`, {
 					method: 'POST',
@@ -68,6 +71,7 @@ function Quote() {
 						return response.json();
 					})
 					.then((data) => {
+						// check if volumetric or normal weight exceeds 70 kg weight limit
 						if (data.chargeable_weight > 70) {
 							setQuote({
 								prices: [],
@@ -89,6 +93,7 @@ function Quote() {
 						}
 					});
 			} else {
+				// unfilled mandatory field
 				setQuote({
 					prices: [],
 					shippingTime: '',
@@ -111,6 +116,7 @@ function Quote() {
 		}
 	};
 
+	// fetches USD->INR exchange rate from frankfurter API
 	useEffect(() => {
 		async function fetchExchangeRate() {
 			const exchangeRate = await fetch('https://api.frankfurter.app/latest?from=USD&to=INR');
@@ -129,13 +135,7 @@ function Quote() {
 		}));
 	};
 
-	const handleSubmit = (e) => {
-		e.preventDefault();
-		calculateQuote();
-		console.log('Form Data Submitted:', formData);
-		alert('Quote request submitted! Check console for data. Calculation logic coming soon.');
-	};
-
+	// formats prices input to it into locale string, currency symbol and adds '/kg' if required (per kg price)
 	const formatPrice = (prices, currency) => {
 		if (currency == '₹') {
 			return `${Math.ceil(prices.fixed_price === null ? (prices.per_kg_price) : (prices.fixed_price)).toLocaleString()}${(prices.fixed_price === null) ? "/kg" : ''}`;
@@ -143,10 +143,6 @@ function Quote() {
 			return `${Math.ceil(prices.fixed_price === null ? (prices.per_kg_price / formData.usdRate) : (prices.fixed_price / formData.usdRate)).toLocaleString()}${prices.fixed_price === null ? "/kg" : ''}`;
 		}
 	}
-
-	useEffect(() => {
-		console.log(formData);
-	}, [formData]);
 
 	const inputClass = "mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm";
 	const labelClass = "block text-sm font-medium text-gray-700";
@@ -158,7 +154,7 @@ function Quote() {
 				<p className="text-gray-600 mb-6">
 					Get instant shipping quotes in both INR and USD. Prices include all handling and customs fees.
 				</p>
-				<form onSubmit={handleSubmit} className="space-y-6">
+				<form onSubmit={calculateQuote} className="space-y-6">
 					<div className="space-y-4">
 						<div className="flex items-center space-x-4">
 							<input type="radio" id="india-to-usa" name="shippingRoute" value="india-to-usa"
@@ -183,6 +179,7 @@ function Quote() {
 							</select>
 						</div>
 
+						{/* 'documents required' boxes */}
 						{formData.packageType === 'medicine' && (
 							<div className="mt-4 bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-lg">
 								<h3 className="font-semibold text-yellow-700">Required Documents for Medicine:</h3>
@@ -263,6 +260,7 @@ function Quote() {
 								</select>
 							</div>)
 							: (
+								// 2 weight options for document and medicine package types
 								<div className="flex items-center space-x-4 mt-4">
 									<input type="radio" id="0.5kg" name="weight" value='0.5'
 										checked={formData.weight === '0.5'}
@@ -279,7 +277,7 @@ function Quote() {
 							)}
 					</div>
 
-
+					{/* option for entering dimensions for volumetric weight calculation (applicable only for packages) */}
 					{formData.packageType === 'package' && (
 						<div className="flex items-center">
 							<input
@@ -296,6 +294,7 @@ function Quote() {
 						</div>
 					)}
 
+					{/* dimensions input if above checkbox is checked */}
 					{formData.includeDimensions && (
 						<>
 							<h2 className="text-lg font-medium text-gray-900 pt-4">Package Dimensions (centimetres)</h2>
@@ -340,7 +339,7 @@ function Quote() {
 						<label htmlFor="choose-manually" className="text-sm font-medium text-gray-700">Choose Manually</label>
 					</div> */}
 
-					{formData.carrierPreferenceType === 'choose-manually' && (
+					{/* {formData.carrierPreferenceType === 'choose-manually' && (
 						<div>
 							<label htmlFor="carrierPreference" className={labelClass}>Select Carrier</label>
 							<select name="carrierPreference" id="carrierPreference" value={formData.carrierPreference} onChange={handleChange} className={inputClass}>
@@ -350,7 +349,7 @@ function Quote() {
 								<option value="fedex">FedEx</option>
 							</select>
 						</div>
-					)}
+					)} */}
 
 					<div>
 						<button
@@ -364,7 +363,8 @@ function Quote() {
 						</button>
 					</div>
 				</form>
-
+				
+				{/* price calculation display */}
 				{(quote.prices.length != 0 && quote.error === '' && quote.shippingTime !== '') && (
 					<div className="mt-8 bg-white rounded-lg shadow-lg p-6">
 						<h2 className="text-xl font-semibold text-gray-800 mb-4">Your Quote</h2>
@@ -400,6 +400,8 @@ function Quote() {
 									<span className="text-indigo-600 font-semibold">
 										₹{formatPrice(quote.prices[0], '₹')}
 									</span><br />
+
+									{/* courier -> 3 price displays, document and medicine -> 1 price displays */}
 									{formData.packageType === "package" && (
 										<>
 											<span className="text-black-600 mr-1">{`${quote.prices[1].courier_name || ''}`}&nbsp;</span>
@@ -422,6 +424,8 @@ function Quote() {
 									<span className="text-indigo-600 font-semibold">
 										${formatPrice(quote.prices[0], '$')}
 									</span><br />
+
+									{/* courier -> 3 price displays, document and medicine -> 1 price displays */}
 									{formData.packageType === "package" && (
 										<>
 											<span className="text-black-600 mr-1">{`${quote.prices[1].courier_name}`}</span>
