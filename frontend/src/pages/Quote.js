@@ -182,6 +182,24 @@ function Quote() {
 								<option value="medicine">Medicine</option>
 							</select>
 						</div>
+
+						{formData.packageType === 'medicine' && (
+							<div className="mt-4 bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-lg">
+								<h3 className="font-semibold text-yellow-700">Required Documents for Medicine:</h3>
+								<ul className="list-disc list-inside text-sm text-gray-700 mt-2">
+									<li>Doctor's Prescription</li>
+									<li>Purchase Invoice</li>
+									<li>Copy of Aadhaar/Passport</li>
+								</ul>
+							</div>
+						)}
+
+						{formData.packageType === 'document' && (
+							<div className="mt-4 bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-lg">
+								<h3 className="font-semibold text-blue-700">Required Documents for Document:</h3>
+								<p className="text-sm text-gray-700 mt-2">No additional documents required.</p>
+							</div>
+						)}
 					</div>
 
 					<div>
@@ -262,19 +280,21 @@ function Quote() {
 					</div>
 
 
-					<div className="flex items-center">
-						<input
-							id="include-dimensions"
-							name="include-dimensions"
-							type="checkbox"
-							className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-							checked={formData.includeDimensions}
-							onChange={() => setFormData((prevState) => ({ ...prevState, includeDimensions: !prevState.includeDimensions }))}
-						/>
-						<label htmlFor="include-dimensions" className="ml-2 block text-sm text-gray-900">
-							Input package dimensions (optional)
-						</label>
-					</div>
+					{formData.packageType === 'courier' && (
+						<div className="flex items-center">
+							<input
+								id="include-dimensions"
+								name="include-dimensions"
+								type="checkbox"
+								className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+								checked={formData.includeDimensions}
+								onChange={() => setFormData((prevState) => ({ ...prevState, includeDimensions: !prevState.includeDimensions }))}
+							/>
+							<label htmlFor="include-dimensions" className="ml-2 block text-sm text-gray-900">
+								Input package dimensions (optional)
+							</label>
+						</div>
+					)}
 
 					{formData.includeDimensions && (
 						<>
@@ -349,7 +369,7 @@ function Quote() {
 					<div className="mt-8 bg-white rounded-lg shadow-lg p-6">
 						<h2 className="text-xl font-semibold text-gray-800 mb-4">Your Quote</h2>
 						<div className="space-y-4">
-							<div className="flex items-center justify-between">
+							<div className="flex flex-col md:flex-row items-start md:items-center justify-between space-y-2 md:space-y-0 md:space-x-4">
 								<div className="flex-1">
 									<span className="text-gray-600">Route</span>
 									<br />
@@ -357,7 +377,7 @@ function Quote() {
 										{formData.shippingRoute === 'india-to-usa' ? 'India to USA' : 'USA to India'}
 									</span>
 								</div>
-								<div className="flex-1 text-right">
+								<div className="flex-1 text-left md:text-right">
 									<span className="text-gray-600">Chargeable Weight</span>
 									<br />
 									<span className="text-indigo-600 font-semibold text-lg">
@@ -365,7 +385,7 @@ function Quote() {
 									</span>
 								</div>
 							</div>
-							<div className="flex items-center justify-between">
+							<div className="flex flex-col md:flex-row items-start md:items-center justify-between space-y-2 md:space-y-0 md:space-x-4">
 								<div className="flex-1">
 									<span className="text-gray-600">Package Type</span>
 									<br />
@@ -373,7 +393,7 @@ function Quote() {
 										{formData.packageType.charAt(0).toUpperCase() + formData.packageType.slice(1)}
 									</span>
 								</div>
-								<div className="flex-1 text-right">
+								<div className="flex-1 text-left md:text-right">
 									<span className="text-gray-600">Price in INR</span>
 									<br />
 									<span className="text-black-600 mr-1">{`${quote.prices[0].courier_name}`}&nbsp;</span>
@@ -394,7 +414,7 @@ function Quote() {
 									)}
 								</div>
 							</div>
-							<div className="flex items-center justify-between">
+							<div className="flex flex-col md:flex-row items-start md:items-center justify-between space-y-2 md:space-y-0 md:space-x-4">
 								<div>
 									<span className="text-gray-600">Price in USD</span>
 									<br />
@@ -415,7 +435,7 @@ function Quote() {
 										</>
 									)}
 								</div>
-								<div className="flex items-center justify-between">
+								<div className="flex flex-col md:flex-row items-start md:items-center justify-between space-y-2 md:space-y-0 md:space-x-4">
 									<div className="flex-1">
 										<span className="text-gray-600">Current Exchange Rate</span>
 										<br />
