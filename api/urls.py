@@ -24,6 +24,7 @@ router.register(r'shipments', views.ShipmentViewSet, basename='shipment')
 router.register(r'bills', views.BillViewSet, basename='bill')
 router.register(r'invoices', views.InvoiceViewSet, basename='invoice')
 router.register(r'pickup-requests', views.PickupRequestViewSet, basename='pickuprequest')
+router.register(r'support-requests', views.SupportRequestViewSet, basename='supportrequest')
 
 # Schema View for API documentation
 schema_view = get_schema_view(
