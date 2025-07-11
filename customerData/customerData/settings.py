@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'customerdetails',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
@@ -48,9 +49,14 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+     'corsheaders.middleware.CorsMiddleware',
 ]
 
 ROOT_URLCONF = 'customerData.urls'
+
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:3000/pricing',  # Replace with your frontend's URL
+]
 
 TEMPLATES = [
     {

@@ -17,7 +17,7 @@ function Support() {
               <div>
                 <h3 className="font-medium text-gray-800">Email Support</h3>
                 <p className="text-gray-600">parcelmybox3@gmail.com</p>
-                <p className="text-sm text-gray-500">Response time: 24-48 hours</p>
+                <p className="text-sm text-gray-500">Response time: 12-24 hours</p>
               </div>
             </div>
 

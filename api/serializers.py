@@ -150,3 +150,82 @@ class InvoiceSerializer(serializers.ModelSerializer):
             data['tax_amount'] = tax_amount
             data['total_amount'] = amount + tax_amount
         return data
+
+
+from rest_framework import serializers
+from .models import PickupRequest,Location
+
+class PickupRequestSerializer(serializers.ModelSerializer):
+    user = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    
+    class Meta:
+        model = PickupRequest
+        fields = '__all__'
+        read_only_fields = ('user', 'created_at')
+        extra_kwargs = {
+            # Allow partial updates for PATCH
+            'name': {'required': False},
+            'phone_number': {'required': False},
+            'email': {'required': False},
+            'address': {'required': False},
+            'city': {'required': False},
+            'postal_code': {'required': False},
+            'date': {'required': False},
+            'time': {'required': False},
+            'package_type': {'required': False},
+            'weight': {'required': False}
+        }
+class QuoteSerializer(serializers.Serializer):
+    shipping_route = serializers.ChoiceField(choices=["india-to-usa", "usa-to-india"])
+    type = serializers.ChoiceField(choices=["document", "package"])
+    origin = serializers.ChoiceField(choices=["mumbai", "delhi", "bangalore", "chennai", "hyderabad", "new-york", "los-angeles", "chicago", "houston", "atlanta"])
+    destination = serializers.ChoiceField(choices=["mumbai", "delhi", "bangalore", "chennai", "hyderabad", "new-york", "los-angeles", "chicago", "houston", "atlanta"])
+    weight = serializers.FloatField()
+    weight_metric = serializers.ChoiceField(choices=["kg", "lb"])
+    dim_length = serializers.FloatField()
+    dim_width = serializers.FloatField()
+    dim_height = serializers.FloatField()
+    usd_rate = serializers.FloatField()
+
+    def validate(self, data):
+        route = data.get("shipping_route")
+        origin = data.get("origin")
+        destination = data.get("destination")
+
+        india_cities = ["mumbai", "delhi", "bangalore", "chennai", "hyderabad"]
+        usa_cities = ["new-york", "los-angeles", "chicago", "houston", "atlanta"]
+
+        if route == "india-to-usa":
+            valid_origins = india_cities
+            valid_destinations = usa_cities
+        elif route == "usa-to-india":
+            valid_origins = usa_cities
+            valid_destinations = india_cities
+        else:
+            raise serializers.ValidationError("Invalid shipping route.")
+
+        errors = {}
+
+        if origin not in valid_origins:
+            errors["origin"] = (
+                f"'{origin}' is not valid for route '{route}'. "
+                f"Valid origins: {valid_origins}"
+            )
+
+        if destination not in valid_destinations:
+            errors["destination"] = (
+                f"'{destination}' is not valid for route '{route}'. "
+                f"Valid destinations: {valid_destinations}"
+            )
+
+        if errors:
+            raise serializers.ValidationError(errors)
+
+        return data
+    
+class LocationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Location
+        fields = '__all__'
+
+        

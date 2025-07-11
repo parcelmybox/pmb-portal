@@ -53,11 +53,41 @@ function Dashboard() {
   ];
 
   return (
-    <div className="p-6 space-y-12">
-     
-      <h1 className="text-3xl font-bold text-gray-900 mb-4"></h1>
- 
-      
+    <div className="p-6 space-y-16">
+      {/* Intro Text */}
+      <div className="text-center max-w-3xl mx-auto">
+        <h1 className="text-4xl font-bold text-blue-800 mb-4">Welcome to Parcel My Box</h1>
+        <p className="text-gray-600">
+          Manage your international shipments between India and USA. Get quotes, track parcels, and manage your shipping needs.
+        </p>
+      </div>
+
+      {/* Feature Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className={cardClass}>
+          <h2 className="text-xl font-semibold text-gray-700 mb-2">Get a Shipping Quote</h2>
+          <p className="text-gray-600 mb-4">
+            Get an estimate for shipping between India and USA. Choose from standard or priority shipping options.
+          </p>
+          <Link to="/quote" className={linkClass}>Request a Quote &rarr;</Link>
+        </div>
+
+        <div className={cardClass}>
+          <h2 className="text-xl font-semibold text-gray-700 mb-2">Track Your International Shipment</h2>
+          <p className="text-gray-600 mb-4">
+            Track your international shipments between India and USA. Get real-time updates on your parcel's journey.
+          </p>
+          <Link to="/tracking" className={linkClass}>Track a Parcel &rarr;</Link>
+        </div>
+
+        <div className={cardClass}>
+          <h2 className="text-xl font-semibold text-gray-700 mb-2">Your Profile</h2>
+          <p className="text-gray-600 mb-4">
+            Manage your account settings and preferences.
+          </p>
+          <Link to="/profile" className={linkClass}>Go to Profile &rarr;</Link>
+        </div>
+      </div>
 
       {/* Why Choose Us */}
       <div>
@@ -129,46 +159,34 @@ function Dashboard() {
           {/* Column 3: Help & Social */}
           <div>
             <h4 className="text-blue-800 font-semibold mb-2">Help</h4>
-            <a href="#" className="block text-blue-600 hover:underline">Pickup Request</a>
+            <Link to="/pickup" className="block text-blue-600 hover:underline">Pickup Request</Link>
+            <Link to="/support" className="block text-blue-600 hover:underline">Customer Support</Link>
+            <Link to="/feedback" className="block text-blue-600 hover:underline">Customer Feedback</Link>
 
             <h4 className="text-blue-800 font-semibold mt-4 mb-2">Follow Us</h4>
             <div className="flex space-x-4">
-              <a href="#" className="text-blue-600 hover:text-blue-800">Facebook</a>
-              <a href="#" className="text-blue-600 hover:text-blue-800">Instagram</a>
+              <a
+                href="https://www.facebook.com/parcelmybox/"
+                className="text-blue-600 hover:text-blue-800"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Facebook
+              </a>
+              <a
+                href="https://www.instagram.com/parcel_mybox?igsh=OXBhMTZnYnQyNzlw"
+                className="text-blue-600 hover:text-blue-800"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Instagram
+              </a>
             </div>
           </div>
         </div>
 
         <p className="text-center text-gray-500 mt-10 text-xs">&copy; {new Date().getFullYear()} Parcel My Box. All rights reserved.</p>
       </div>
-
-      {/* Feature Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div className={cardClass}>
-          <h2 className="text-xl font-semibold text-gray-700 mb-2">Get a Shipping Quote</h2>
-          <p className="text-gray-600 mb-4">
-            Get an estimate for shipping between India and USA. Choose from standard or priority shipping options.
-          </p>
-          <Link to="/quote" className={linkClass}>Request a Quote &rarr;</Link>
-        </div>
-
-        <div className={cardClass}>
-          <h2 className="text-xl font-semibold text-gray-700 mb-2">Track Your International Shipment</h2>
-          <p className="text-gray-600 mb-4">
-            Track your international shipments between India and USA. Get real-time updates on your parcel's journey.
-          </p>
-          <Link to="/tracking" className={linkClass}>Track a Parcel &rarr;</Link>
-        </div>
-
-        <div className={cardClass}>
-          <h2 className="text-xl font-semibold text-gray-700 mb-2">Your Profile</h2>
-          <p className="text-gray-600 mb-4">
-            Manage your account settings and preferences.
-          </p>
-          <Link to="/profile" className={linkClass}>Go to Profile &rarr;</Link>
-        </div>
-      </div>
-
     </div>
   );
 }

@@ -13,6 +13,7 @@ import Pricing from './pages/Pricing';
 import Cart from './pages/Cart';
 import Support from './pages/Support';
 import Profile from './pages/Profile';
+import Feedback from './pages/Feedback';
 import Admin from './pages/Admin';
 import PickupRequest from './pages/PickupRequest';
 import Sidebar from './components/Sidebar';
@@ -24,58 +25,74 @@ import LocationsPage from './pages/LocationsPage';
 import ServicesPage from './pages/ServicesPage';
 
 function App() {
-  const [showSidebar, setShowSidebar] = useState(true);
+  const [showSidebar, setShowSidebar] = useState(false);
 
   return (
     <AuthProvider>
       <Router>
-        <div className="min-h-screen flex flex-col">
+        <div className="relative min-h-screen flex flex-col">
+          {/* Header */}
           <Header showSidebar={showSidebar} setShowSidebar={setShowSidebar} />
-          <div className="flex-1 flex">
-            <div className="w-64">
-              <div className="h-full">
-                <Sidebar showSidebar={showSidebar} setShowSidebar={setShowSidebar} />
-              </div>
-            </div>
-            <div className="flex-1 p-4">
-              <Routes>
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/quote" element={<Quote />} />
-                <Route path="/pickup" element={<PickupRequest />} />
-                <Route path="/pricing" element={<Pricing />} />
-                <Route path="/cart" element={<Cart />} />
-                <Route path="/support" element={<Support />} />
-                <Route path="/about" element={<About />} />
-                <Route path="/tracking" element={<Tracking />} />
-                <Route path="/profile" element={
+
+          {/* Sidebar Overlay - now conditionally rendered */}
+          {showSidebar && (
+            <Sidebar showSidebar={showSidebar} setShowSidebar={setShowSidebar} />
+          )}
+
+          {/* Backdrop when Sidebar is open */}
+          {showSidebar && (
+            <div
+              className="fixed inset-0 bg-black opacity-30 z-40"
+              onClick={() => setShowSidebar(false)}
+            />
+          )}
+
+          {/* Main Content */}
+          <div className="flex-1 p-4 mt-2 z-0">
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/quote" element={<Quote />} />
+              <Route path="/pickup" element={<PickupRequest />} />
+              <Route path="/pricing" element={<Pricing />} />
+              <Route path="/cart" element={<Cart />} />
+              <Route path="/support" element={<Support />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/tracking" element={<Tracking />} />
+              <Route path="/feedback" element={<Feedback />} />
+              <Route
+                path="/profile"
+                element={
                   <ProtectedRoute>
                     <Profile />
                   </ProtectedRoute>
-                } />
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/create-account" element={<CreateAccount />} />
-                <Route path="/admin/login" element={<AdminLogin />} />
-                <Route path="/admin/dashboard" element={
+                }
+              />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/create-account" element={<CreateAccount />} />
+              <Route path="/admin/login" element={<AdminLogin />} />
+              <Route
+                path="/admin/dashboard"
+                element={
                   <ProtectedRoute isAdminRoute={true}>
                     <AdminDashboard />
                   </ProtectedRoute>
-                } />
-                <Route path="/admin" element={
+                }
+              />
+              <Route
+                path="/admin"
+                element={
                   <ProtectedRoute isAdminRoute={true}>
                     <Admin />
                   </ProtectedRoute>
-                } />
-
-                {/* NEW ROUTES ADDED BELOW */}
-                <Route path="/LocationsPage" element={<LocationsPage />} />
-                <Route path="/services/:locationId" element={<ServicesPage />} />
-              </Routes>
-            </div>
+                }
+              />
+            </Routes>
           </div>
         </div>
       </Router>
     </AuthProvider>
   );
 }
+
 
 export default App;

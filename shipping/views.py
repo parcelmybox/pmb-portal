@@ -12,6 +12,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 from .activity import ActivityHistory
 from .forms import ShipmentForm, ShippingAddressForm
+from .models import CourierPlan
 
 @require_http_methods(["POST"])
 @login_required
@@ -675,3 +676,23 @@ def print_shipping_label(request, pk):
     response = HttpResponse(buffer, content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="shipping_label_{shipment.tracking_number}.pdf"'
     return response
+
+
+#def get_courier_plans(request):
+#   return JsonResponse({"message": "Courier plans retrieved"})
+
+def get_courier_plans(request):
+    plans = CourierPlan.objects.all()
+    data = [
+        {
+            "name": plan.name,
+            "tagline": plan.tagline,
+            "priceDisplay": plan.price_display,
+            "priceDetail": plan.price_detail,
+            "isHighlighted": plan.is_highlighted,
+            "features": plan.features,
+            "cta": plan.cta,
+        }
+        for plan in plans
+    ]
+    return JsonResponse(data, safe=False)

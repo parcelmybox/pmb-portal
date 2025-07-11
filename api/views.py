@@ -2,7 +2,7 @@ from django.shortcuts import render
 from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models import Q
@@ -10,9 +10,19 @@ from shipping.models import Shipment, ShippingAddress, Bill, Invoice, ShipmentIt
 from .serializers import (
     UserSerializer, ShipmentSerializer, 
     ShippingAddressSerializer, BillSerializer, InvoiceSerializer,
-    ShipmentItemSerializer, TrackingEventSerializer, ContactSerializer
+    ShipmentItemSerializer, TrackingEventSerializer, ContactSerializer,PickupRequestSerializer,
+    QuoteSerializer,
 )
 from .permissions import IsOwnerOrAdmin, IsAdminOrReadOnly
+
+from rest_framework import generics
+from .models import PickupRequest
+
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.renderers import JSONRenderer
+import math
 
 User = get_user_model()
 
@@ -27,7 +37,21 @@ class UserViewSet(viewsets.ModelViewSet):
         if not self.request.user.is_staff:
             return User.objects.filter(id=self.request.user.id)
         return super().get_queryset()
-
+    @action(detail=False, methods=['get'], url_path='profile')
+    def profile(self, request):
+        user = request.user
+        # Dummy values to simulate – later query from related models
+        data = {
+            "name": user.get_full_name(),
+            "email": user.email,
+            "phone": getattr(user, 'phone', 'N/A'),  # if you have a phone field
+            "locker_code": f"PMB-{user.id:04}",
+            "warehouse_address": "15914 Brownstone Ave, Lathrop, CA",
+            "total_pickups": Shipment.objects.filter(sender_address__user=user).count(),
+            "total_bills": Bill.objects.filter(customer=user).count()
+        }
+        return Response(data)
+    
 class AddressViewSet(viewsets.ModelViewSet):
     serializer_class = ShippingAddressSerializer
     permission_classes = [IsAuthenticated, IsOwnerOrAdmin]
@@ -200,3 +224,76 @@ class InvoiceViewSet(viewsets.ModelViewSet):
             "status": "PDF generation would happen here",
             "invoice_id": invoice.id
         })
+
+# Quote Calculation API
+
+class QuoteView(APIView):
+    renderer_classes = [JSONRenderer]
+    permission_classes = [AllowAny]
+    # permission_classes = [IsAuthenticated, IsOwnerOrAdmin]
+    
+    def post(self, request):
+        serializer = QuoteSerializer(data = request.data)
+        if serializer.is_valid():
+            shipping_route = serializer.validated_data["shipping_route"]
+            type = serializer.validated_data["type"]
+            weight = serializer.validated_data["weight"]
+            weight_metric = serializer.validated_data["weight_metric"]
+            dim_length = serializer.validated_data["dim_length"]
+            dim_width = serializer.validated_data["dim_width"]
+            dim_height = serializer.validated_data["dim_height"]
+            usd_rate = serializer.validated_data["usd_rate"]
+
+            if weight_metric == "lb":
+                weight *= 0.453592
+
+            volumetric_weight = (dim_length * dim_width * dim_height) / 5000
+
+            chargeable_weight = max(volumetric_weight, weight)
+
+            base_price = chargeable_weight * 1000
+            route_multiplier = 1.5 if shipping_route == "india-to-usa" else 2.5
+            package_multiplier = 1.0 if type == "document" else 1.5
+            inr_price = math.ceil(base_price * route_multiplier * package_multiplier)
+            usd_price = math.ceil(inr_price / usd_rate)
+
+            shipping_time = "10-15 business days" if shipping_route == "india-to-usa" else "7-10 business days"
+
+            return Response({
+                "inr_price": inr_price, 
+                "usd_price": usd_price, 
+                "chargeable_Weight": chargeable_weight, 
+                "shipping_time": shipping_time
+            })
+        return Response(serializer.errors, status=400)
+
+
+#pickupRequest
+
+from rest_framework import viewsets
+from rest_framework.permissions import IsAuthenticated
+from .models import PickupRequest,Location
+from .serializers import PickupRequestSerializer,LocationSerializer
+
+class PickupRequestViewSet(viewsets.ModelViewSet):
+    """
+    Complete CRUD operations for PickupRequests
+    """
+    serializer_class = PickupRequestSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        """Only show requests belonging to current user"""
+        return PickupRequest.objects.filter(user=self.request.user)
+    
+    def perform_create(self, serializer):
+        """Auto-set user on creation"""
+        serializer.save(user=self.request.user)
+        
+    def perform_update(self, serializer):
+        """Auto-update without changing user"""
+        serializer.save()
+
+class LocationViewSet(viewsets.ReadOnlyModelViewSet):  # ReadOnly since no create/update is needed
+    queryset = Location.objects.all()
+    serializer_class = LocationSerializer

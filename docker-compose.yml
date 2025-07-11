@@ -12,8 +12,8 @@ services:
     environment:
       - NODE_ENV=development
       - CHOKIDAR_USEPOLLING=true
-      - WDS_SOCKET_PORT=0  # Disable WebSocket warning inside Docker
-      - REACT_APP_API_URL=http://localhost:8000
+      - WDS_SOCKET_PORT=0  # Disable WebSocket for hot reloading in Docker
+      - REACT_APP_API_URL= http://localhost:8000
       - DANGEROUSLY_DISABLE_HOST_CHECK=true
     networks:
       - pmb_network

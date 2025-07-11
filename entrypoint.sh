@@ -14,6 +14,9 @@ echo "Database is ready!"
 echo "Running migrations..."
 python manage.py makemigrations
 python manage.py migrate
+python manage.py migrate shipping zero
+python manage.py migrate shipping
+python manage.py load_courier_plans
 
 # Initialize city codes
 echo "Initializing city codes..."
