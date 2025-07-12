@@ -3,23 +3,24 @@ from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
+from rest_framework.views import APIView
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models import Q
-from shipping.models import Shipment, ShippingAddress, Bill, Invoice, ShipmentItem, TrackingEvent
+from django.utils import timezone
+from shipping.models import Shipment, ShippingAddress, Bill, Invoice, ShipmentItem, TrackingEvent, SupportRequest
 from .serializers import (
     UserSerializer, ShipmentSerializer, 
     ShippingAddressSerializer, BillSerializer, InvoiceSerializer,
-    ShipmentItemSerializer, TrackingEventSerializer, ContactSerializer,PickupRequestSerializer,
-    QuoteSerializer,
+    ShipmentItemSerializer, TrackingEventSerializer, ContactSerializer, PickupRequestSerializer,
+    QuoteSerializer, SupportRequestSerializer,
 )
 from .permissions import IsOwnerOrAdmin, IsAdminOrReadOnly
 
 from rest_framework import generics
 from .models import PickupRequest
 
-
-from rest_framework.views import APIView
+from rest_framework import views
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
 import math
@@ -274,6 +275,78 @@ from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from .models import PickupRequest
 from .serializers import PickupRequestSerializer
+
+class SupportRequestViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows support requests to be viewed or edited.
+    """
+    serializer_class = SupportRequestSerializer
+    permission_classes = [IsAuthenticated, IsOwnerOrAdmin]
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['ticket_number', 'subject', 'message', 'status']
+    ordering_fields = ['created_at', 'updated_at', 'status']
+    ordering = ['-created_at']
+
+    def get_queryset(self):
+        """
+        This view should return a list of all support requests
+        for the currently authenticated user, or all requests for staff users.
+        """
+        user = self.request.user
+        if user.is_staff:
+            return SupportRequest.objects.all()
+        return SupportRequest.objects.filter(user=user)
+
+    def perform_create(self, serializer):
+        # Automatically set the user to the current user
+        serializer.save(user=self.request.user)
+
+    @action(detail=True, methods=['post'])
+    def update_status(self, request, pk=None):
+        """
+        Custom action to update the status of a support request.
+        """
+        support_request = self.get_object()
+        new_status = request.data.get('status')
+        
+        if not new_status:
+            return Response(
+                {'status': 'Status is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
+        if new_status not in dict(SupportRequest.STATUS_CHOICES).keys():
+            return Response(
+                {'status': 'Invalid status'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
+        support_request.status = new_status
+        support_request.save()
+        
+        return Response({'status': 'Status updated successfully'})
+
+    @action(detail=True, methods=['post'])
+    def add_note(self, request, pk=None):
+        """
+        Add a resolution note to a support request.
+        """
+        support_request = self.get_object()
+        note = request.data.get('note')
+        
+        if not note:
+            return Response(
+                {'error': 'Note is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
+        if support_request.resolution_notes:
+            support_request.resolution_notes += f"\n\n{timezone.now().strftime('%Y-%m-%d %H:%M')} - {note}"
+        else:
+            support_request.resolution_notes = f"{timezone.now().strftime('%Y-%m-%d %H:%M')} - {note}"
+            
+        support_request.save()
+        return Response({'status': 'Note added successfully'})
 
 class PickupRequestViewSet(viewsets.ModelViewSet):
     """

@@ -585,11 +585,10 @@ class CustomAdminSite(admin.AdminSite):
 
     def index(self, request, extra_context=None):
         """
-        Display the admin index page with billing statistics.
+        Display the admin index page with billing statistics and quick links.
         """
         # Get the default context
-        context = {}
-        context.update(admin.site.each_context(request))
+        extra_context = extra_context or {}
         
         # Get billing stats
         billing_stats = get_billing_stats() or {}
@@ -604,29 +603,14 @@ class CustomAdminSite(admin.AdminSite):
         billing_stats.setdefault('pending_percentage', 0)
         
         # Add billing stats to the context
-        context['billing_stats'] = billing_stats
+        extra_context['billing_stats'] = billing_stats
         
-        # Add app list to the context
-        app_list = self.get_app_list(request)
+        # Initialize quick links if not already set
+        if 'quick_links' not in extra_context:
+            extra_context['quick_links'] = []
         
-        # Update context with required variables
-        context.update({
-            'title': 'Dashboard',
-            'app_list': app_list,
-            'has_permission': self.has_permission(request),
-            'is_popup': False,
-            'is_nav_sidebar_enabled': self.enable_nav_sidebar,
-            'available_apps': app_list,
-            **(extra_context or {}),
-        })
-        
-        # Debug: Print context to console
-        print("\n=== DEBUG: Admin Index Context ===")
-        print(f"Billing Stats: {billing_stats}")
-        print("==============================\n")
-        
-        # Use the custom template
-        return TemplateResponse(request, 'admin/index.html', context)
+        # Call the parent class's index method with our extra context
+        return super().index(request, extra_context=extra_context)
     
     def each_context(self, request):
         context = super().each_context(request)
@@ -637,4 +621,11 @@ class CustomAdminSite(admin.AdminSite):
         return context
 
 # Create an instance of our custom admin site
-custom_admin_site = CustomAdminSite()
+custom_admin_site = CustomAdminSite(name='custom_admin')
+
+# Register default admin models
+from django.contrib.auth.models import User, Group
+from django.contrib.auth.admin import UserAdmin, GroupAdmin
+
+custom_admin_site.register(User, UserAdmin)
+custom_admin_site.register(Group, GroupAdmin)
