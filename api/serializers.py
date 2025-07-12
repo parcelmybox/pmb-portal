@@ -179,5 +179,8 @@ class PickupRequestSerializer(serializers.ModelSerializer):
 class SupportRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = SupportRequest
-        fields = ['id', 'subject', 'message', 'attachment', 'created_at']
+        fields = [
+            'id', 'name', 'contact', 'category', 'subject',
+            'message', 'attachment', 'status', 'created_at'
+        ]
         read_only_fields = ['id', 'created_at']

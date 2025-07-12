@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 
 function Support() {
   const [formData, setFormData] = useState({
+    name: '',
+    contact: '',
+    category: 'general',
     subject: '',
     message: '',
     attachment: null,
@@ -24,6 +27,9 @@ function Support() {
     setErrorMsg('');
 
     const data = new FormData();
+    data.append('name', formData.name);
+    data.append('contact', formData.contact);
+    data.append('category', formData.category);
     data.append('subject', formData.subject);
     data.append('message', formData.message);
     if (formData.attachment) {
@@ -37,8 +43,16 @@ function Support() {
       });
 
       if (response.ok) {
-        setStatusMsg('Support request submitted successfully!');
-        setFormData({ subject: '', message: '', attachment: null });
+        const result = await response.json();
+        setStatusMsg(`Support request submitted successfully! Your ID: ${result.id}`);
+        setFormData({
+          name: '',
+          contact: '',
+          category: 'general',
+          subject: '',
+          message: '',
+          attachment: null,
+        });
       } else {
         const text = await response.text();
         try {
@@ -66,19 +80,19 @@ function Support() {
             <div className="flex items-center space-x-4">
               <svg className="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                  d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                      d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
               </svg>
               <div>
                 <h3 className="font-medium text-gray-800">Email Support</h3>
                 <p className="text-gray-600">parcelmybox3@gmail.com</p>
-                <p className="text-sm text-gray-500">Response time: 12-24 hours</p>
+                <p className="text-sm text-gray-500">Response time: 12–24 hours</p>
               </div>
             </div>
 
             <div className="flex items-center space-x-4">
               <svg className="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                  d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
+                      d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
               </svg>
               <div>
                 <h3 className="font-medium text-gray-800">Live Chat</h3>
@@ -90,12 +104,12 @@ function Support() {
             <div className="flex items-center space-x-4">
               <svg className="w-6 h-6 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                  d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                      d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
               </svg>
               <div>
                 <h3 className="font-medium text-gray-800">Phone Support</h3>
                 <p className="text-gray-600">(555) 123-4567</p>
-                <p className="text-sm text-gray-500">Mon-Fri 9AM-5PM PST</p>
+                <p className="text-sm text-gray-500">Mon–Fri 9AM–5PM PST</p>
               </div>
             </div>
           </div>
@@ -134,6 +148,52 @@ function Support() {
 
         <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-lg p-6">
           <div className="space-y-4">
+
+            {/* Name + Contact row */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Name</label>
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  required
+                  className="mt-1 block w-full rounded-md border-2 border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Mobile.No/Email</label>
+                <input
+                  type="text"
+                  name="contact"
+                  value={formData.contact}
+                  onChange={handleChange}
+                  className="mt-1 block w-full rounded-md border-2 border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                />
+              </div>
+            </div>
+
+            {/* Category */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Category</label>
+              <select
+                name="category"
+                value={formData.category}
+                onChange={handleChange}
+                required
+                className="mt-1 block w-full rounded-md border-2 border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+              >
+                <option value="general">General</option>
+                <option value="price">Price</option>
+                <option value="tracking">Tracking</option>
+                <option value="documentation">Documentation</option>
+                <option value="pickup">Pickup</option>
+              </select>
+            </div>
+
+            {/* Subject */}
             <div>
               <label className="block text-sm font-medium text-gray-700">Subject</label>
               <input
@@ -142,10 +202,11 @@ function Support() {
                 value={formData.subject}
                 onChange={handleChange}
                 required
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                className="mt-1 block w-full rounded-md border-2 border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
               />
             </div>
 
+            {/* Message */}
             <div>
               <label className="block text-sm font-medium text-gray-700">Message</label>
               <textarea
@@ -154,20 +215,22 @@ function Support() {
                 onChange={handleChange}
                 rows={4}
                 required
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                className="mt-1 block w-full rounded-md border-2 border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
               ></textarea>
             </div>
 
+            {/* File Upload */}
             <div>
               <label className="block text-sm font-medium text-gray-700">Upload attachment</label>
               <input
                 type="file"
                 name="attachment"
                 onChange={handleChange}
-                className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+                className="mt-1 block w-full text-sm text-gray-500 border-2 border-gray-600 rounded-md file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
               />
             </div>
 
+            {/* Submit Button */}
             <button
               type="submit"
               className="w-full bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700"
