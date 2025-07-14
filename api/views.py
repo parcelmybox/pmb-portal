@@ -265,11 +265,11 @@ class QuoteView(APIView):
                     else: chargeable_weight = math.ceil(weight)
                 else: chargeable_weight = math.ceil(weight)
 
-                relevant_prices = ShippingRates.objects.filter(min_kg__lte = chargeable_weight, max_kg__gte = chargeable_weight)
+                relevant_prices = ShippingRates.objects.filter(min_kg__lte = chargeable_weight, max_kg__gte = chargeable_weight, package_type=type)
                 for price in relevant_prices:
-                    if price.courier == "ups": price.courier = "UPS"
-                    elif price.courier == "dhl": price.courier = "DHL"
-                    elif price.courier == "fedex": price.courier = "FedEx"
+                    if price.courier == "ups": price.courier = "UPS Shipping"
+                    elif price.courier == "dhl": price.courier = "DHL Shipping"
+                    elif price.courier == "fedex": price.courier = "FedEx Shipping"
                     prices.append({
                         "fixed_price": price.fixed_price,
                         "per_kg_price": price.per_kg_price,

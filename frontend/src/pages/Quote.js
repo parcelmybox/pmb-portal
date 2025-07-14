@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 function Quote() {
+	const navigate = useNavigate();
 	const [formData, setFormData] = useState({
 		shippingRoute: 'india-to-usa',
 		originCity: '',
@@ -26,7 +27,7 @@ function Quote() {
 		loading: false,
 		error: '',
 		chargeableWeight: 0,
-		volumetric_used: false,
+		volumetricUsed: false,
 	});
 
 	// state variable for fetching USD -> INR conversion rate
@@ -77,18 +78,29 @@ function Quote() {
 								prices: [],
 								shippingTime: '',
 								chargeableWeight: 0,
-								volumetric_used: false,
+								volumetricUsed: false,
 								loading: false,
 								error: 'Weight exceeds 70 kg limit'
 							});
 						} else {
-							setQuote({
-								prices: data.prices,
-								shippingTime: data.shipping_time,
-								chargeableWeight: data.chargeable_weight,
-								volumetric_used: data.volumetric_used,
-								loading: false,
-								error: ''
+							// setQuote({
+							// 	prices: data.prices,
+							// 	shippingTime: data.shipping_time,
+							// 	chargeableWeight: data.chargeable_weight,
+							// 	volumetric_used: data.volumetric_used,
+							// 	loading: false,
+							// 	error: ''
+							// });
+							navigate('/quote-result', {
+								state: {
+									formData: formData,
+									quoteData: {
+										prices: data.prices,
+										shippingTime: data.shipping_time,
+										chargeableWeight: data.chargeable_weight,
+										volumetricUsed: data.volumetric_used
+									}
+								}
 							});
 						}
 					});
@@ -98,7 +110,7 @@ function Quote() {
 					prices: [],
 					shippingTime: '',
 					chargeableWeight: 0,
-					volumetric_used: false,
+					volumetricUsed: false,
 					loading: false,
 					error: 'Fill all relevant details'
 				});
@@ -109,7 +121,7 @@ function Quote() {
 				prices: [],
 				shippingTime: '',
 				chargeableWeight: 0,
-				volumetric_used: false,
+				volumetricUsed: false,
 				loading: false,
 				error: 'Error calculating quote. Please try again.'
 			});
@@ -363,7 +375,7 @@ function Quote() {
 						</button>
 					</div>
 				</form>
-				
+
 				{/* price calculation display */}
 				{(quote.prices.length != 0 && quote.error === '' && quote.shippingTime !== '') && (
 					<div className="mt-8 bg-white rounded-lg shadow-lg p-6">
@@ -450,7 +462,7 @@ function Quote() {
 						</div>
 
 						<div className="mt-6">
-							{quote.volumetric_used && (
+							{quote.volumetricUsed && (
 								<div className="flex text-sm">
 									<p className="text-gray-600 text-gray-600">
 										* Volumetric Weight is being used for pricing. &nbsp;
