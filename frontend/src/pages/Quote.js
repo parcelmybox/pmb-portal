@@ -396,12 +396,12 @@ function Quote() {
 								<div className="flex-1 text-left md:text-right">
 									<span className="text-gray-600">Price in INR</span>
 									<br />
-									<span className="text-black-600 mr-1">{`${quote.prices[0].courier_name}`}&nbsp;</span>
+									<span className="text-black-600 mr-1">{`${quote.prices[0].courier_name}`}</span>
 									<span className="text-indigo-600 font-semibold">
 										₹{formatPrice(quote.prices[0], '₹')}
 									</span><br />
 
-									{/* courier -> 3 price displays, document and medicine -> 1 price displays */}
+									{/* courier -> 3 price displays, document and medicine -> 1 price display */}
 									{formData.packageType === "package" && (
 										<>
 											<span className="text-black-600 mr-1">{`${quote.prices[1].courier_name || ''}`}&nbsp;</span>
