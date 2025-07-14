@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Customer Feedback{% endblock %}
+{% block content %}
+<h2>Feedback</h2>
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Customer</th>
+      <th>Rating</th>
+      <th>Comments</th>
+      <th>Date</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for feedback in feedbacks %}
+    <tr>
+      <td>{{ feedback.id }}</td>
+      <td>{{ feedback.user.name }}</td>
+      <td>{{ feedback.rating }}/5</td>
+      <td>{{ feedback.comments }}</td>
+      <td>{{ feedback.submitted_at }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

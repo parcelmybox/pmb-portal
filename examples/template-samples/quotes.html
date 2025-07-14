@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Carrier Quotes{% endblock %}
+{% block content %}
+<h2>Carrier Quotes</h2>
+<table class="table table-bordered">
+  <thead class="table-light">
+    <tr>
+      <th>Package ID</th>
+      <th>Carrier</th>
+      <th>Est. Days</th>
+      <th>Price</th>
+      <th>Status</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for quote in quotes %}
+    <tr>
+      <td>{{ quote.package.id }}</td>
+      <td>{{ quote.carrier_name }}</td>
+      <td>{{ quote.estimated_days }}</td>
+      <td>${{ quote.price }}</td>
+      <td>{{ quote.quote_status }}</td>
+      <td>
+        <a href="{% url 'mark_selected' quote.id %}" class="btn btn-sm btn-success">Select</a>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
