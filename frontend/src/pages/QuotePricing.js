@@ -42,7 +42,7 @@ function QuoteResult() {
 
 					return {
 						...finalPlan,
-                        isHighlighted: false,
+						isHighlighted: false,
 						priceDisplay: displayPrice,
 						priceDetail: `${quoteData.chargeableWeight} ${formData.weightUnit} - ${quoteData.shippingTime} delivery`,
 					};
@@ -63,19 +63,19 @@ function QuoteResult() {
 	if (!state) {
 		return (
 			<p>
-				No quote data found. 
-                <button
-                    onClick={() => navigate('/')}
-                    className="flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 mt-4"
-                >
-                    Go back
-                </button>
+				No quote data found.
+				<button
+					onClick={() => navigate('/')}
+					className="flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 mt-4"
+				>
+					Go back
+				</button>
 			</p>
 		);
 	}
 
 	// Normal render
-	const { formData } = state;
+	const { formData, quoteData } = state;
 
 	return (
 		<div className="max-w-4xl mx-auto p-6">
@@ -85,11 +85,43 @@ function QuoteResult() {
 			{error && <p className="text-red-600">{error}</p>}
 
 			{!loading && !error && combinedPlans.length > 0 && (
-				<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-					{combinedPlans.map((plan, i) => (
-						<CourierPlanCard key={i} plan={plan} />
-					))}
-				</div>
+				<>
+					<p className="mt-6 text-lg font-medium">
+						Package type: <span className="font-semibold">{formData.packageType.charAt(0).toUpperCase() + formData.packageType.slice(1)}</span>
+					</p>
+
+					{quoteData.volumetricUsed === true && (
+						<div className="mt-4 p-4 bg-blue-50 border-l-4 border-blue-400 rounded-lg">
+							<p className="text-blue-700 font-medium">
+								* Volumetric weight used for pricing calculation
+							</p>
+						</div>
+					)}
+
+					{formData.packageType === "medicine" && (
+						<div className="my-4 bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-lg">
+							<h3 className="font-semibold text-yellow-700">Required Documents for Medicine:</h3>
+							<ul className="list-disc list-inside text-sm text-gray-700 mt-2">
+								<li>Doctor's Prescription</li>
+								<li>Purchase Invoice</li>
+								<li>Copy of Aadhaar/Passport</li>
+							</ul>
+						</div>
+					)}
+
+					{formData.packageType === "document" && (
+						<div className="my-4 bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-lg">
+							<h3 className="font-semibold text-yellow-700">Required Documents for Document:</h3>
+							<p className="text-sm text-gray-700 mt-2">No additional documents required.</p>
+						</div>
+					)}
+					
+					<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+						{combinedPlans.map((plan, i) => (
+							<CourierPlanCard key={i} plan={plan} />
+						))}
+					</div>
+				</>
 			)}
 		</div>
 	);

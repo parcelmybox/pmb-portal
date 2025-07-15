@@ -329,40 +329,7 @@ function Quote() {
 							</div>
 						</>
 					)}
-
-					{/* <h2 className="text-lg font-medium text-gray-900 pt-4">Carrier Preference</h2>
-					<div className="flex items-center space-x-4">
-						<input type="radio" id="fastest" name="carrierPreferenceType" value="fastest"
-							checked={formData.carrierPreferenceType === "fastest"}
-							onChange={(e) => setFormData({ ...formData, carrierPreferenceType: e.target.value })}
-							className="h-4 w-4 text-indigo-600 focus:ring-indigo-500" />
-						<label htmlFor="fastest" className="text-sm font-medium text-gray-700">Fastest</label>
-
-						<input type="radio" id="cheapest" name="carrierPreferenceType" value="cheapest"
-							checked={formData.carrierPreferenceType === "cheapest"}
-							onChange={(e) => setFormData({ ...formData, carrierPreferenceType: e.target.value })}
-							className="h-4 w-4 text-indigo-600 focus:ring-indigo-500" />
-						<label htmlFor="cheapest" className="text-sm font-medium text-gray-700">Cheapest</label>
-
-						<input type="radio" id="choose-manually" name="carrierPreferenceType" value="choose-manually"
-							checked={formData.carrierPreferenceType === "choose-manually"}
-							onChange={(e) => setFormData({ ...formData, carrierPreferenceType: e.target.value })}
-							className="h-4 w-4 text-indigo-600 focus:ring-indigo-500" />
-						<label htmlFor="choose-manually" className="text-sm font-medium text-gray-700">Choose Manually</label>
-					</div> */}
-
-					{/* {formData.carrierPreferenceType === 'choose-manually' && (
-						<div>
-							<label htmlFor="carrierPreference" className={labelClass}>Select Carrier</label>
-							<select name="carrierPreference" id="carrierPreference" value={formData.carrierPreference} onChange={handleChange} className={inputClass}>
-								<option value="">Choose carrier</option>
-								<option value="ups">UPS</option>
-								<option value="dhl">DHL</option>
-								<option value="fedex">FedEx</option>
-							</select>
-						</div>
-					)} */}
-
+					
 					<div>
 						<button
 							type="button"
