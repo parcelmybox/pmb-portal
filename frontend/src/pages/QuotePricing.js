@@ -9,6 +9,7 @@ function QuoteResult() {
 	const { state } = location;
 
 	const [combinedPlans, setCombinedPlans] = useState([]);
+	const [carrierPreference, setCarrierPreference] = useState("UPS Shipping");
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState('');
 
@@ -42,7 +43,6 @@ function QuoteResult() {
 
 					return {
 						...finalPlan,
-						isHighlighted: false,
 						priceDisplay: displayPrice,
 						priceDetail: `${quoteData.chargeableWeight} ${formData.weightUnit} - ${quoteData.shippingTime} delivery`,
 					};
@@ -79,28 +79,33 @@ function QuoteResult() {
 
 	return (
 		<div className="max-w-4xl mx-auto p-6">
-			<h1 className="text-3xl font-bold mb-4">Shipping Quote Results</h1>
+			<div className='flex justify-between items-center'>
+				<h1 className="text-3xl font-bold mb-4">Shipping Quote Results</h1>
+				<button className="inline-flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-md shadow hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition">
+					Export PDF
+				</button>
+			</div>
 
 			{loading && <p>Loading plans...</p>}
 			{error && <p className="text-red-600">{error}</p>}
 
 			{!loading && !error && combinedPlans.length > 0 && (
 				<>
-					<p className="mt-6 text-lg font-medium">
+					<p className="my-6 text-lg font-medium">
 						Package type: <span className="font-semibold">{formData.packageType.charAt(0).toUpperCase() + formData.packageType.slice(1)}</span>
 					</p>
 
 					{quoteData.volumetricUsed === true && (
-						<div className="mt-4 p-4 bg-blue-50 border-l-4 border-blue-400 rounded-lg">
-							<p className="text-blue-700 font-medium">
+						<div className="my-4 p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded-lg">
+							<p className="text-yellow-700 font-medium">
 								* Volumetric weight used for pricing calculation
 							</p>
 						</div>
 					)}
 
 					{formData.packageType === "medicine" && (
-						<div className="my-4 bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-lg">
-							<h3 className="font-semibold text-yellow-700">Required Documents for Medicine:</h3>
+						<div className="my-4 bg-blue-50 border-l-4 border-blue-400 p-4 rounded-lg">
+							<h3 className="font-semibold text-blue-700">Required Documents for Medicine:</h3>
 							<ul className="list-disc list-inside text-sm text-gray-700 mt-2">
 								<li>Doctor's Prescription</li>
 								<li>Purchase Invoice</li>
@@ -115,10 +120,16 @@ function QuoteResult() {
 							<p className="text-sm text-gray-700 mt-2">No additional documents required.</p>
 						</div>
 					)}
-					
+
 					<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 						{combinedPlans.map((plan, i) => (
-							<CourierPlanCard key={i} plan={plan} />
+							<CourierPlanCard
+								key={i}
+								plan={{
+									...plan,
+									isHighlighted: plan.name.toLowerCase() === carrierPreference.toLowerCase()
+								}}
+								setCarrierPreference={setCarrierPreference} />
 						))}
 					</div>
 				</>
