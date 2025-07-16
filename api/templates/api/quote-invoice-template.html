@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shipping Invoice</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f9f9f9;
+      color: #333;
+    }
+    .invoice-container {
+      max-width: 800px;
+      margin: 30px auto;
+      background: #fff;
+      padding: 20px 30px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+    }
+    .invoice-header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .invoice-header h1 {
+      margin: 0;
+      color: #2c3e50;
+    }
+    .section-title {
+      font-size: 1.2em;
+      color: #2c3e50;
+      border-bottom: 2px solid #2c3e50;
+      margin-bottom: 10px;
+    }
+    .field {
+      margin: 5px 0;
+    }
+    .field span {
+      font-weight: bold;
+      color: #34495e;
+    }
+    .price {
+      font-size: 1.3em;
+      color: #27ae60;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="invoice-container">
+    <div class="invoice-header">
+      <h1>Shipping Invoice</h1>
+      <p>Invoice ID: {{ invoice_id }}</p>
+      <p>Date: {{ invoice_date }}</p>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Shipment Details</div>
+      <div class="field"><span>Shipping Route:</span> {{ shipping_route }}</div>
+      <div class="field"><span>Origin City:</span> {{ origin_city }}</div>
+      <div class="field"><span>Destination City:</span> {{ destination_city }}</div>
+      <div class="field"><span>Package Type:</span> {{ package_type }}</div>
+      <div class="field"><span>Weight:</span> {{ weight }} {{ weight_unit }}</div>
+      <div class="field"><span>Chargeable Weight:</span> {{ chargeable_weight }} {{ weight_unit }}</div>
+      <div class="field"><span>Volumetric Weight Used:</span> {% if volumetric_used %}Yes{% else %}No{% endif %}</div>
+      <div class="field"><span>Shipping Time:</span> {{ shipping_time }}</div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Courier Details</div>
+      <div class="field"><span>Courier:</span> {{ courier_name }}</div>
+      <div class="field"><span>Carrier Preference:</span> {{ carrier_preference }}</div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Price Details</div>
+      <div class="field"><span>Base Price:</span> <span class="price">{{ base_price }}</span></div>
+      <div class="field"><span>Currency:</span> {{ currency }}</div>
+      <div class="field"><span>Exchange Rate:</span> {{ exchange_rate }}</div>
+    </div>
+
+    <div class="section" style="text-align: center; margin-top: 30px;">
+      <em>Thank you for shipping with us!</em>
+    </div>
+  </div>
+</body>
+</html>

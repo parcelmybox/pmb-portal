@@ -23,6 +23,10 @@ from .models import PickupRequest, ShippingRates
 from rest_framework import views
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
+from django.http import HttpResponse
+from xhtml2pdf import pisa
+from django.template.loader import get_template
+import datetime
 import math
 
 User = get_user_model()
@@ -291,6 +295,61 @@ class QuoteView(APIView):
             })
         return Response(serializer.errors, status=400)
 
+class GenerateQuotePDF(APIView):
+    permission_classes = [AllowAny]
+    
+    def post(self, request):
+        try:
+            data = request.data
+            form_data = data.get("formData")
+            quote_data = data.get("quoteData")
+            carrier_preference = data.get("carrierChoice")
+
+            # Generate Invoice ID and Date
+            invoice_id = f"INV-{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}"
+            invoice_date = datetime.datetime.now().strftime("%B %d, %Y")
+
+            # Combine data for template
+            context = {
+                "invoice_id": invoice_id,
+                "invoice_date": invoice_date,
+                "shipping_route": form_data.get("shippingRoute", ""),
+                "origin_city": form_data.get("originCity", ""),
+                "destination_city": form_data.get("destinationCity", ""),
+                "package_type": form_data.get("packageType", ""),
+                "weight": form_data.get("weight", 0),
+                "weight_unit": form_data.get("weightUnit", ""),
+                "chargeable_weight": quote_data.get("chargeableWeight", 0),
+                "volumetric_used": quote_data.get("volumetricUsed", False),
+                "shipping_time": quote_data.get("shippingTime", ""),
+                "courier_name": carrier_preference,
+                "base_price": f"{form_data.get('currency', '')}{quote_data.get('prices', [{}])[0].get('fixed_price', '')}",
+                "currency": form_data.get("currency", "₹"),
+                "exchange_rate": f"1 USD = ₹{form_data.get('usdRate', '')}"
+            }
+
+            # Render HTML template
+            template = get_template('api/quote-invoice-template.html')
+            html = template.render(context)
+
+            # Generate PDF
+            response = HttpResponse(content_type='application/pdf')
+            response['Content-Disposition'] = f'attachment; filename="{invoice_id}.pdf"'
+            pisa_status = pisa.CreatePDF(html, dest=response)
+
+            if pisa_status.err:
+                return Response(
+                    {"error": "Failed to generate PDF"},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
+
+            return response
+
+        except Exception as e:
+            return Response(
+                {"error": f"Unexpected error: {str(e)}"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
 #pickupRequest
 

@@ -13,12 +13,14 @@ function QuoteResult() {
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState('');
 
+	const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+
 	useEffect(() => {
 		if (!state) return;
 
 		const fetchAndCombinePlans = async () => {
 			try {
-				const response = await fetch('http://localhost:8000/shipping/courier-plans');
+				const response = await fetch(`${API_URL}/shipping/courier-plans`);
 				const plans = await response.json();
 
 				const { formData, quoteData } = state;
@@ -74,6 +76,39 @@ function QuoteResult() {
 		);
 	}
 
+	const downloadPDF = () => {
+		const payload = {
+			formData: formData,
+			quoteData: quoteData,
+		};
+
+		fetch(`${API_URL}/api/generate-quote-pdf/`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify(payload),
+		})
+			.then(response => {
+				if (!response.ok) {
+					throw new Error('Failed to generate invoice');
+				}
+				return response.blob();
+			})
+			.then(blob => {
+				const url = window.URL.createObjectURL(blob);
+				const link = document.createElement('a');
+				link.href = url;
+				link.setAttribute('download', 'invoice.pdf');
+				document.body.appendChild(link);
+				link.click();
+				link.remove();
+			})
+			.catch(error => {
+				console.error('Error:', error.message);
+			});
+	};
+
 	// Normal render
 	const { formData, quoteData } = state;
 
@@ -81,7 +116,10 @@ function QuoteResult() {
 		<div className="max-w-4xl mx-auto p-6">
 			<div className='flex justify-between items-center'>
 				<h1 className="text-3xl font-bold mb-4">Shipping Quote Results</h1>
-				<button className="inline-flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-md shadow hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition">
+				<button
+					onClick={downloadPDF}
+					className="inline-flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-md shadow hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition"
+				>
 					Export PDF
 				</button>
 			</div>
