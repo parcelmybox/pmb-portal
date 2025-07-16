@@ -303,11 +303,19 @@ class GenerateQuotePDF(APIView):
             data = request.data
             form_data = data.get("formData")
             quote_data = data.get("quoteData")
-            carrier_preference = data.get("carrierChoice")
+            carrier_preference = data.get("carrierPreference")
 
             # Generate Invoice ID and Date
-            invoice_id = f"INV-{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}"
+            invoice_id = f"QUOTE-{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}"
             invoice_date = datetime.datetime.now().strftime("%B %d, %Y")
+
+            for price in quote_data.get('prices'):
+                print(f"{price.get('courier_name')} {carrier_preference} {price.get('courier_name') == carrier_preference}")
+                if price.get("courier_name") == carrier_preference:
+                    if price.get("fixed_price") is None:
+                        base_price = float(price.get("per_kg_price", 0)) * float(quote_data.get("chargeableWeight", 0))
+                    else:
+                        base_price = int(price.get("fixed_price"))
 
             # Combine data for template
             context = {
@@ -323,13 +331,13 @@ class GenerateQuotePDF(APIView):
                 "volumetric_used": quote_data.get("volumetricUsed", False),
                 "shipping_time": quote_data.get("shippingTime", ""),
                 "courier_name": carrier_preference,
-                "base_price": f"{form_data.get('currency', '')}{quote_data.get('prices', [{}])[0].get('fixed_price', '')}",
+                "base_price": f"{form_data.get('currency', '')}{base_price}",
                 "currency": form_data.get("currency", "₹"),
                 "exchange_rate": f"1 USD = ₹{form_data.get('usdRate', '')}"
             }
 
             # Render HTML template
-            template = get_template('api/quote-invoice-template.html')
+            template = get_template('api/quote-pdf-template.html')
             html = template.render(context)
 
             # Generate PDF

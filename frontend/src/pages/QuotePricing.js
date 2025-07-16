@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import CourierPlanCard from '../components/CourierPlanCard';
 
-
 function QuoteResult() {
 	const location = useLocation();
 	const navigate = useNavigate();
@@ -80,6 +79,7 @@ function QuoteResult() {
 		const payload = {
 			formData: formData,
 			quoteData: quoteData,
+			carrierPreference: carrierPreference,
 		};
 
 		fetch(`${API_URL}/api/generate-quote-pdf/`, {
@@ -116,12 +116,31 @@ function QuoteResult() {
 		<div className="max-w-4xl mx-auto p-6">
 			<div className='flex justify-between items-center'>
 				<h1 className="text-3xl font-bold mb-4">Shipping Quote Results</h1>
-				<button
-					onClick={downloadPDF}
-					className="inline-flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-md shadow hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition"
-				>
-					Export PDF
-				</button>
+				<div className='flex gap-2'>
+					<button
+						onClick={() => navigate('/quote')}
+						className="rounded-md bg-indigo-600 p-2 hover:bg-indigo-700 focus:ring-indigo-700"
+					>
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							className="h-5 w-5 text-white"
+							viewBox="0 0 20 20"
+							fill="currentColor"
+						>
+							<path
+								fillRule="evenodd"
+								d="M7.707 14.707a1 1 0 01-1.414 0l-5-5a1 1 0 010-1.414l5-5a1 1 0 011.414 1.414L4.414 9H17a1 1 0 110 2H4.414l3.293 3.293a1 1 0 010 1.414z"
+								clipRule="evenodd"
+							/>
+						</svg>
+					</button>
+					<button
+						onClick={downloadPDF}
+						className="inline-flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-md shadow hover:bg-indigo-700 transition"
+					>
+						Export PDF
+					</button>
+				</div>
 			</div>
 
 			{loading && <p>Loading plans...</p>}
