@@ -201,6 +201,7 @@ DATABASES = {
             'CHARSET': 'utf8mb4',
             'COLLATION': 'utf8mb4_unicode_ci',
         },
+        'TIME_ZONE': 'America/Los_Angeles',
     }
 }
 

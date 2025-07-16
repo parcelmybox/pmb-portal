@@ -1,27 +1,32 @@
 from django.shortcuts import render
-from rest_framework import viewsets, status, filters
+from rest_framework import viewsets, status, filters, generics, views
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated,AllowAny, IsAdminUser
-from django.contrib.auth import get_user_model
-from .models import SupportRequest
-from .serializers import SupportRequestSerializer
-from django.db import models
+from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
+from rest_framework.views import APIView
+from rest_framework.renderers import JSONRenderer
 from rest_framework.parsers import MultiPartParser, FormParser
-from django.db.models import Q
 from rest_framework_simplejwt.authentication import JWTAuthentication
-from shipping.models import Shipment, ShippingAddress, Bill, Invoice, ShipmentItem, TrackingEvent
+
+from django.contrib.auth import get_user_model
+from django.db import models
+from django.db.models import Q
+from django.utils import timezone
+
+from .models import SupportRequest, PickupRequest
 from .serializers import (
     UserSerializer, ShipmentSerializer, 
     ShippingAddressSerializer, BillSerializer, InvoiceSerializer,
-    ShipmentItemSerializer, TrackingEventSerializer, ContactSerializer,PickupRequestSerializer
+    ShipmentItemSerializer, TrackingEventSerializer, ContactSerializer, 
+    PickupRequestSerializer, QuoteSerializer, SupportRequestSerializer,
 )
 from .permissions import IsOwnerOrAdmin, IsAdminOrReadOnly
+from shipping.models import (
+    Shipment, ShippingAddress, Bill, Invoice, 
+    ShipmentItem, TrackingEvent, SupportRequest as ShippingSupportRequest
+)
 
-from rest_framework import generics
-from .models import PickupRequest
-
-
+import math
 
 User = get_user_model()
 
@@ -224,6 +229,48 @@ class InvoiceViewSet(viewsets.ModelViewSet):
             "invoice_id": invoice.id
         })
 
+# Quote Calculation API
+
+class QuoteView(APIView):
+    renderer_classes = [JSONRenderer]
+    permission_classes = [AllowAny]
+    # permission_classes = [IsAuthenticated, IsOwnerOrAdmin]
+    
+    def post(self, request):
+        serializer = QuoteSerializer(data = request.data)
+        if serializer.is_valid():
+            shipping_route = serializer.validated_data["shipping_route"]
+            type = serializer.validated_data["type"]
+            weight = serializer.validated_data["weight"]
+            weight_metric = serializer.validated_data["weight_metric"]
+            dim_length = serializer.validated_data["dim_length"]
+            dim_width = serializer.validated_data["dim_width"]
+            dim_height = serializer.validated_data["dim_height"]
+            usd_rate = serializer.validated_data["usd_rate"]
+
+            if weight_metric == "lb":
+                weight *= 0.453592
+
+            volumetric_weight = (dim_length * dim_width * dim_height) / 5000
+
+            chargeable_weight = max(volumetric_weight, weight)
+
+            base_price = chargeable_weight * 1000
+            route_multiplier = 1.5 if shipping_route == "india-to-usa" else 2.5
+            package_multiplier = 1.0 if type == "document" else 1.5
+            inr_price = math.ceil(base_price * route_multiplier * package_multiplier)
+            usd_price = math.ceil(inr_price / usd_rate)
+
+            shipping_time = "10-15 business days" if shipping_route == "india-to-usa" else "7-10 business days"
+
+            return Response({
+                "inr_price": inr_price, 
+                "usd_price": usd_price, 
+                "chargeable_Weight": chargeable_weight, 
+                "shipping_time": shipping_time
+            })
+        return Response(serializer.errors, status=400)
+
 
 #pickupRequest
 
@@ -232,35 +279,115 @@ from rest_framework.permissions import IsAuthenticated
 from .models import PickupRequest
 from .serializers import PickupRequestSerializer
 
+class SupportRequestViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows support requests to be viewed or edited.
+    Unauthenticated users can create support requests.
+    Authenticated users can view their own requests.
+    Staff users can view and manage all requests.
+    """
+    serializer_class = SupportRequestSerializer
+    permission_classes = [AllowAny]  # Allow unauthenticated creation
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['ticket_number', 'subject', 'message', 'status', 'email']
+    ordering_fields = ['created_at', 'updated_at', 'status']
+    ordering = ['-created_at']
+    parser_classes = [MultiPartParser, FormParser]  # For file uploads
+
+    def get_permissions(self):
+        """
+        Instantiates and returns the list of permissions that this view requires.
+        """
+        if self.action in ['list', 'retrieve', 'update', 'partial_update', 'destroy']:
+            permission_classes = [IsAuthenticated, IsOwnerOrAdmin]
+        elif self.action == 'create':
+            permission_classes = [AllowAny]  # Anyone can create a support request
+        else:
+            permission_classes = [IsAdminUser]  # Only admin for custom actions
+        return [permission() for permission in permission_classes]
+
+    def get_queryset(self):
+        """
+        This view returns a list of all support requests for staff users,
+        or only the requests for the currently authenticated user.
+        """
+        user = self.request.user
+        if user.is_staff:
+            return SupportRequest.objects.all()
+        elif user.is_authenticated:
+            return SupportRequest.objects.filter(Q(user=user) | Q(email=user.email))
+        return SupportRequest.objects.none()
+
+    def perform_create(self, serializer):
+        """Auto-set the user if authenticated, otherwise save as anonymous."""
+        if self.request.user.is_authenticated:
+            serializer.save(user=self.request.user)
+        else:
+            serializer.save()
+
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated, IsAdminUser])
+    def update_status(self, request, pk=None):
+        """
+        Custom action to update the status of a support request.
+        Only accessible by admin users.
+        """
+        instance = self.get_object()
+        new_status = request.data.get('status')
+        
+        if not new_status:
+            return Response(
+                {'status': 'Status is required'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
+        instance.status = new_status
+        instance.save()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated, IsAdminUser])
+    def add_note(self, request, pk=None):
+        """
+        Add a resolution note to a support request.
+        Only accessible by admin users.
+        """
+        instance = self.get_object()
+        note = request.data.get('note')
+        
+        if not note:
+            return Response(
+                {'note': 'This field is required'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
+        if not instance.resolution_notes:
+            instance.resolution_notes = note
+        else:
+            instance.resolution_notes = f"{instance.resolution_notes}\n\n{note}"
+            
+        instance.save()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
 class PickupRequestViewSet(viewsets.ModelViewSet):
     """
-    Complete CRUD operations for PickupRequests
+    Complete CRUD operations for PickupRequests.
+    Users can only access their own pickup requests.
     """
     serializer_class = PickupRequestSerializer
     permission_classes = [IsAuthenticated]
+    filter_backends = [filters.OrderingFilter]
+    ordering_fields = ['pickup_date', 'created_at']
+    ordering = ['-created_at']
     
     def get_queryset(self):
-        """Only show requests belonging to current user"""
+        # Only show requests belonging to current user
         return PickupRequest.objects.filter(user=self.request.user)
     
     def perform_create(self, serializer):
-        """Auto-set user on creation"""
+        # Auto-set user on creation
         serializer.save(user=self.request.user)
         
     def perform_update(self, serializer):
-        """Auto-update without changing user"""
-        serializer.save()
-class SupportRequestViewSet(viewsets.ModelViewSet):
-    serializer_class = SupportRequestSerializer
-    permission_classes = [AllowAny]             # ✅ No auth needed
-    authentication_classes = []                 # ✅ No JWT/session auth
-    parser_classes = [MultiPartParser, FormParser]
-    def get_queryset(self):
-        # Only admins can read requests
-        # if self.request.user.is_authenticated and self.request.user.is_staff:
-        return SupportRequest.objects.all()
-        # return SupportRequest.objects.none()    # ❌ prevent others from reading
-
-    def perform_create(self, serializer):
-        # user = self.request.user if self.request.user.is_authenticated else None
+        # Auto-update without changing user
         serializer.save()

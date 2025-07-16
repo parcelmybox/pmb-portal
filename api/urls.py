@@ -12,6 +12,7 @@ from django.views.generic import TemplateView
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views.decorators.csrf import csrf_exempt
+from .views import QuoteView
 
 from . import views
 from django.conf.urls.static import static
@@ -26,8 +27,6 @@ router.register(r'bills', views.BillViewSet, basename='bill')
 router.register(r'invoices', views.InvoiceViewSet, basename='invoice')
 router.register(r'pickup-requests', views.PickupRequestViewSet, basename='pickuprequest')
 router.register(r'support-requests', views.SupportRequestViewSet, basename='supportrequest')
-
-
 # Schema View for API documentation
 schema_view = get_schema_view(
    openapi.Info(
@@ -50,6 +49,9 @@ schema_view = get_schema_view(
 urlpatterns = [
     # API endpoints
     path('', include(router.urls)),
+
+    # Quote calculation API endpoint
+    path('quote/', QuoteView.as_view(), name='quote'),
     
     # Authentication endpoints
     path('auth/', include([

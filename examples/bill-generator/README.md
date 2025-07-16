@@ -26,7 +26,7 @@ cd bill-generator
 2. Install Dependencies
 
 npm install
-
+npm install html2canvas xlsx
 3. Start the Application
 
 npm start
