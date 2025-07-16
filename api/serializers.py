@@ -202,8 +202,8 @@ class PickupRequestSerializer(serializers.ModelSerializer):
 class QuoteSerializer(serializers.Serializer):
     shipping_route = serializers.ChoiceField(choices=["india-to-usa", "usa-to-india"])
     type = serializers.ChoiceField(choices=["document", "package", "medicine"])
-    origin = serializers.ChoiceField(choices=["mumbai", "delhi", "bangalore", "chennai", "hyderabad", "new-york", "los-angeles", "chicago", "houston", "atlanta"])
-    destination = serializers.ChoiceField(choices=["mumbai", "delhi", "bangalore", "chennai", "hyderabad", "new-york", "los-angeles", "chicago", "houston", "atlanta"])
+    origin = serializers.ChoiceField(choices=["mumbai", "delhi", "bangalore", "chennai", "hyderabad"], allow_blank=True)
+    destination = serializers.ChoiceField(choices=["mumbai", "delhi", "bangalore", "chennai", "hyderabad"], allow_blank=True)
     weight = serializers.FloatField()
     weight_metric = serializers.ChoiceField(choices=["kg", "lb"])
     include_dimensions = serializers.BooleanField()
@@ -226,31 +226,19 @@ class QuoteSerializer(serializers.Serializer):
 
         # validates origin and destination are in their respective countries
         if route == "india-to-usa":
-            valid_origins = india_cities
-            valid_destinations = usa_cities
-            if origin not in valid_origins:
+            if origin not in india_cities:
                 errors["origin"] = (
-                    f"'{origin}' is not valid for route '{route}'. "
-                    f"Valid origins: {valid_origins}"
+                    f"'{origin}' is not a valid origin for route '{route}'. "
+                    f"Valid origins: {india_cities}"
                 )
-            if destination not in valid_destinations:
-                errors["destination"] = (
-                    f"'{destination}' is not valid for route '{route}'. "
-                    f"Valid destinations: {valid_destinations}"
-                )
+
         elif route == "usa-to-india":
-            valid_origins = usa_cities
-            valid_destinations = india_cities
-            if origin not in valid_origins:
-                errors["origin"] = (
-                    f"'{origin}' is not valid for route '{route}'. "
-                    f"Valid origins: {valid_origins}"
-                )
-            if destination not in valid_destinations:
+            if destination not in india_cities:
                 errors["destination"] = (
-                    f"'{destination}' is not valid for route '{route}'. "
-                    f"Valid destinations: {valid_destinations}"
+                    f"'{destination}' is not a valid destination for route '{route}'. "
+                    f"Valid destinations: {india_cities}"
                 )
+
         else:
             raise serializers.ValidationError("Invalid shipping route.")
 

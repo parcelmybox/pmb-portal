@@ -35,7 +35,7 @@ function Quote() {
 
 	const checkAllRequiredFields = () => {
 		const { originCity, destinationCity, weight, includeDimensions, length, height, width } = formData;
-		if (originCity === '' || destinationCity === '' || weight === '') return false;
+		if ((originCity === '' && destinationCity === '') || weight === '') return false;
 		else if (includeDimensions === true && (length == 0 || width == 0 || height == 0)) return false;
 		return true;
 	}
@@ -83,14 +83,6 @@ function Quote() {
 								error: 'Weight exceeds 70 kg limit'
 							});
 						} else {
-							// setQuote({
-							// 	prices: data.prices,
-							// 	shippingTime: data.shipping_time,
-							// 	chargeableWeight: data.chargeable_weight,
-							// 	volumetric_used: data.volumetric_used,
-							// 	loading: false,
-							// 	error: ''
-							// });
 							navigate('/quote-result', {
 								state: {
 									formData: formData,
@@ -211,52 +203,33 @@ function Quote() {
 						)}
 					</div>
 
-					<div>
-						<label htmlFor="originCity" className={labelClass}>Origin City</label>
-						<select name="originCity" id="originCity" value={formData.originCity} onChange={handleChange} className={inputClass} required>
-							<option value="">Select origin city</option>
-							{formData.shippingRoute === 'india-to-usa' ? (
-								<>
-									<option value="mumbai">Mumbai</option>
-									<option value="delhi">New Delhi</option>
-									<option value="bangalore">Bangalore</option>
-									<option value="chennai">Chennai</option>
-									<option value="hyderabad">Hyderabad</option>
-								</>
-							) : (
-								<>
-									<option value="new-york">New York</option>
-									<option value="los-angeles">Los Angeles</option>
-									<option value="chicago">Chicago</option>
-									<option value="houston">Houston</option>
-									<option value="atlanta">Atlanta</option>
-								</>
-							)}
-						</select>
-					</div>
-					<div>
-						<label htmlFor="destinationCity" className={labelClass}>Destination City</label>
-						<select name="destinationCity" id="destinationCity" value={formData.destinationCity} onChange={handleChange} className={inputClass} required>
-							<option value="">Select destination city</option>
-							{formData.shippingRoute === 'india-to-usa' ? (
-								<>
-									<option value="new-york">New York</option>
-									<option value="los-angeles">Los Angeles</option>
-									<option value="chicago">Chicago</option>
-									<option value="houston">Houston</option>
-									<option value="atlanta">Atlanta</option>
-								</>
-							) : (
-								<>
-									<option value="mumbai">Mumbai</option>
-									<option value="delhi">New Delhi</option>
-									<option value="bangalore">Bangalore</option>
-									<option value="chennai">Chennai</option>
-									<option value="hyderabad">Hyderabad</option>
-								</>
-							)}
-						</select>
-					</div>
+					{formData.shippingRoute === "india-to-usa" && (
+						<div>
+							<label htmlFor="originCity" className={labelClass}>Origin City</label>
+							<select name="originCity" id="originCity" value={formData.originCity} onChange={handleChange} className={inputClass} required>
+								<option value="">Select origin city</option>
+								<option value="mumbai">Mumbai</option>
+								<option value="delhi">New Delhi</option>
+								<option value="bangalore">Bangalore</option>
+								<option value="chennai">Chennai</option>
+								<option value="hyderabad">Hyderabad</option>
+							</select>
+						</div>
+					)}
+
+					{formData.shippingRoute === "usa-to-india" && (
+						<div>
+							<label htmlFor="destinationCity" className={labelClass}>Destination City</label>
+							<select name="destintionCity" id="destintionCity" value={formData.destintionCity} onChange={handleChange} className={inputClass} required>
+								<option value="">Select destintion city</option>
+								<option value="mumbai">Mumbai</option>
+								<option value="delhi">New Delhi</option>
+								<option value="bangalore">Bangalore</option>
+								<option value="chennai">Chennai</option>
+								<option value="hyderabad">Hyderabad</option>
+							</select>
+						</div>
+					)}
 
 					<div>
 						<label htmlFor="weight" className={labelClass}>Package Weight</label>
