@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quote</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="font-sans antialiased text-gray-800 bg-gray-50">
+    <div class="container mx-auto p-8">
+        <div class="bg-white p-10 rounded-lg shadow-md">
+            <header class="flex justify-between items-start pb-6 border-b border-gray-200">
+                <div class="flex items-center">
+                    
+                    <div>
+                        <h1 class="text-4xl font-bold text-gray-900">ParcelMyBox</h1>
+                        <p class="text-sm text-gray-600 mt-1">pachavati apartments, Pragathi Nagar, Hyderabad - 500090</p>
+                        <p class="text-sm text-gray-600">+1 (510) 714-6946</p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <p class="text-lg font-semibold text-gray-700">Quote</p>
+                    <p class="text-sm text-gray-500">Generated: {{ quote_date }}</p>
+                </div>
+            </header>
+
+            <section class="mt-8">
+                <h2 class="text-2xl font-semibold mb-4 text-gray-800">Package Details</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                    {% if origin_city %}
+                    <div>
+                        <span class="font-semibold">Origin:</span> {{ origin_city }}
+                    </div>
+                    {% endif %}
+                    {% if destination_city %}
+                    <div>
+                        <span class="font-semibold">Destination:</span> {{ destination_city }}
+                    </div>
+                    {% endif %}
+                    <div>
+                        <span class="font-semibold">Carrier:</span> {{ carrier_name }}
+                    </div>
+                </div>
+            </section>
+
+            <section class="mt-8">
+                <h3 class="text-xl font-semibold mb-4 text-gray-800">Rate Details</h3>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full bg-white border border-gray-200">
+                        <thead class="bg-gray-100">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Package Type</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Chargeable Weight</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Base Price</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Shipping Time</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            {% for package in quote.packages %}
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap">{{ package_type }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap">{{ chargeable_weight }} {{ package.weight_unit }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap">{{ base_price }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap">{{ shipping_time }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            {% if volumetric_used %}
+            <footer class="mt-8 pt-4 border-t border-gray-200">
+                <p class="text-xs text-gray-500 italic">* Volumetric weight is used for price calculation.</p>
+            </footer>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

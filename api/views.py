@@ -307,7 +307,7 @@ class GenerateQuotePDF(APIView):
 
             # Generate Invoice ID and Date
             invoice_id = f"QUOTE-{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}"
-            invoice_date = datetime.datetime.now().strftime("%B %d, %Y")
+            quote_date = datetime.datetime.now().strftime("%B %d, %Y")
 
             for price in quote_data.get('prices'):
                 print(f"{price.get('courier_name')} {carrier_preference} {price.get('courier_name') == carrier_preference}")
@@ -320,7 +320,7 @@ class GenerateQuotePDF(APIView):
             # Combine data for template
             context = {
                 "invoice_id": invoice_id,
-                "invoice_date": invoice_date,
+                "quote_date": quote_date,
                 "shipping_route": form_data.get("shippingRoute", ""),
                 "origin_city": form_data.get("originCity", ""),
                 "destination_city": form_data.get("destinationCity", ""),
@@ -330,14 +330,18 @@ class GenerateQuotePDF(APIView):
                 "chargeable_weight": quote_data.get("chargeableWeight", 0),
                 "volumetric_used": quote_data.get("volumetricUsed", False),
                 "shipping_time": quote_data.get("shippingTime", ""),
-                "courier_name": carrier_preference,
+                "carrier_name": carrier_preference,
                 "base_price": f"{form_data.get('currency', '')}{base_price}",
                 "currency": form_data.get("currency", "₹"),
-                "exchange_rate": f"1 USD = ₹{form_data.get('usdRate', '')}"
+                "exchange_rate": f"1 USD = ₹{form_data.get('usdRate', '')}",
+                "dimensions": (
+                    f"{form_data['dim_length']}L{form_data['dim_width']}W{form_data['dim_height']}H"
+                    if form_data.get("dim_length") else "N/A"
+                )
             }
 
             # Render HTML template
-            template = get_template('api/quote-pdf-template.html')
+            template = get_template('api/quote-pdf-template-temp.html')
             html = template.render(context)
 
             # Generate PDF
