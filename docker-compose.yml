@@ -1,8 +1,69 @@
+
 services:
+  db:
+    image: mariadb:10.11
+    container_name: mariadb
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    environment:
+      MYSQL_DATABASE: pmb_db
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_ALLOW_EMPTY_PASSWORD: 'no'
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-prootpassword"]
+      timeout: 10s
+      retries: 10
+      interval: 10s
+      start_period: 30s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          memory: 512M
+
+  web:
+    build: .
+    container_name: web
+    volumes:
+      - .:/app
+      - static_volume:/app/static
+      - media_volume:/app/media
+    environment:
+      - DEBUG=1
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+      - DJANGO_SETTINGS_MODULE=pmb_hello.settings
+      - DB_HOST=db
+      - DB_NAME=pmb_db
+      - DB_USER=root
+      - DB_PASSWORD=rootpassword
+      - DB_PORT=3306
+      - MYSQL_ROOT_PASSWORD=rootpassword
+      - MARIADB_ROOT_PASSWORD=rootpassword
+    ports:
+      - "8000:8000"
+      - "8501:8501"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 2G
+        reservations:
+          memory: 1G
+
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
+    build: ./frontend
     container_name: frontend
     ports:
       - "3000:3000"
@@ -12,74 +73,9 @@ services:
     environment:
       - NODE_ENV=development
       - CHOKIDAR_USEPOLLING=true
-      - WDS_SOCKET_PORT=0  # Disable WebSocket for hot reloading in Docker
-      - REACT_APP_API_URL= http://localhost:8000
-      - DANGEROUSLY_DISABLE_HOST_CHECK=true
-    networks:
-      - pmb_network
-    stdin_open: true
-    tty: true
+      - WDS_SOCKET_PORT=0
+      - REACT_APP_API_URL=http://localhost:8000
     restart: unless-stopped
-
-  db:
-    image: mariadb:10.11
-    container_name: mariadb
-    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --default-authentication-plugin=mysql_native_password
-    environment:
-      MYSQL_DATABASE: ${DB_NAME:-pmb_db}
-      MYSQL_USER: ${DB_USER:-pmb_user}
-      MYSQL_PASSWORD: ${DB_PASSWORD:-pmb_user}
-      MYSQL_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:-rootpassword}
-      MYSQL_INITDB_SKIP_TZINFO: 1
-    ports:
-      - "${DB_PORT:-3306}:3306"
-    volumes:
-      - mysql_data:/var/lib/mysql
-    healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -u root -p${MARIADB_ROOT_PASSWORD:-rootpassword} --silent"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-      start_period: 30s
-    networks:
-      - pmb_network
-    restart: unless-stopped
-
-  web:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: web
-    environment:
-      - DB_HOST=mariadb  # Use container_name as hostname
-      - DB_NAME=${DB_NAME:-pmb_db}
-      - DB_USER=${DB_USER:-pmb_user}
-      - DB_PASSWORD=${DB_PASSWORD:-pmb_user}
-      - DB_PORT=3306
-      - DEBUG=${DEBUG:-1}
-      - SECRET_KEY=${SECRET_KEY:-your-secret-key-here}
-      - ALLOWED_HOSTS=${ALLOWED_HOSTS:-*}
-      - PYTHONUNBUFFERED=1
-      - PYTHONDONTWRITEBYTECODE=1
-      - STREAMLIT_SERVER_PORT=8501
-      - STREAMLIT_SERVER_HEADLESS=true
-      - STREAMLIT_BROWSER_GATHER_USAGE_STATS=false
-      - CORS_ORIGIN_WHITELIST=http://localhost:3000,http://localhost:8000
-      - CSRF_TRUSTED_ORIGINS=http://localhost:3000,http://localhost:8000
-    volumes:
-      - .:/app
-      - static_volume:/app/static
-      - media_volume:/app/media
-    ports:
-      - "8000:8000"
-      - "8501:8501"
-    networks:
-      - pmb_network
-    restart: unless-stopped
-    init: true  # Use tini as init process to handle signals properly
-    working_dir: /app
-    command: ["sh", "-c", "dos2unix /app/entrypoint.sh && chmod +x /app/entrypoint.sh && exec /app/entrypoint.sh"]
-
 networks:
   pmb_network:
     driver: bridge

@@ -445,10 +445,11 @@ class SupportRequest(models.Model):
     ]
     
     REQUEST_TYPES = [
-        ('general', 'General Inquiry'),
-        ('technical', 'Technical Issue'),
-        ('billing', 'Billing Question'),
-        ('shipment', 'Shipment Issue'),
+        ('general', 'General'),
+        ('price', 'Price'),
+        ('tracking', 'Tracking'),
+        ('documentation', 'Documentation'),
+        ('pickup', 'Pickup'),
         ('other', 'Other'),
     ]
     

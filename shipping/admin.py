@@ -254,13 +254,28 @@ class SupportRequestHistoryInline(admin.TabularInline):
 
 @admin.register(SupportRequest, site=site)
 class SupportRequestAdmin(admin.ModelAdmin):
-    list_display = ('ticket_number', 'subject', 'name', 'email', 'request_type', 'status_display', 'assigned_to_display', 'created_at')
+    list_display = ('ticket_number', 'subject', 'name', 'contact_info', 'request_type_display', 'status_display', 'assigned_to_display', 'created_at')
     list_filter = ('status', 'request_type', 'created_at', 'assigned_to')
-    search_fields = ('ticket_number', 'subject', 'name', 'email', 'message')
+    search_fields = ('ticket_number', 'subject', 'name', 'email', 'phone', 'message')
     list_select_related = ('assigned_to', 'created_by', 'shipment')
     date_hierarchy = 'created_at'
     readonly_fields = ('ticket_number', 'created_at', 'updated_at', 'resolved_at')
     inlines = [SupportRequestHistoryInline]
+
+    def request_type_display(self, obj):
+        """Display the request type with a badge"""
+        type_map = {
+            'general': 'secondary',
+            'technical': 'info',
+            'billing': 'warning',
+            'shipment': 'primary',
+            'other': 'success'
+        }
+        badge_class = type_map.get(obj.request_type, 'secondary')
+        display_text = obj.get_request_type_display()
+        return mark_safe(f'<span class="badge bg-{badge_class}">{display_text.capitalize()}</span>')
+    request_type_display.short_description = 'Type of Support Request'
+    request_type_display.admin_order_field = 'request_type'
     actions = ['assign_to_me', 'mark_in_progress', 'mark_resolved', 'mark_closed']
     list_per_page = 20
     
@@ -297,12 +312,20 @@ class SupportRequestAdmin(admin.ModelAdmin):
     status_display.admin_order_field = 'status'
     
     def assigned_to_display(self, obj):
-        return obj.assigned_to.get_full_name() if obj.assigned_to else 'Unassigned'
+        if not obj.assigned_to:
+            return 'Unassigned'
+        return obj.assigned_to.get_full_name() or obj.assigned_to.username or str(obj.assigned_to)
     assigned_to_display.short_description = 'Assigned To'
     
     def created_by_display(self, obj):
         return obj.created_by.get_full_name() if obj.created_by else 'System'
     created_by_display.short_description = 'Created By'
+    
+    def contact_info(self, obj):
+        if obj.phone:
+            return f"{obj.phone} / {obj.email}" if obj.email else obj.phone
+        return obj.email if obj.email else '-'
+    contact_info.short_description = 'Mobile No/Email'
     
     def get_queryset(self, request):
         qs = super().get_queryset(request)

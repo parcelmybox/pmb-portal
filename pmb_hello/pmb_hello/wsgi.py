@@ -1,5 +1,5 @@
 """
-WSGI config for pmb_hello project.
+WSGI config for pmb_core project.
 
 It exposes the WSGI callable as a module-level variable named ``application``.
 
@@ -11,6 +11,6 @@ import os
 
 from django.core.wsgi import get_wsgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'pmb_hello.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'pmb_core.settings')
 
 application = get_wsgi_application()

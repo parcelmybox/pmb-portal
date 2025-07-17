@@ -12,6 +12,7 @@ from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models import Q
 from django.utils import timezone
+import random
 
 from .models import SupportRequest, PickupRequest
 from .serializers import (
@@ -308,22 +309,156 @@ class SupportRequestViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         """
-        This view returns a list of all support requests for staff users,
-        or only the requests for the currently authenticated user.
+        Returns support requests based on user role:
+        - Staff: Can see all requests
+        - Authenticated users: Can see requests associated with their email
+        - Anonymous: No access
         """
         user = self.request.user
+        queryset = SupportRequest.objects.all()
+        
         if user.is_staff:
-            return SupportRequest.objects.all()
-        elif user.is_authenticated:
-            return SupportRequest.objects.filter(Q(user=user) | Q(email=user.email))
+            # Staff can see all requests
+            return queryset
+            
+        if user.is_authenticated:
+            # Regular users can see requests with their email
+            return queryset.filter(email=user.email)
+            
         return SupportRequest.objects.none()
 
+    def create(self, request, *args, **kwargs):
+        print("\n=== Support Request Data ===")
+        print("Request data:", request.data)
+        print("Request user:", request.user if request.user.is_authenticated else 'Anonymous')
+        print("Request files:", dict(request.FILES) if hasattr(request, 'FILES') else 'No files')
+        
+        # Log the raw request data before validation
+        print("\n=== Raw Request Data ===")
+        for key, value in request.data.items():
+            print(f"{key}: {value} ({type(value)})")
+            
+        # Log the raw POST data
+        print("\n=== Raw POST Data ===")
+        print(request.POST)
+        
+        try:
+            # Log the data being passed to the serializer
+            print("\n=== Data being passed to serializer ===")
+            print(request.data)
+            
+            # Manually validate the serializer first to get detailed errors
+            serializer = self.get_serializer(data=request.data)
+            is_valid = serializer.is_valid(raise_exception=False)
+            
+            if not is_valid:
+                print("\n=== Validation Errors ===")
+                print(serializer.errors)
+                
+            print("\n=== Validated Data ===")
+            print(serializer.validated_data)
+            
+            # If validation passes, proceed with creation
+            self.perform_create(serializer)
+            print("\n=== After perform_create ===")
+            print("Saved object:", serializer.instance)
+            print("Request type in instance:", getattr(serializer.instance, 'request_type', 'Not set'))
+            
+            headers = self.get_success_headers(serializer.data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+            
+        except Exception as e:
+            print("\n=== Validation Error ===")
+            print(f"Error type: {type(e).__name__}")
+            print(f"Error details: {str(e)}")
+            if hasattr(e, 'detail'):
+                print(f"Error detail: {e.detail}")
+            if hasattr(e, 'get_codes'):
+                print(f"Error codes: {e.get_codes()}")
+            
+            # Re-raise the exception to maintain the same behavior
+            raise
+
+    def get_random_staff_member(self):
+        """
+        Returns a random active staff member to assign to the support request.
+        Returns None if no staff members are available.
+        """
+        staff_members = get_user_model().objects.filter(
+            is_staff=True,
+            is_active=True
+        )
+        
+        if staff_members.exists():
+            return random.choice(staff_members)
+        return None
+    
     def perform_create(self, serializer):
-        """Auto-set the user if authenticated, otherwise save as anonymous."""
+        """
+        Auto-set the created_by if user is authenticated.
+        Assign a random staff member to the support request.
+        """
+        print("\n=== Performing Create ===")
+        print("Raw serializer data:", serializer.validated_data)
+        
+        # Log the request data being used for creation
+        print("\n=== Request Data ===")
+        print("Request data:", self.request.data)
+        print("Request POST:", self.request.POST)
+        print("Request FILES:", dict(self.request.FILES) if hasattr(self.request, 'FILES') else 'No files')
+        
+        # Log the request type specifically
+        request_type = self.request.data.get('category') or self.request.data.get('request_type')
+        print(f"\n=== Request Type Debug ===")
+        print(f"Category from request: {self.request.data.get('category')}")
+        print(f"Request type from request: {self.request.data.get('request_type')}")
+        print(f"Using request type: {request_type}")
+        
+        # Get a random staff member to assign
+        assigned_to = self.get_random_staff_member()
+        print(f"\n=== Staff Assignment Debug ===")
+        print(f"Found staff member to assign: {assigned_to}")
+        if assigned_to:
+            print(f"Staff details - ID: {assigned_to.id}, Username: {assigned_to.username}")
+        
+        # Prepare save kwargs
+        save_kwargs = {}
+        
+        # Set created_by if user is authenticated
         if self.request.user.is_authenticated:
-            serializer.save(user=self.request.user)
+            print("User is authenticated, setting created_by")
+            save_kwargs['created_by'] = self.request.user
+        
+        # Always set assigned_to if a staff member is available
+        if assigned_to:
+            print(f"Assigning to staff member: {assigned_to.username} (ID: {assigned_to.id})")
+            save_kwargs['assigned_to_id'] = assigned_to.id  # Use _id to bypass any potential model validation
         else:
-            serializer.save()
+            print("Warning: No active staff members available for assignment")
+        
+        # Ensure request_type is set in the validated data
+        if request_type and 'request_type' not in serializer.validated_data:
+            print(f"Setting request_type to {request_type} from request data")
+            serializer.validated_data['request_type'] = request_type
+        
+        # Save with the collected kwargs
+        print("\n=== Final Save Data ===")
+        print(f"Validated data: {serializer.validated_data}")
+        print(f"Save kwargs: {save_kwargs}")
+        
+        instance = serializer.save(**save_kwargs)
+        
+        # Verify the saved data
+        print("\n=== After Save ===")
+        print(f"Instance ID: {instance.id}")
+        print(f"Saved request_type: {instance.request_type}")
+        print(f"Saved category: {getattr(instance, 'category', 'N/A')}")
+        
+        # Verify the assignment was saved
+        if hasattr(instance, 'assigned_to'):
+            print(f"After save - Assigned to: {instance.assigned_to}")
+        else:
+            print("After save - No assigned_to field on instance")
 
     @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated, IsAdminUser])
     def update_status(self, request, pk=None):
