@@ -681,3 +681,28 @@ class Bill(models.Model):
             return True
             
         return False
+
+class ShipmentQuote(models.Model):
+    CARRIER_CHOICES = [
+        ('DHL', 'DHL Shipping'),
+        ('FEDEX', 'FedEx Shipping'),
+        ('UPS', 'UPS Shipping'),
+    ]
+
+    PACKAGE_TYPE_CHOICES = [
+        ('DOCUMENT', 'Document'),
+        ('PACKAGE', 'Package'),
+        ('MEDICINE', 'Medicine'),
+    ]
+
+    name = models.CharField(max_length=100)
+    email = models.EmailField()
+    carrier_preference = models.CharField(max_length=10, choices=CARRIER_CHOICES)
+    origin_city = models.CharField(max_length=100)
+    destination_city = models.CharField(max_length=100)
+    chargeable_weight = models.FloatField()
+    base_price = models.DecimalField(max_digits=10, decimal_places=2)
+    package_type = models.CharField(max_length=10, choices=PACKAGE_TYPE_CHOICES)
+
+    def __str__(self):
+        return f"{self.name} - {self.package_type} ({self.origin_city} → {self.destination_city})"

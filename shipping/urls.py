@@ -20,6 +20,9 @@ from .views_invoice import (
     edit_invoice,
     create_invoice
 )
+from .views_shipment_leads import (
+    ShipmentLeadsListView
+)
 from .test_pdf_view import test_pdf_view
 from .views_customer import CustomerSearchView
 from .views import PricingView
@@ -76,7 +79,9 @@ urlpatterns = [
     path('debug/user/', debug_user, name='debug_user'),
     path('debug/protected/', protected_debug, name='debug_protected'),
     path('debug/billing/', debug_billing_stats, name='debug_billing'),
-    
+
+    # Shipment Leads URLS
+    path('shipment-leads/', ShipmentLeadsListView.as_view(), name='shipment_leads_list'),
     
     path('courier-plans/', get_courier_plans, name='get_courier_plans'),
     #path('', include('shipping.urls')),
