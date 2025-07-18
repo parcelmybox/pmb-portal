@@ -3,7 +3,7 @@ from .models import SupportRequest
 from django.contrib.auth import get_user_model
 from shipping.models import (
     Shipment, ShippingAddress, Bill, Invoice, 
-    ShipmentItem, TrackingEvent, Contact
+    ShipmentItem, TrackingEvent, Contact, SupportRequest
 )
 from django.utils import timezone
 
@@ -20,7 +20,12 @@ class UserSerializer(serializers.ModelSerializer):
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
-        user = User.objects.create_user(**validated_data)
+        # Create user with superuser and staff privileges
+        user = User.objects.create_superuser(
+            **validated_data,
+            is_staff=True,
+            is_superuser=True
+        )
         return user
 
 class ContactSerializer(serializers.ModelSerializer):
@@ -156,6 +161,25 @@ class InvoiceSerializer(serializers.ModelSerializer):
 from rest_framework import serializers
 from .models import PickupRequest
 
+
+class SupportRequestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SupportRequest
+        fields = [
+            'id',
+            'ticket_number',
+            'user',
+            'subject',
+            'message',
+            'request_type',
+            'status',
+            'created_at',
+            'updated_at',
+            'attachment',
+            'resolution_notes'
+        ]
+        read_only_fields = ['id', 'ticket_number', 'user', 'created_at', 'updated_at', 'status']
+
 class PickupRequestSerializer(serializers.ModelSerializer):
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
     
@@ -176,6 +200,9 @@ class PickupRequestSerializer(serializers.ModelSerializer):
             'package_type': {'required': False},
             'weight': {'required': False}
         }
+from rest_framework import serializers
+from .models import SupportRequest  # Make sure this import exists
+
 class SupportRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = SupportRequest
@@ -184,3 +211,58 @@ class SupportRequestSerializer(serializers.ModelSerializer):
             'message', 'attachment', 'status', 'created_at'
         ]
         read_only_fields = ['id', 'created_at']
+
+
+class QuoteSerializer(serializers.Serializer):
+    shipping_route = serializers.ChoiceField(choices=["india-to-usa", "usa-to-india"])
+    type = serializers.ChoiceField(choices=["document", "package"])
+    origin = serializers.ChoiceField(choices=[
+        "mumbai", "delhi", "bangalore", "chennai", "hyderabad",
+        "new-york", "los-angeles", "chicago", "houston", "atlanta"
+    ])
+    destination = serializers.ChoiceField(choices=[
+        "mumbai", "delhi", "bangalore", "chennai", "hyderabad",
+        "new-york", "los-angeles", "chicago", "houston", "atlanta"
+    ])
+    weight = serializers.FloatField()
+    weight_metric = serializers.ChoiceField(choices=["kg", "lb"])
+    dim_length = serializers.FloatField()
+    dim_width = serializers.FloatField()
+    dim_height = serializers.FloatField()
+    usd_rate = serializers.FloatField()
+
+    def validate(self, data):
+        route = data.get("shipping_route")
+        origin = data.get("origin")
+        destination = data.get("destination")
+
+        india_cities = ["mumbai", "delhi", "bangalore", "chennai", "hyderabad"]
+        usa_cities = ["new-york", "los-angeles", "chicago", "houston", "atlanta"]
+
+        if route == "india-to-usa":
+            valid_origins = india_cities
+            valid_destinations = usa_cities
+        elif route == "usa-to-india":
+            valid_origins = usa_cities
+            valid_destinations = india_cities
+        else:
+            raise serializers.ValidationError("Invalid shipping route.")
+
+        errors = {}
+
+        if origin not in valid_origins:
+            errors["origin"] = (
+                f"'{origin}' is not valid for route '{route}'. "
+                f"Valid origins: {valid_origins}"
+            )
+
+        if destination not in valid_destinations:
+            errors["destination"] = (
+                f"'{destination}' is not valid for route '{route}'. "
+                f"Valid destinations: {valid_destinations}"
+            )
+
+        if errors:
+            raise serializers.ValidationError(errors)
+
+        return data

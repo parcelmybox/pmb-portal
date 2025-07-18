@@ -12,6 +12,7 @@ from django.views.generic import TemplateView
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views.decorators.csrf import csrf_exempt
+from .views import QuoteView
 
 from . import views
 from django.conf.urls.static import static
@@ -50,6 +51,9 @@ schema_view = get_schema_view(
 urlpatterns = [
     # API endpoints
     path('', include(router.urls)),
+
+    # Quote calculation API endpoint
+    path('quote/', QuoteView.as_view(), name='quote'),
     
     # Authentication endpoints
     path('auth/', include([

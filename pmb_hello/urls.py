@@ -21,7 +21,7 @@ from django.conf.urls.static import static
 from django.views.generic import RedirectView
 from category import views as category_views
 from . import views as pmb_hello_views
-from .admin import custom_admin_site  # Import our custom admin site
+from shipping import admin as shipping_admin  # Import our custom admin site
 
 # Import the default admin site's logout view
 from django.contrib.auth.views import LogoutView
@@ -54,9 +54,9 @@ urlpatterns = [
     # Main site
     path('', pmb_hello_views.site_home_page, name='site_home_page'),  # Site home page
     path('admin/logout/', admin_logout, name='admin-logout'),  # Admin logout - Fixed the URL name to avoid ':'
-    path('admin/', custom_admin_site.urls),  # Use our custom admin site
+    path('admin/', shipping_admin.site.urls),  # Use our custom admin site
     
-    # Shipping app URLs
+    # Shipping app URLs and redirects
     path('shipping/', include('shipping.urls')),
     
     # Redirect old pricing URL to new one
@@ -64,7 +64,6 @@ urlpatterns = [
     # Redirect old billing URLs to new ones
     path('admin/shipping/bill/', RedirectView.as_view(url='/shipping/bills/', permanent=True)),
     path('admin/shipping/bill/add/', RedirectView.as_view(url='/shipping/bills/create/', permanent=True)),
-    path('shipping/', include('shipping.urls')),
     path('categories/', category_views.category_list, name='category_list'),
     path('shipping-price/', category_views.shipping_price_form, name='shipping_price_form'),
     path('api/shipping-price/', category_views.shipping_price_api, name='shipping_price_api'),

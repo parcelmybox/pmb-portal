@@ -2,7 +2,8 @@ from django.shortcuts import render
 from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated,AllowAny, IsAdminUser
+from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
+from rest_framework.views import APIView
 from django.contrib.auth import get_user_model
 from .models import SupportRequest
 from .serializers import SupportRequestSerializer
@@ -10,18 +11,23 @@ from django.db import models
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.db.models import Q
 from rest_framework_simplejwt.authentication import JWTAuthentication
-from shipping.models import Shipment, ShippingAddress, Bill, Invoice, ShipmentItem, TrackingEvent
+from django.utils import timezone
+from shipping.models import Shipment, ShippingAddress, Bill, Invoice, ShipmentItem, TrackingEvent, SupportRequest
 from .serializers import (
     UserSerializer, ShipmentSerializer, 
     ShippingAddressSerializer, BillSerializer, InvoiceSerializer,
-    ShipmentItemSerializer, TrackingEventSerializer, ContactSerializer,PickupRequestSerializer
+    ShipmentItemSerializer, TrackingEventSerializer, ContactSerializer, PickupRequestSerializer,
+    QuoteSerializer, SupportRequestSerializer,
 )
 from .permissions import IsOwnerOrAdmin, IsAdminOrReadOnly
 
 from rest_framework import generics
 from .models import PickupRequest
 
-
+from rest_framework import views
+from rest_framework.response import Response
+from rest_framework.renderers import JSONRenderer
+import math
 
 User = get_user_model()
 
@@ -224,6 +230,48 @@ class InvoiceViewSet(viewsets.ModelViewSet):
             "invoice_id": invoice.id
         })
 
+# Quote Calculation API
+
+class QuoteView(APIView):
+    renderer_classes = [JSONRenderer]
+    permission_classes = [AllowAny]
+    # permission_classes = [IsAuthenticated, IsOwnerOrAdmin]
+    
+    def post(self, request):
+        serializer = QuoteSerializer(data = request.data)
+        if serializer.is_valid():
+            shipping_route = serializer.validated_data["shipping_route"]
+            type = serializer.validated_data["type"]
+            weight = serializer.validated_data["weight"]
+            weight_metric = serializer.validated_data["weight_metric"]
+            dim_length = serializer.validated_data["dim_length"]
+            dim_width = serializer.validated_data["dim_width"]
+            dim_height = serializer.validated_data["dim_height"]
+            usd_rate = serializer.validated_data["usd_rate"]
+
+            if weight_metric == "lb":
+                weight *= 0.453592
+
+            volumetric_weight = (dim_length * dim_width * dim_height) / 5000
+
+            chargeable_weight = max(volumetric_weight, weight)
+
+            base_price = chargeable_weight * 1000
+            route_multiplier = 1.5 if shipping_route == "india-to-usa" else 2.5
+            package_multiplier = 1.0 if type == "document" else 1.5
+            inr_price = math.ceil(base_price * route_multiplier * package_multiplier)
+            usd_price = math.ceil(inr_price / usd_rate)
+
+            shipping_time = "10-15 business days" if shipping_route == "india-to-usa" else "7-10 business days"
+
+            return Response({
+                "inr_price": inr_price, 
+                "usd_price": usd_price, 
+                "chargeable_Weight": chargeable_weight, 
+                "shipping_time": shipping_time
+            })
+        return Response(serializer.errors, status=400)
+
 
 #pickupRequest
 
@@ -231,6 +279,78 @@ from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from .models import PickupRequest
 from .serializers import PickupRequestSerializer
+
+class SupportRequestViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows support requests to be viewed or edited.
+    """
+    serializer_class = SupportRequestSerializer
+    permission_classes = [IsAuthenticated, IsOwnerOrAdmin]
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['ticket_number', 'subject', 'message', 'status']
+    ordering_fields = ['created_at', 'updated_at', 'status']
+    ordering = ['-created_at']
+
+    def get_queryset(self):
+        """
+        This view should return a list of all support requests
+        for the currently authenticated user, or all requests for staff users.
+        """
+        user = self.request.user
+        if user.is_staff:
+            return SupportRequest.objects.all()
+        return SupportRequest.objects.filter(user=user)
+
+    def perform_create(self, serializer):
+        # Automatically set the user to the current user
+        serializer.save(user=self.request.user)
+
+    @action(detail=True, methods=['post'])
+    def update_status(self, request, pk=None):
+        """
+        Custom action to update the status of a support request.
+        """
+        support_request = self.get_object()
+        new_status = request.data.get('status')
+        
+        if not new_status:
+            return Response(
+                {'status': 'Status is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
+        if new_status not in dict(SupportRequest.STATUS_CHOICES).keys():
+            return Response(
+                {'status': 'Invalid status'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
+        support_request.status = new_status
+        support_request.save()
+        
+        return Response({'status': 'Status updated successfully'})
+
+    @action(detail=True, methods=['post'])
+    def add_note(self, request, pk=None):
+        """
+        Add a resolution note to a support request.
+        """
+        support_request = self.get_object()
+        note = request.data.get('note')
+        
+        if not note:
+            return Response(
+                {'error': 'Note is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
+        if support_request.resolution_notes:
+            support_request.resolution_notes += f"\n\n{timezone.now().strftime('%Y-%m-%d %H:%M')} - {note}"
+        else:
+            support_request.resolution_notes = f"{timezone.now().strftime('%Y-%m-%d %H:%M')} - {note}"
+            
+        support_request.save()
+        return Response({'status': 'Note added successfully'})
 
 class PickupRequestViewSet(viewsets.ModelViewSet):
     """
