@@ -119,11 +119,4 @@ Here’s a **Markdown format report** to help you plan a comprehensive portal fo
 
 ---
 
-Let me know if you'd like:
 
-* 🧱 Technical architecture in diagrams
-* 📲 App screen mockups
-* 🧑 Vendor onboarding process
-* 📝 Sample content/copywriting for pages
-
-We can break this into modular build sprints too!
