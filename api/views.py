@@ -5,10 +5,9 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.views import APIView
 from rest_framework.renderers import JSONRenderer
-from rest_framework.parsers import MultiPartParser, FormParser
-from rest_framework_simplejwt.authentication import JWTAuthentication
-
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import AnonymousUser
 from django.db import models
 from django.db.models import Q
 from django.utils import timezone
@@ -19,7 +18,7 @@ from .serializers import (
     UserSerializer, ShipmentSerializer, 
     ShippingAddressSerializer, BillSerializer, InvoiceSerializer,
     ShipmentItemSerializer, TrackingEventSerializer, ContactSerializer, 
-    PickupRequestSerializer, QuoteSerializer, SupportRequestSerializer,
+    PickupRequestSerializer, QuoteSerializer, SupportRequestSerializer, SupportRequestListSerializer
 )
 from .permissions import IsOwnerOrAdmin, IsAdminOrReadOnly
 from shipping.models import (
@@ -287,51 +286,96 @@ class SupportRequestViewSet(viewsets.ModelViewSet):
     Authenticated users can view their own requests.
     Staff users can view and manage all requests.
     """
-    serializer_class = SupportRequestSerializer
     permission_classes = [AllowAny]  # Allow unauthenticated creation
+    
+    def get_serializer_class(self):
+        """
+        Use different serializers for list vs. detail views.
+        """
+        if self.action == 'list':
+            return SupportRequestListSerializer
+        return SupportRequestSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['ticket_number', 'subject', 'message', 'status', 'email']
     ordering_fields = ['created_at', 'updated_at', 'status']
     ordering = ['-created_at']
-    parser_classes = [MultiPartParser, FormParser]  # For file uploads
+    parser_classes = [MultiPartParser, FormParser, JSONParser]  # For form data and JSON
 
     def get_permissions(self):
         """
         Instantiates and returns the list of permissions that this view requires.
         """
-        if self.action in ['list', 'retrieve', 'update', 'partial_update', 'destroy']:
-            permission_classes = [IsAuthenticated, IsOwnerOrAdmin]
+        if self.action in ['list', 'retrieve']:
+            return [IsAuthenticated()]
+        elif self.action in ['update', 'partial_update', 'destroy']:
+            return [IsAuthenticated(), IsOwnerOrAdmin()]
         elif self.action == 'create':
-            permission_classes = [AllowAny]  # Anyone can create a support request
-        else:
-            permission_classes = [IsAdminUser]  # Only admin for custom actions
-        return [permission() for permission in permission_classes]
+            return [AllowAny()]
+        return [IsAuthenticated()]
 
     def get_queryset(self):
         """
         Returns support requests based on user role:
         - Staff: Can see all requests
-        - Authenticated users: Can see requests associated with their email
+        - Authenticated users: Can see requests that match their email
         - Anonymous: No access
         """
         user = self.request.user
-        queryset = SupportRequest.objects.all()
+        
+        # Use the correct model from shipping app
+        from shipping.models import SupportRequest as ShippingSupportRequest
+        queryset = ShippingSupportRequest.objects.all()
+        
+        # Debug information
+        print("\n=== DEBUG: get_queryset ===")
+        print(f"[USER] ID: {user.id}, Username: {user.username}")
+        print(f"[AUTH] is_authenticated: {user.is_authenticated}, is_staff: {getattr(user, 'is_staff', False)}")
+        print(f"[EMAIL] {getattr(user, 'email', 'No email')}")
+        print(f"[QUERY] Total support requests in DB: {queryset.count()}")
+        
+        # Debug: Print all support requests
+        if queryset.exists():
+            print("\n=== ALL SUPPORT REQUESTS ===")
+            for req in queryset.order_by('-created_at')[:5]:
+                print(f"ID: {req.id}, Email: {req.email or 'None'}, Subject: {req.subject}, Status: {req.status}, Created: {req.created_at}")
+        else:
+            print("\n[DEBUG] No support requests found in the database")
         
         if user.is_staff:
             # Staff can see all requests
-            return queryset
+            print("\n[DEBUG] User is staff, returning all support requests")
+            return queryset.order_by('-created_at')
             
-        if user.is_authenticated:
-            # Regular users can see requests with their email
-            return queryset.filter(email=user.email)
+        if user.is_authenticated and hasattr(user, 'email') and user.email:
+            # Regular users can see requests that match their email
+            filtered = queryset.filter(email=user.email).order_by('-created_at')
+            print(f"\n[DEBUG] Found {filtered.count()} support requests for email: {user.email}")
+            return filtered
             
-        return SupportRequest.objects.none()
+        print("\n[DEBUG] User not authenticated or has no email, returning no support requests")
+        return ShippingSupportRequest.objects.none()
 
     def create(self, request, *args, **kwargs):
         print("\n=== Support Request Data ===")
         print("Request data:", request.data)
         print("Request user:", request.user if request.user.is_authenticated else 'Anonymous')
         print("Request files:", dict(request.FILES) if hasattr(request, 'FILES') else 'No files')
+        
+        # Handle unauthenticated requests with invalid tokens
+        if not request.user.is_authenticated:
+            # Remove any Authorization header that might cause issues
+            if 'HTTP_AUTHORIZATION' in request.META:
+                auth_header = request.META['HTTP_AUTHORIZATION']
+                if auth_header.startswith('Bearer null') or 'null' in auth_header:
+                    print("Removing invalid Authorization header with null token")
+                    del request.META['HTTP_AUTHORIZATION']
+                elif not auth_header.startswith('Bearer '):
+                    print("Removing malformed Authorization header")
+                    del request.META['HTTP_AUTHORIZATION']
+            
+            # Ensure the request is treated as unauthenticated
+            request._force_auth_user = None
+            request.user = AnonymousUser()
         
         # Log the raw request data before validation
         print("\n=== Raw Request Data ===")
@@ -349,11 +393,27 @@ class SupportRequestViewSet(viewsets.ModelViewSet):
             
             # Manually validate the serializer first to get detailed errors
             serializer = self.get_serializer(data=request.data)
+            
+            # Force validation and capture all errors
             is_valid = serializer.is_valid(raise_exception=False)
             
             if not is_valid:
-                print("\n=== Validation Errors ===")
+                print("\n=== Detailed Validation Errors ===")
                 print(serializer.errors)
+                print("\n=== Raw Data ===")
+                print(f"Name: {request.data.get('name')}")
+                print(f"Contact: {request.data.get('contact')}")
+                print(f"Category: {request.data.get('category')}")
+                print(f"Subject: {request.data.get('subject')}")
+                print(f"Message: {request.data.get('message')}")
+                print("\n=== Validated Data (partial) ===")
+                print(serializer.validated_data)
+                
+                # Return the validation errors to the client
+                return Response(
+                    {"detail": "Validation failed", "errors": serializer.errors},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
                 
             print("\n=== Validated Data ===")
             print(serializer.validated_data)
@@ -398,8 +458,8 @@ class SupportRequestViewSet(viewsets.ModelViewSet):
         Auto-set the created_by if user is authenticated.
         Assign a random staff member to the support request.
         """
-        print("\n=== Performing Create ===")
-        print("Raw serializer data:", serializer.validated_data)
+        print("\n=== perform_create ===")
+        print("Using serializer data:", serializer.validated_data)
         
         # Log the request data being used for creation
         print("\n=== Request Data ===")
@@ -407,58 +467,109 @@ class SupportRequestViewSet(viewsets.ModelViewSet):
         print("Request POST:", self.request.POST)
         print("Request FILES:", dict(self.request.FILES) if hasattr(self.request, 'FILES') else 'No files')
         
-        # Log the request type specifically
-        request_type = self.request.data.get('category') or self.request.data.get('request_type')
-        print(f"\n=== Request Type Debug ===")
-        print(f"Category from request: {self.request.data.get('category')}")
-        print(f"Request type from request: {self.request.data.get('request_type')}")
-        print(f"Using request type: {request_type}")
+        # Ensure we're using the correct model
+        from shipping.models import SupportRequest as ShippingSupportRequest
+        if not isinstance(serializer.instance, ShippingSupportRequest):
+            print("\n[WARNING] Using wrong model class in serializer. Creating new instance with correct model.")
+            
+            # Create a new instance with the correct model
+            data = serializer.validated_data
+            support_request = ShippingSupportRequest(
+                email=data.get('email'),
+                phone=data.get('phone'),
+                name=data.get('name'),
+                subject=data.get('subject'),
+                message=data.get('message'),
+                request_type=data.get('request_type', 'general'),
+                status='open',
+                ticket_number=serializer.validated_data.get('ticket_number')
+            )
+            
+            # Save the instance
+            support_request.save()
+            print("\n[DEBUG] Created support request with ID:", support_request.id)
+            
+            # Set the instance on the serializer
+            serializer.instance = support_request
+            return
+            
+        # Get or create a staff member to assign the ticket
+        staff_members = User.objects.filter(is_staff=True, is_active=True)
         
-        # Get a random staff member to assign
-        assigned_to = self.get_random_staff_member()
-        print(f"\n=== Staff Assignment Debug ===")
-        print(f"Found staff member to assign: {assigned_to}")
+        if staff_members.exists():
+            # Get the staff member with the fewest assigned tickets
+            assigned_to = staff_members.annotate(
+                ticket_count=models.Count('assigned_support_requests', 
+                                       filter=models.Q(assigned_support_requests__status__in=['open', 'in_progress']))
+            ).order_by('ticket_count').first()
+        else:
+            # Fallback to superuser if no staff members found
+            assigned_to = User.objects.filter(is_superuser=True).first()
+        
+        # Set the assigned_to in the serializer context
         if assigned_to:
-            print(f"Staff details - ID: {assigned_to.id}, Username: {assigned_to.username}")
-        
-        # Prepare save kwargs
-        save_kwargs = {}
+            print(f"\n=== Assigning to Staff ===")
+            print(f"Assigned to: {assigned_to.get_full_name() or assigned_to.username} (ID: {assigned_to.id})")
+            serializer.context['assigned_to'] = assigned_to
+        else:
+            print("\n=== WARNING: No staff members found to assign ticket ===")
         
         # Set created_by if user is authenticated
         if self.request.user.is_authenticated:
-            print("User is authenticated, setting created_by")
-            save_kwargs['created_by'] = self.request.user
-        
-        # Always set assigned_to if a staff member is available
-        if assigned_to:
-            print(f"Assigning to staff member: {assigned_to.username} (ID: {assigned_to.id})")
-            save_kwargs['assigned_to_id'] = assigned_to.id  # Use _id to bypass any potential model validation
+            created_by = self.request.user
+            print(f"Created by: {created_by.get_full_name() or created_by.username} (ID: {created_by.id})")
+            serializer.context['created_by_id'] = created_by.id
         else:
-            print("Warning: No active staff members available for assignment")
+            print("Created by: Anonymous user")
         
-        # Ensure request_type is set in the validated data
-        if request_type and 'request_type' not in serializer.validated_data:
-            print(f"Setting request_type to {request_type} from request data")
-            serializer.validated_data['request_type'] = request_type
+        # Handle contact field - map to email/phone
+        contact = self.request.data.get('contact', '').strip()
+        if contact:
+            if '@' in contact:
+                serializer.validated_data['email'] = contact
+                if 'phone' not in serializer.validated_data:
+                    serializer.validated_data['phone'] = ''
+            else:
+                phone = ''.join(c for c in contact if c.isdigit())
+                if phone and len(phone) >= 10:
+                    serializer.validated_data['phone'] = phone
+                    if 'email' not in serializer.validated_data:
+                        serializer.validated_data['email'] = f"no-email-{phone}@example.com"
         
-        # Save with the collected kwargs
-        print("\n=== Final Save Data ===")
-        print(f"Validated data: {serializer.validated_data}")
-        print(f"Save kwargs: {save_kwargs}")
+        # Ensure required fields are present
+        if 'name' not in serializer.validated_data:
+            serializer.validated_data['name'] = self.request.data.get('name', 'Anonymous')
         
-        instance = serializer.save(**save_kwargs)
+        if 'subject' not in serializer.validated_data:
+            serializer.validated_data['subject'] = self.request.data.get('subject', 'No Subject')
+        
+        if 'message' not in serializer.validated_data:
+            serializer.validated_data['message'] = self.request.data.get('message', 'No message provided')
+        
+        # Set default status if not provided
+        if 'status' not in serializer.validated_data:
+            serializer.validated_data['status'] = 'open'
+        
+        print("\n=== Final Validated Data ===")
+        print(serializer.validated_data)
+        
+        # Save the instance
+        instance = serializer.save()
         
         # Verify the saved data
         print("\n=== After Save ===")
         print(f"Instance ID: {instance.id}")
-        print(f"Saved request_type: {instance.request_type}")
-        print(f"Saved category: {getattr(instance, 'category', 'N/A')}")
+        print(f"Subject: {instance.subject}")
+        print(f"Email: {getattr(instance, 'email', 'N/A')}")
+        print(f"Phone: {getattr(instance, 'phone', 'N/A')}")
+        print(f"Status: {instance.status}")
+        print(f"Assigned to: {instance.assigned_to}")
+        print(f"Created by: {instance.created_by}")
         
-        # Verify the assignment was saved
-        if hasattr(instance, 'assigned_to'):
-            print(f"After save - Assigned to: {instance.assigned_to}")
-        else:
-            print("After save - No assigned_to field on instance")
+        # Log the full instance data for debugging
+        print("\n=== Full Instance Data ===")
+        for field in instance._meta.fields:
+            print(f"{field.name}: {getattr(instance, field.name, 'N/A')}")
 
     @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated, IsAdminUser])
     def update_status(self, request, pk=None):

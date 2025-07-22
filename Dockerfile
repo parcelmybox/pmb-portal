@@ -3,7 +3,7 @@ FROM python:3.10-slim
 # Set environment variables
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONPATH=/app:/app/pmb_hello:$PYTHONPATH \
+    PYTHONPATH=/app:/app/pmb_core:$PYTHONPATH \
     PIP_NO_CACHE_DIR=off \
     PIP_DISABLE_PIP_VERSION_CHECK=on \
     PIP_DEFAULT_TIMEOUT=100 \
@@ -41,7 +41,7 @@ RUN echo '#!/bin/sh' > /docker-entrypoint.sh && \
     echo 'set -e' >> /docker-entrypoint.sh && \
     echo '' >> /docker-entrypoint.sh && \
     echo '# Set the correct Python path' >> /docker-entrypoint.sh && \
-    echo 'export PYTHONPATH=/app:/app/pmb_hello:$PYTHONPATH' >> /docker-entrypoint.sh && \
+    echo 'export PYTHONPATH=/app:/app/pmb_core:$PYTHONPATH' >> /docker-entrypoint.sh && \
     echo '' >> /docker-entrypoint.sh && \
     echo '# Function to log messages with timestamp' >> /docker-entrypoint.sh && \
     echo 'log() {' >> /docker-entrypoint.sh && \

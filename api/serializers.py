@@ -161,65 +161,13 @@ from rest_framework import serializers
 from .models import PickupRequest
 
 
-class SupportRequestSerializer(serializers.ModelSerializer):
-    # Map frontend field names to model field names
-    contact = serializers.CharField(
-        write_only=True, 
-        required=True,
-        help_text="Mobile number or email address"
-    )
-    
-    # This field is used for input only (write)
-    category = serializers.ChoiceField(
-        write_only=True, 
-        required=False,
-        source='request_type',  # Map to the request_type field in the model
-        choices=[
-            ('general', 'General'),
-            ('price', 'Price'),
-            ('tracking', 'Tracking'),
-            ('documentation', 'Documentation'),
-            ('pickup', 'Pickup'),
-            ('other', 'Other')
-        ]
-    )
-    
-    # This field is used for output only (read)
-    request_type = serializers.SerializerMethodField(read_only=True)
-    
-    def get_request_type(self, obj):
-        return obj.request_type
-    
-    # Make email optional in the serializer as we'll handle it from contact field
-    email = serializers.EmailField(required=False, write_only=True)
-    assigned_to = serializers.SerializerMethodField(read_only=True)
-    
-    def get_assigned_to(self, obj):
-        if obj.assigned_to:
-            return {
-                'id': obj.assigned_to.id,
-                'username': obj.assigned_to.username,
-                'email': obj.assigned_to.email,
-                'full_name': f"{obj.assigned_to.first_name} {obj.assigned_to.last_name}".strip() or obj.assigned_to.username
-            }
-        return None
-        
-    def to_representation(self, instance):
-        # Get the default representation
-        representation = super().to_representation(instance)
-        
-        # Ensure request_type is included in the response
-        if 'request_type' not in representation and hasattr(instance, 'request_type'):
-            representation['request_type'] = instance.request_type
-        
-        # Add debug information
-        if hasattr(instance, 'assigned_to') and instance.assigned_to:
-            print(f"\n=== Serializer Debug ===")
-            print(f"Instance ID: {instance.id}")
-            print(f"Assigned to: {instance.assigned_to} (ID: {instance.assigned_to.id})")
-            print(f"Assigned to in representation: {representation.get('assigned_to')}")
-        
-        return representation
+class SupportRequestListSerializer(serializers.ModelSerializer):
+    """
+    Simplified serializer for listing support requests.
+    Only includes essential fields for the list view.
+    """
+    category_display = serializers.CharField(source='get_request_type_display', read_only=True)
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
     
     class Meta:
         model = SupportRequest
@@ -230,79 +178,227 @@ class SupportRequestSerializer(serializers.ModelSerializer):
             'name',
             'email',
             'phone',
-            'contact',  # Frontend field that maps to phone
+            'category_display',
+            'status_display',
+            'created_at',
+            'resolved_at'
+        ]
+        read_only_fields = fields
+
+
+class SupportRequestSerializer(serializers.ModelSerializer):
+    """
+    Detailed serializer for the SupportRequest model.
+    Used for create, retrieve, and update operations.
+    """
+    # Map frontend field names to model field names
+    contact = serializers.CharField(
+        write_only=True,
+        required=True,
+        help_text="Mobile number or email address"
+    )
+    
+    # Map category to request_type
+    category = serializers.ChoiceField(
+        write_only=True,
+        required=False,
+        choices=[
+            ('general', 'General'),
+            ('price', 'Price'),
+            ('tracking', 'Tracking'),
+            ('documentation', 'Documentation'),
+            ('pickup', 'Pickup'),
+            ('other', 'Other')
+        ],
+        default='general',
+        help_text="Category of the support request"
+    )
+    
+    # Add read-only fields for display
+    ticket_number = serializers.CharField(read_only=True)
+    request_type = serializers.CharField(read_only=True)
+    status = serializers.CharField(read_only=True)
+    created_at = serializers.DateTimeField(read_only=True)
+    updated_at = serializers.DateTimeField(read_only=True)
+    resolved_at = serializers.DateTimeField(read_only=True)
+    category_display = serializers.CharField(source='get_request_type_display', read_only=True)
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
+    
+    class Meta:
+        model = SupportRequest
+        fields = [
+            'id',
+            'ticket_number',
+            'subject',
+            'name',
+            'email',
+            'phone',
+            'contact',  # Frontend field that maps to email/phone
+            'category',  # Maps to request_type
             'request_type',
-            'category',  # Frontend field that maps to request_type
+            'category_display',
             'message',
             'attachment',
             'status',
+            'status_display',
             'created_at',
             'updated_at',
             'resolved_at',
             'resolution_notes',
-            'assigned_to',  # This will use the get_assigned_to method
+            'assigned_to',
             'created_by',
             'shipment'
         ]
+        extra_kwargs = {
+            'email': {'required': False},  # Make email not required in serializer
+            'phone': {'required': False},  # Make phone not required in serializer
+        }
         read_only_fields = [
-            'id', 
-            'ticket_number', 
-            'created_at', 
+            'id',
+            'ticket_number',
+            'status',
+            'status_display',
+            'created_at',
             'updated_at',
             'resolved_at',
             'assigned_to',
             'created_by',
-            'status'
+            'shipment',
+            'request_type',  # This is set via the category field
+            'category_display'
         ]
     
     def validate(self, data):
         """
-        Custom validation to handle field mappings and required fields
+        Validate the support request data and handle field mappings.
         """
-        contact = data.pop('contact', '').strip()
+        print("\n=== Validating Data ===")
+        print(f"Raw data: {data}")
         
-        # Check if contact is email or phone
+        # Make a copy to avoid modifying the original
+        validated_data = data.copy()
+        
+        # Handle contact field (email/phone)
+        contact = str(validated_data.pop('contact', '')).strip()
+        print(f"Processing contact: {contact}")
+        
+        if not contact:
+            raise serializers.ValidationError({
+                'contact': 'Contact information is required. Please provide an email address or phone number.'
+            })
+        
+        # Handle email/phone from contact field
         if '@' in contact:
-            data['email'] = contact
+            validated_data['email'] = contact
+            validated_data['phone'] = ''  # Clear phone if email is provided
+            print(f"Set email: {contact}")
         else:
-            # Remove any non-digit characters from phone number
+            # If no email provided, require phone
             phone = ''.join(c for c in contact if c.isdigit())
-            if not phone:
+            if not phone or len(phone) < 10:
                 raise serializers.ValidationError({
-                    'contact': 'Please enter a valid mobile number or email address.'
+                    'contact': 'Please enter a valid phone number (at least 10 digits) or email address.'
                 })
-            data['phone'] = phone
+            validated_data['phone'] = phone
+            validated_data['email'] = f"no-email-{phone}@example.com"  # Provide a dummy email to satisfy the model
+            print(f"Set phone: {phone} and dummy email")
+        
+        # Set default subject if not provided
+        if 'subject' not in validated_data or not validated_data['subject']:
+            validated_data['subject'] = 'No Subject'
             
-        # Map category to request_type if request_type not provided
-        if 'category' in data:
-            data['request_type'] = data.pop('category')
-            
+        # Set default message if not provided
+        if 'message' not in validated_data or not validated_data['message']:
+            validated_data['message'] = 'No message provided'
+        
+        # Map category to request_type if needed
+        if 'category' in validated_data:
+            category = validated_data.pop('category')
+            if category not in dict(self.fields['category'].choices):
+                raise serializers.ValidationError({
+                    'category': f'Invalid category. Must be one of: {list(dict(self.fields["category"].choices).keys())}'
+                })
+            validated_data['request_type'] = category
+            print(f"Mapped category '{category}' to request_type")
+        
+        # Ensure name is set
+        if 'name' not in validated_data or not validated_data['name']:
+            validated_data['name'] = 'Anonymous User'
+        
+        return validated_data
+        
         # Ensure required fields are present
         required_fields = ['name', 'subject', 'message']
         for field in required_fields:
-            if field not in data or not data[field]:
-                raise serializers.ValidationError({field: "This field is required."})
+            value = validated_data.get(field, '')
+            if not value or (isinstance(value, str) and not value.strip()):
+                raise serializers.ValidationError({
+                    field: f"This field is required and cannot be empty."
+                })
+            
+            # Clean string fields
+            if isinstance(value, str):
+                validated_data[field] = value.strip()
         
-        # Set default values
-        data.setdefault('status', 'open')
-        data.setdefault('email', 'no-email@example.com' if not data.get('email') else data['email'])
+        # Set default status if not provided
+        validated_data.setdefault('status', 'open')
         
-        # Only set default request_type if it's not already set
-        if 'request_type' not in data:
-            data['request_type'] = 'general'
+        print("=== Validation Successful ===")
+        print(f"Validated data: {validated_data}")
         
-        return data
+        return validated_data
     
     def create(self, validated_data):
         """
         Create and return a new SupportRequest instance, given the validated data.
         """
-        # Generate a unique ticket number if not provided
-        if not validated_data.get('ticket_number'):
-            import uuid
-            validated_data['ticket_number'] = f"SR-{uuid.uuid4().hex[:8].upper()}"
-            
-        return super().create(validated_data)
+        from django.utils import timezone
+        import uuid
+        
+        print("\n=== Creating Support Request ===")
+        print(f"Validated data: {validated_data}")
+        
+        # Generate ticket number
+        ticket_number = f"SR-{timezone.now().strftime('%Y%m%d')}-{str(uuid.uuid4())[:8].upper()}"
+        print(f"Generated ticket number: {ticket_number}")
+        
+        # Get or set default values
+        name = validated_data.get('name', 'Anonymous User')
+        email = validated_data.get('email', '')
+        phone = validated_data.get('phone', '')
+        subject = validated_data.get('subject', 'No Subject')
+        message = validated_data.get('message', 'No message provided')
+        request_type = validated_data.get('request_type', 'general')
+        
+        # Get assigned_to and created_by from context
+        assigned_to = self.context.get('assigned_to')
+        created_by_id = self.context.get('created_by_id')
+        
+        # Create the support request with all required fields
+        support_request = SupportRequest.objects.create(
+            ticket_number=ticket_number,
+            name=name,
+            email=email,
+            phone=phone,
+            subject=subject,
+            message=message,
+            request_type=request_type,
+            status='open',
+            assigned_to=assigned_to,
+            created_by_id=created_by_id
+        )
+        
+        # Handle file upload if present
+        if 'attachment' in validated_data:
+            support_request.attachment = validated_data['attachment']
+            support_request.save()
+        
+        print(f"Created support request with ID: {support_request.id}")
+        print(f"Ticket Number: {support_request.ticket_number}")
+        print(f"Status: {support_request.status}")
+        
+        return support_request
+
 
 class PickupRequestSerializer(serializers.ModelSerializer):
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())

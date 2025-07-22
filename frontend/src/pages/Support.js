@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { axiosInstance } from '../api';
 
 function Support() {
   const [formData, setFormData] = useState({
@@ -37,14 +38,10 @@ function Support() {
     }
 
     try {
-      const response = await fetch('http://localhost:8000/api/support-requests/', {
-        method: 'POST',
-        body: data,
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        setStatusMsg(`Support request submitted successfully! Your ID: ${result.id}`);
+      const response = await axiosInstance.post('/api/support-requests/', data);
+      
+      if (response.status === 201) {
+        setStatusMsg(`Support request submitted successfully! Your ID: ${response.data.id}`);
         setFormData({
           name: '',
           contact: '',
@@ -53,14 +50,6 @@ function Support() {
           message: '',
           attachment: null,
         });
-      } else {
-        const text = await response.text();
-        try {
-          const error = JSON.parse(text);
-          setErrorMsg(error.detail || 'Failed to submit support request.');
-        } catch {
-          setErrorMsg('Failed to submit support request.');
-        }
       }
     } catch (err) {
       setErrorMsg('Something went wrong. Please try again.');

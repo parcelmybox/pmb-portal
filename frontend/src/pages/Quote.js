@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_URL } from '../api';
 
 function Quote() {
   const [formData, setFormData] = useState({
@@ -32,27 +33,17 @@ function Quote() {
       
       // fetching calculated data from api
       const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
-      fetch(`${API_URL}/api/quote/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
+      axios.post(`${API_URL}/api/quote/`, {
           shipping_route: formData.shippingRoute,
           type: formData.packageType,
           weight: formData.weight,
           weight_metric: formData.weightUnit,
           dim_length: formData.length,
           dim_width: formData.width,
-          dim_height: formData.height,
-          origin: formData.originCity,
-          destination: formData.destinationCity,
-          usd_rate: usdRate
-        })
-      })
-        .then((response) => {
+      }).then((response) => {
+          const data = response.data;
           if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-          return response.json();
+          return data;
         })
         .then((data) => {
           setQuote({

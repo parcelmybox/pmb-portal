@@ -5,6 +5,8 @@ from django.shortcuts import render, redirect
 from django.utils.html import format_html
 from django.contrib.admin.views.decorators import staff_member_required
 from django.utils.safestring import mark_safe
+from django.http import HttpResponseRedirect
+from django.contrib import messages
 from .models import ShippingAddress, Shipment, ShipmentItem, TrackingEvent, Bill, SupportRequest, SupportRequestHistory
 from django.utils import timezone
 from .admin_index import custom_admin_site
@@ -261,7 +263,10 @@ class SupportRequestAdmin(admin.ModelAdmin):
     date_hierarchy = 'created_at'
     readonly_fields = ('ticket_number', 'created_at', 'updated_at', 'resolved_at')
     inlines = [SupportRequestHistoryInline]
-
+    actions = ['assign_to_me', 'mark_in_progress', 'mark_resolved', 'mark_closed']
+    list_per_page = 20
+    change_form_template = 'admin/shipping/supportrequest/change_form.html'
+    
     def request_type_display(self, obj):
         """Display the request type with a badge"""
         type_map = {
@@ -276,24 +281,38 @@ class SupportRequestAdmin(admin.ModelAdmin):
         return mark_safe(f'<span class="badge bg-{badge_class}">{display_text.capitalize()}</span>')
     request_type_display.short_description = 'Type of Support Request'
     request_type_display.admin_order_field = 'request_type'
-    actions = ['assign_to_me', 'mark_in_progress', 'mark_resolved', 'mark_closed']
-    list_per_page = 20
     
     fieldsets = (
-        ('Ticket Information', {
-            'fields': ('ticket_number', 'status', 'assigned_to', 'created_at', 'updated_at', 'resolved_at')
-        }),
-        ('Requester Information', {
-            'fields': ('name', 'email', 'phone')
-        }),
-        ('Request Details', {
-            'fields': ('subject', 'request_type', 'message', 'attachment', 'shipment')
+        ('Request Information', {
+            'classes': ('wide', 'extrapretty', 'two-columns'),
+            'fields': [
+                ('ticket_number', 'status'),
+                ('assigned_to', 'request_type'),
+                ('name', 'email'),
+                ('phone', 'shipment'),
+                'subject',  # Full width field
+                'message',  # Full width field
+                'attachment',  # Full width field
+            ]
         }),
         ('Resolution', {
-            'fields': ('resolution_notes',),
-            'classes': ('collapse',)
+            'classes': ('wide', 'extrapretty', 'two-columns'),
+            'fields': [
+                'resolution_notes',  # Full width field
+                ('created_at', 'updated_at'),
+                'resolved_at'
+            ]
         }),
     )
+    
+    def get_fieldsets(self, request, obj=None):
+        fieldsets = super().get_fieldsets(request, obj)
+        # Add custom CSS class to the first fieldset for two-column layout
+        if fieldsets and fieldsets[0] and fieldsets[0][0] == 'Request Information':
+            fieldsets = list(fieldsets)
+            fieldsets[0] = list(fieldsets[0])
+            fieldsets[0][1]['classes'] = list(fieldsets[0][1].get('classes', [])) + ['two-columns']
+        return fieldsets
     
     def status_display(self, obj):
         status_colors = {
@@ -304,7 +323,7 @@ class SupportRequestAdmin(admin.ModelAdmin):
         }
         color = status_colors.get(obj.status, 'gray')
         return format_html(
-            '<span style="color: white; background-color: {}; padding: 3px 8px; border-radius: 4px;">{}</span>',
+            '<span style="color: white; background-color: {}; padding: 3px 8px; border-radius: 4px; text-align: center; display: inline-block; white-space: nowrap;">{}</span>',
             color,
             obj.get_status_display()
         )
@@ -448,3 +467,26 @@ class SupportRequestAdmin(admin.ModelAdmin):
             # Only show assign to me action for non-superusers
             return {'assign_to_me': actions.get('assign_to_me')}
         return actions
+        
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        extra_context = extra_context or {}
+        extra_context['show_close_button'] = True
+        return super().change_view(
+            request, object_id, form_url, extra_context=extra_context,
+        )
+        
+    class Media:
+        js = (
+            'admin/js/vendor/jquery/jquery.js',
+            'admin/js/calendar.js',
+            'admin/js/admin/DateTimeShortcuts.js',
+        )
+        
+        @property
+        def media(self):
+            media = super().media
+            media._css = media._css or {}
+            media._css['all'] = media._css.get('all', []) + [
+                'shipping/css/admin_supportrequest.css',
+            ]
+            return media
