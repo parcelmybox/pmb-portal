@@ -47,11 +47,14 @@ schema_view = get_schema_view(
 
 # The API URLs are now determined automatically by the router.
 urlpatterns = [
-    # API endpoints
+    # Custom API root view
+    path('', views.api_root, name='api-root'),
+    
+    # Include router URLs
     path('', include(router.urls)),
-
-    # Quote calculation API endpoint
-    path('quote/', QuoteView.as_view(), name='quote'),
+    
+    # Quote calculation endpoint
+    path('quotes/', QuoteView.as_view(), name='quote-calculate'),
     
     # Authentication endpoints
     path('auth/', include([
@@ -59,7 +62,6 @@ urlpatterns = [
         path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
         path('token/verify/', TokenVerifyView.as_view(), name='token_verify'),
     ])),
-    
     
     # API documentation
     re_path(r'^swagger(?P<format>\.json|\.yaml)$', 

@@ -4,8 +4,57 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.views import APIView
+from rest_framework.decorators import api_view, renderer_classes
+from rest_framework.response import Response
+from rest_framework.reverse import reverse
+from rest_framework import renderers
+from rest_framework import status
 from rest_framework.renderers import JSONRenderer
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
+from rest_framework.pagination import PageNumberPagination
+import json
+
+class PrettyJSONRenderer(JSONRenderer):
+    """
+    Custom JSON renderer that formats the output with indentation and newlines
+    for better readability in the browser.
+    """
+    def render(self, data, accepted_media_type=None, renderer_context=None):
+        if self.charset is None:
+            self.charset = 'utf-8'
+            
+        try:
+            # Format the main response dictionary
+            formatted_data = json.dumps(
+                data,
+                indent=2,
+                ensure_ascii=False,
+                default=str
+            )
+            
+            # Add extra newlines between items in the results array
+            if isinstance(data, dict) and 'results' in data and isinstance(data['results'], list):
+                formatted_data = formatted_data.replace('},', '},\n\n')
+            
+            # Ensure we return bytes with proper encoding
+            if isinstance(formatted_data, str):
+                return formatted_data.encode(self.charset)
+            return formatted_data
+            
+        except Exception as e:
+            # Fall back to default renderer if there's an error
+            return super().render(data, accepted_media_type, renderer_context)
+
+
+class SupportRequestPagination(PageNumberPagination):
+    """
+    Custom pagination class for support requests that uses the pretty JSON renderer
+    and adds some custom pagination headers.
+    """
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+    renderer_classes = [PrettyJSONRenderer]
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
 from django.db import models
@@ -29,6 +78,79 @@ from shipping.models import (
 import math
 
 User = get_user_model()
+
+class APIRootView(APIView):
+    """
+    ## ParcelMyBox API
+    
+    Welcome to the ParcelMyBox API. This API provides endpoints for managing shipments,
+    addresses, bills, invoices, and support requests.
+    
+    ### Authentication
+    - Obtain an access token using `/auth/token/`
+    - Include the token in the `Authorization: Bearer <token>` header
+    
+    ### Available Endpoints
+    """
+    
+    def get(self, request, format=None):
+        data = {
+            'users': {
+                'url': reverse('user-list', request=request, format=format),
+                'description': 'User management endpoints',
+                'methods': ['GET', 'POST']
+            },
+            'addresses': {
+                'url': reverse('address-list', request=request, format=format),
+                'description': 'Shipping address management',
+                'methods': ['GET', 'POST']
+            },
+            'shipments': {
+                'url': reverse('shipment-list', request=request, format=format),
+                'description': 'Shipment management and tracking',
+                'methods': ['GET', 'POST']
+            },
+            'bills': {
+                'url': reverse('bill-list', request=request, format=format),
+                'description': 'Billing information',
+                'methods': ['GET', 'POST']
+            },
+            'invoices': {
+                'url': reverse('invoice-list', request=request, format=format),
+                'description': 'Invoice management',
+                'methods': ['GET', 'POST']
+            },
+            'pickup-requests': {
+                'url': reverse('pickuprequest-list', request=request, format=format),
+                'description': 'Schedule and manage package pickups',
+                'methods': ['GET', 'POST']
+            },
+            'support-requests': {
+                'url': reverse('supportrequest-list', request=request, format=format),
+                'description': 'Customer support ticket system',
+                'methods': ['GET', 'POST']
+            },
+            'auth': {
+                'token': {
+                    'obtain': reverse('token_obtain_pair', request=request, format=format),
+                    'refresh': reverse('token_refresh', request=request, format=format),
+                    'verify': reverse('token_verify', request=request, format=format)
+                },
+                'description': 'Authentication endpoints',
+                'methods': ['POST']
+            },
+            'documentation': {
+                'swagger': reverse('schema-swagger-ui', request=request, format=format),
+                'redoc': reverse('schema-redoc', request=request, format=format),
+                'description': 'Interactive API documentation',
+                'methods': ['GET']
+            }
+        }
+        return Response(data)
+
+# Create an instance of the view
+api_root = APIRootView.as_view()
+
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
@@ -286,7 +408,14 @@ class SupportRequestViewSet(viewsets.ModelViewSet):
     Authenticated users can view their own requests.
     Staff users can view and manage all requests.
     """
-    permission_classes = [AllowAny]  # Allow unauthenticated creation
+    permission_classes = [AllowAny]  # Allow unauthenticated access for creating support requests
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['ticket_number', 'subject', 'message', 'status', 'email']
+    ordering_fields = ['created_at', 'updated_at', 'status']
+    ordering = ['-created_at']
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
+    pagination_class = SupportRequestPagination
+    renderer_classes = [PrettyJSONRenderer, renderers.BrowsableAPIRenderer]
     
     def get_serializer_class(self):
         """
@@ -295,12 +424,6 @@ class SupportRequestViewSet(viewsets.ModelViewSet):
         if self.action == 'list':
             return SupportRequestListSerializer
         return SupportRequestSerializer
-    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
-    search_fields = ['ticket_number', 'subject', 'message', 'status', 'email']
-    ordering_fields = ['created_at', 'updated_at', 'status']
-    ordering = ['-created_at']
-    parser_classes = [MultiPartParser, FormParser, JSONParser]  # For form data and JSON
-
     def get_permissions(self):
         """
         Instantiates and returns the list of permissions that this view requires.

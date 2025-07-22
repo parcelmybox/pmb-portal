@@ -163,27 +163,80 @@ from .models import PickupRequest
 
 class SupportRequestListSerializer(serializers.ModelSerializer):
     """
-    Simplified serializer for listing support requests.
-    Only includes essential fields for the list view.
+    Enhanced serializer for listing support requests with better formatting.
+    Groups related fields and provides human-readable values.
     """
-    category_display = serializers.CharField(source='get_request_type_display', read_only=True)
-    status_display = serializers.CharField(source='get_status_display', read_only=True)
+    # Basic information
+    ticket_info = serializers.SerializerMethodField()
+    
+    # Contact information
+    contact_info = serializers.SerializerMethodField()
+    
+    # Status information
+    status_info = serializers.SerializerMethodField()
+    
+    # Dates
+    dates = serializers.SerializerMethodField()
     
     class Meta:
         model = SupportRequest
         fields = [
-            'id',
-            'ticket_number',
+            'ticket_info',
             'subject',
-            'name',
-            'email',
-            'phone',
-            'category_display',
-            'status_display',
-            'created_at',
-            'resolved_at'
+            'contact_info',
+            'status_info',
+            'dates'
         ]
-        read_only_fields = fields
+    
+    def get_ticket_info(self, obj):
+        """
+        Group ticket-related information.
+        """
+        return {
+            'id'           : obj.id,
+            'ticket_number': obj.ticket_number,
+            'category'     : obj.get_request_type_display(),
+            'category_key' : obj.request_type
+        }
+    
+    def get_contact_info(self, obj):
+        """
+        Group contact-related information.
+        """
+        is_placeholder_email = (
+            obj.email == f'no-email-{obj.phone}@example.com' or 
+            obj.email == 'no-email@example.com'
+        )
+        
+        return {
+            'name' : obj.name,
+            'email': None if is_placeholder_email else obj.email,
+            'phone': obj.phone if obj.phone and obj.phone.strip() else None
+        }
+    
+    def get_status_info(self, obj):
+        """
+        Group status-related information.
+        """
+        has_resolution_notes = hasattr(obj, 'resolution_notes')
+        is_closed = obj.status == 'closed'
+        
+        return {
+            'status'         : obj.get_status_display(),
+            'status_key'     : obj.status,
+            'is_resolved'    : is_closed,
+            'resolution_notes': obj.resolution_notes if has_resolution_notes and is_closed else None
+        }
+    
+    def get_dates(self, obj):
+        """
+        Group date-related information.
+        """
+        return {
+            'created' : obj.created_at,
+            'updated' : obj.updated_at,
+            'resolved': obj.resolved_at
+        }
 
 
 class SupportRequestSerializer(serializers.ModelSerializer):

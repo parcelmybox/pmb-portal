@@ -52,15 +52,17 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize',  # For human-readable formatting
+    
+    # Third-party apps
+    'rest_framework',
+    'crispy_forms',
+    'crispy_bootstrap5',
+    'corsheaders',
+    
+    # Local apps
     'category',
     'shipping',
     'api',
-    
-    # Third-party apps
-    'crispy_forms',
-    'crispy_bootstrap5',
-    
-    'corsheaders',
 ]
 
 
@@ -89,6 +91,7 @@ REST_FRAMEWORK = {
    
     'DEFAULT_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer',
+        'rest_framework.renderers.BrowsableAPIRenderer',
     ]
 }
 
