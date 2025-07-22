@@ -89,6 +89,7 @@ function Quote() {
 							});
 						} else {
 							navigate('/quote-result', {
+								// passes form data and quote calculation results to the results page for display
 								state: {
 									formData: formData,
 									quoteData: {
@@ -145,15 +146,6 @@ function Quote() {
 			[name]: value
 		}));
 	};
-
-	// formats prices input to it into locale string, currency symbol and adds '/kg' if required (per kg price)
-	const formatPrice = (prices, currency) => {
-		if (currency == '₹') {
-			return `${Math.ceil(prices.fixed_price === null ? (prices.per_kg_price) : (prices.fixed_price)).toLocaleString()}${(prices.fixed_price === null) ? "/kg" : ''}`;
-		} else {
-			return `${Math.ceil(prices.fixed_price === null ? (prices.per_kg_price / usdRate) : (prices.fixed_price / usdRate)).toLocaleString()}${prices.fixed_price === null ? "/kg" : ''}`;
-		}
-	}
 
 	const inputClass = "mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm";
 	const labelClass = "block text-sm font-medium text-gray-700";

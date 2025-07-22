@@ -5,7 +5,7 @@ import CourierPlanCard from '../components/CourierPlanCard';
 function QuoteResult() {
 	const location = useLocation();
 	const navigate = useNavigate();
-	const { state } = location;
+	const { state } = location; // receive data passed to frontend from quote calculation
 
 	const [combinedPlans, setCombinedPlans] = useState([]);
 	const [carrierPreference, setCarrierPreference] = useState("UPS Shipping");
@@ -17,6 +17,7 @@ function QuoteResult() {
 	useEffect(() => {
 		if (!state) return;
 
+		// combines form data quote calculation data from backend for price display and pdf generation
 		const fetchAndCombinePlans = async () => {
 			try {
 				const response = await fetch(`${API_URL}/shipping/courier-plans`);
@@ -25,10 +26,13 @@ function QuoteResult() {
 				const { formData, quoteData, usdRate } = state;
 
 				const combined = quoteData.prices.map(price => {
+					// finds matching record for each carrier plan retrieved from database 
+					// matches courier plans (description of courier services) with calculated data based on courier name
 					const matchingPlan = plans.find(
 						p => p.name.toLowerCase() === price.courier_name.toLowerCase()
 					);
-
+					
+					// fallback in case no plan matches
 					const fallback = {
 						name: price.courier_name,
 						tagline: 'No tagline available',
@@ -39,6 +43,8 @@ function QuoteResult() {
 
 					const finalPlan = matchingPlan || fallback;
 
+
+					// formats price for display
 					const displayPrice = `${quoteData.currency}${Math.ceil(price.fixed_price || price.per_kg_price).toLocaleString()}`
 						+ (price.fixed_price == null ? '/kg' : '');
 
@@ -62,6 +68,7 @@ function QuoteResult() {
 		fetchAndCombinePlans();
 	}, [state]);
 
+	// when visiting page without any data
 	if (!state) {
 		return (
 			<p>
@@ -76,6 +83,7 @@ function QuoteResult() {
 		);
 	}
 
+	// function to generate quote pdf using wkhtmltopdf
 	const downloadPDF = () => {
 		const payload = {
 			formData: formData,
@@ -154,6 +162,7 @@ function QuoteResult() {
 						Package type: <span className="font-semibold">{formData.packageType.charAt(0).toUpperCase() + formData.packageType.slice(1)}</span>
 					</p>
 
+					{/* volumetric weight disclaimer */}
 					{quoteData.volumetricUsed === true && (
 						<div className="my-4 p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded-lg">
 							<p className="text-yellow-700 font-medium">
@@ -162,6 +171,7 @@ function QuoteResult() {
 						</div>
 					)}
 
+					{/* documents required for medicine and document package types */}
 					{formData.packageType === "medicine" && (
 						<div className="my-4 bg-blue-50 border-l-4 border-blue-400 p-4 rounded-lg">
 							<h3 className="font-semibold text-blue-700">Required Documents for Medicine:</h3>
@@ -180,6 +190,7 @@ function QuoteResult() {
 						</div>
 					)}
 
+					{/* all plans display */}
 					<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 						{combinedPlans.map((plan, i) => (
 							<CourierPlanCard
