@@ -27,3 +27,5 @@ pyyaml==6.0.1  # For API schema generation
 coreapi==2.3.3  # For API documentation
 markdown==3.5.1  # For markdown support in API docs
 django-cors-headers
+
+weasyprint==65.1

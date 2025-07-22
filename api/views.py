@@ -24,8 +24,8 @@ from rest_framework import views
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
 from django.http import HttpResponse
-from xhtml2pdf import pisa
 from django.template.loader import get_template
+from weasyprint import HTML, CSS
 import datetime
 import math
 
@@ -295,6 +295,8 @@ class QuoteView(APIView):
             })
         return Response(serializer.errors, status=400)
 
+import datetime
+
 class GenerateQuotePDF(APIView):
     permission_classes = [AllowAny]
 
@@ -305,19 +307,17 @@ class GenerateQuotePDF(APIView):
             quote_data = data.get("quoteData")
             carrier_preference = data.get("carrierPreference")
 
-            # Generate Invoice ID and Date
             invoice_id = f"QUOTE-{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}"
             quote_date = datetime.datetime.now().strftime("%B %d, %Y")
 
+            base_price = 0
             for price in quote_data.get('prices'):
-                print(f"{price.get('courier_name')} {carrier_preference} {price.get('courier_name') == carrier_preference}")
                 if price.get("courier_name") == carrier_preference:
                     if price.get("fixed_price") is None:
                         base_price = float(price.get("per_kg_price", 0)) * float(quote_data.get("chargeableWeight", 0))
                     else:
                         base_price = int(price.get("fixed_price"))
 
-            # Combine data for template
             context = {
                 "invoice_id": invoice_id,
                 "quote_date": quote_date,
@@ -340,66 +340,20 @@ class GenerateQuotePDF(APIView):
                 )
             }
 
-            # Render HTML template
+            # Render HTML
             template = get_template('api/quote-pdf-template-temp.html')
-            html = template.render(context)
+            html_content = template.render(context)
 
-            # Create HTTP response with PDF headers
-            response = HttpResponse(content_type='application/pdf')
+            # Generate PDF without additional CSS
+            pdf_file = HTML(string=html_content).write_pdf()
+
+            response = HttpResponse(pdf_file, content_type='application/pdf')
             response['Content-Disposition'] = f'attachment; filename="{invoice_id}.pdf"'
-
-            try:
-                # Generate PDF using xhtml2pdf
-                from xhtml2pdf import pisa
-
-                # Simple CSS to ensure basic formatting
-                default_css = """
-                    body {
-                        font-family: Arial, sans-serif;
-                        font-size: 10px;
-                        line-height: 1.4;
-                        margin: 0;
-                        padding: 0;
-                    }
-                    table {
-                        width: 100%;
-                        border-collapse: collapse;
-                        margin: 10px 0;
-                    }
-                    th, td {
-                        border: 1px solid #ddd;
-                        padding: 6px;
-                        text-align: left;
-                    }
-                    th {
-                        background-color: #f5f5f5;
-                        font-weight: bold;
-                    }
-                """
-
-                pisa_status = pisa.CreatePDF(
-                    html,
-                    dest=response,
-                    encoding='UTF-8',
-                    link_callback=None,
-                    show_error_as_pdf=False,
-                    xhtml=False,
-                    default_css=default_css
-                )
-
-                if pisa_status.err:
-                    return Response(
-                        {"error": "Failed to generate PDF"},
-                        status=status.HTTP_500_INTERNAL_SERVER_ERROR
-                    )
-
-                return response
-
-            except Exception as e:
-                return Response({"error": f"PDF generation error: {str(e)}"}, status=500)
+            return response
 
         except Exception as e:
             return Response({"error": str(e)}, status=400)
+
 
 #pickupRequest
 
