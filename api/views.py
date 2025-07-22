@@ -254,7 +254,6 @@ class QuoteView(APIView):
             prices = []
             volumetric_used = False
             shipping_time = "10-15 business days" if shipping_route == "india-to-usa" else "7-10 business days"
-            print(weight_metric)
             if type == "package":
                 if weight_metric == "lbs":
                     weight *= 0.453592
