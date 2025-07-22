@@ -52,7 +52,7 @@ function QuoteResult() {
 						...finalPlan,
 						usdRate: usdRate,
 						priceDisplay: displayPrice,
-						priceDetail: `${quoteData.chargeableWeight} ${formData.weightUnit} - ${quoteData.shippingTime} delivery`,
+						priceDetail: `${quoteData.chargeableWeight} kg - ${quoteData.shippingTime} delivery`,
 					};
 				});
 

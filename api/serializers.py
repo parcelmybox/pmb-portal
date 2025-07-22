@@ -205,7 +205,7 @@ class QuoteSerializer(serializers.Serializer):
     origin = serializers.ChoiceField(choices=["mumbai", "delhi", "bangalore", "chennai", "hyderabad"], allow_blank=True)
     destination = serializers.ChoiceField(choices=["mumbai", "delhi", "bangalore", "chennai", "hyderabad"], allow_blank=True)
     weight = serializers.FloatField()
-    weight_metric = serializers.ChoiceField(choices=["kg", "lb"])
+    weight_metric = serializers.ChoiceField(choices=["kg", "lbs"])
     include_dimensions = serializers.BooleanField()
     dim_length = serializers.FloatField()
     dim_width = serializers.FloatField()
