@@ -25,7 +25,7 @@ from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
 from django.http import HttpResponse
 from django.template.loader import get_template
-from weasyprint import HTML, CSS
+import pdfkit
 import datetime
 import math
 
@@ -340,12 +340,21 @@ class GenerateQuotePDF(APIView):
                 )
             }
 
-            # Render HTML
-            template = get_template('api/quote-pdf-template-temp.html')
+            # Render HTML using Django template
+            template = get_template('api/quote-pdf-template.html')
             html_content = template.render(context)
 
-            # Generate PDF without additional CSS
-            pdf_file = HTML(string=html_content).write_pdf()
+            # Generate PDF with pdfkit
+            options = {
+                'encoding': "UTF-8",
+                'page-size': 'A4',
+                'margin-top': '0.75in',
+                'margin-right': '0.75in',
+                'margin-bottom': '0.75in',
+                'margin-left': '0.75in',
+            }
+
+            pdf_file = pdfkit.from_string(html_content, False, options=options)
 
             response = HttpResponse(pdf_file, content_type='application/pdf')
             response['Content-Disposition'] = f'attachment; filename="{invoice_id}.pdf"'
