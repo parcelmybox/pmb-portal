@@ -14,7 +14,6 @@ function Quote() {
 		height: 0,
 		packageType: 'package',
 		currency: '₹',
-		usdRate: 82.5, // Approximate USD to INR rate
 		weightUnit: 'kg',
 		carrierPreferenceType: 'fastest',
 		carrierPreference: '',
@@ -35,8 +34,13 @@ function Quote() {
 
 	const checkAllRequiredFields = () => {
 		const { originCity, destinationCity, weight, includeDimensions, length, height, width } = formData;
-		if ((originCity === '' && destinationCity === '') || weight === '') return false;
-		else if (includeDimensions === true && (length == 0 || width == 0 || height == 0)) return false;
+
+		if (!originCity && !destinationCity) return false;
+
+		if (!weight) return false;
+
+		if (includeDimensions && (length <= 0 || width <= 0 || height <= 0)) return false;
+
 		return true;
 	}
 
@@ -65,6 +69,7 @@ function Quote() {
 						usd_rate: usdRate,
 						carrier_preference_type: formData.carrierPreferenceType,
 						carrier_preference: formData.carrierPreference,
+						currency: (formData.shippingRoute === 'india-to-usa' ? '₹' : '$'),
 					})
 				})
 					.then((response) => {
@@ -90,8 +95,10 @@ function Quote() {
 										prices: data.prices,
 										shippingTime: data.shipping_time,
 										chargeableWeight: data.chargeable_weight,
-										volumetricUsed: data.volumetric_used
-									}
+										volumetricUsed: data.volumetric_used,
+										currency: data.currency,
+									},
+									usdRate: usdRate,
 								}
 							});
 						}
@@ -144,7 +151,7 @@ function Quote() {
 		if (currency == '₹') {
 			return `${Math.ceil(prices.fixed_price === null ? (prices.per_kg_price) : (prices.fixed_price)).toLocaleString()}${(prices.fixed_price === null) ? "/kg" : ''}`;
 		} else {
-			return `${Math.ceil(prices.fixed_price === null ? (prices.per_kg_price / formData.usdRate) : (prices.fixed_price / formData.usdRate)).toLocaleString()}${prices.fixed_price === null ? "/kg" : ''}`;
+			return `${Math.ceil(prices.fixed_price === null ? (prices.per_kg_price / usdRate) : (prices.fixed_price / usdRate)).toLocaleString()}${prices.fixed_price === null ? "/kg" : ''}`;
 		}
 	}
 
@@ -220,7 +227,7 @@ function Quote() {
 					{formData.shippingRoute === "usa-to-india" && (
 						<div>
 							<label htmlFor="destinationCity" className={labelClass}>Destination City</label>
-							<select name="destintionCity" id="destintionCity" value={formData.destintionCity} onChange={handleChange} className={inputClass} required>
+							<select name="destinationCity" id="destintionCity" value={formData.destinationCity} onChange={handleChange} className={inputClass} required>
 								<option value="">Select destintion city</option>
 								<option value="mumbai">Mumbai</option>
 								<option value="delhi">New Delhi</option>
@@ -302,7 +309,7 @@ function Quote() {
 							</div>
 						</>
 					)}
-					
+
 					<div>
 						<button
 							type="button"
@@ -315,111 +322,6 @@ function Quote() {
 						</button>
 					</div>
 				</form>
-
-				{/* price calculation display */}
-				{(quote.prices.length != 0 && quote.error === '' && quote.shippingTime !== '') && (
-					<div className="mt-8 bg-white rounded-lg shadow-lg p-6">
-						<h2 className="text-xl font-semibold text-gray-800 mb-4">Your Quote</h2>
-						<div className="space-y-4">
-							<div className="flex flex-col md:flex-row items-start md:items-center justify-between space-y-2 md:space-y-0 md:space-x-4">
-								<div className="flex-1">
-									<span className="text-gray-600">Route</span>
-									<br />
-									<span className="text-indigo-600 font-semibold text-lg">
-										{formData.shippingRoute === 'india-to-usa' ? 'India to USA' : 'USA to India'}
-									</span>
-								</div>
-								<div className="flex-1 text-left md:text-right">
-									<span className="text-gray-600">Chargeable Weight</span>
-									<br />
-									<span className="text-indigo-600 font-semibold text-lg">
-										{quote.chargeableWeight} {formData.weightUnit}
-									</span>
-								</div>
-							</div>
-							<div className="flex flex-col md:flex-row items-start md:items-center justify-between space-y-2 md:space-y-0 md:space-x-4">
-								<div className="flex-1">
-									<span className="text-gray-600">Package Type</span>
-									<br />
-									<span className="text-indigo-600 font-semibold text-lg">
-										{formData.packageType.charAt(0).toUpperCase() + formData.packageType.slice(1)}
-									</span>
-								</div>
-								<div className="flex-1 text-left md:text-right">
-									<span className="text-gray-600">Price in INR</span>
-									<br />
-									<span className="text-black-600 mr-1">{`${quote.prices[0].courier_name}`}</span>
-									<span className="text-indigo-600 font-semibold">
-										₹{formatPrice(quote.prices[0], '₹')}
-									</span><br />
-
-									{/* courier -> 3 price displays, document and medicine -> 1 price display */}
-									{formData.packageType === "package" && (
-										<>
-											<span className="text-black-600 mr-1">{`${quote.prices[1].courier_name || ''}`}&nbsp;</span>
-											<span className="text-indigo-600 font-semibold">
-												₹{formatPrice(quote.prices[1] || 0, '₹')}
-											</span><br />
-											<span className="text-black-600 mr-1">{`${quote.prices[2].courier_name || ''}`}&nbsp;</span>
-											<span className="text-indigo-600 font-semibold">
-												₹{formatPrice(quote.prices[2] || 0, '₹')}
-											</span><br />
-										</>
-									)}
-								</div>
-							</div>
-							<div className="flex flex-col md:flex-row items-start md:items-center justify-between space-y-2 md:space-y-0 md:space-x-4">
-								<div>
-									<span className="text-gray-600">Price in USD</span>
-									<br />
-									<span className="text-black-600 mr-1">{`${quote.prices[0].courier_name}`}</span>
-									<span className="text-indigo-600 font-semibold">
-										${formatPrice(quote.prices[0], '$')}
-									</span><br />
-
-									{/* courier -> 3 price displays, document and medicine -> 1 price displays */}
-									{formData.packageType === "package" && (
-										<>
-											<span className="text-black-600 mr-1">{`${quote.prices[1].courier_name}`}</span>
-											<span className="text-indigo-600 font-semibold">
-												${formatPrice(quote.prices[1], '$')}
-											</span><br />
-											<span className="text-black-600 mr-1">{`${quote.prices[2].courier_name}`}</span>
-											<span className="text-indigo-600 font-semibold">
-												${formatPrice(quote.prices[2], '$')}
-											</span><br />
-										</>
-									)}
-								</div>
-								<div className="flex flex-col md:flex-row items-start md:items-center justify-between space-y-2 md:space-y-0 md:space-x-4">
-									<div className="flex-1">
-										<span className="text-gray-600">Current Exchange Rate</span>
-										<br />
-										<span className="text-indigo-600 font-semibold text-lg">1 USD = {usdRate} INR</span>
-									</div>
-								</div>
-							</div>
-						</div>
-
-						<div className="mt-6">
-							{quote.volumetricUsed && (
-								<div className="flex text-sm">
-									<p className="text-gray-600 text-gray-600">
-										* Volumetric Weight is being used for pricing. &nbsp;
-									</p>
-									<a href='https://www.parcelhero.com/en-gb/support/volumetric-weight-calculator'>
-										<span className="text-indigo-600 semibold">What is Volumetric Weight?</span>
-									</a>
-								</div>
-							)}
-							<div className="mt-1">
-								<p className="text-sm text-gray-600">
-									** Prices include all handling and customs fees. Delivery times and estimates may vary.
-								</p>
-							</div>
-						</div>
-					</div>
-				)}
 
 				{quote.error && (
 					<div className="mt-4 p-4 bg-red-50 text-red-700 rounded-lg">

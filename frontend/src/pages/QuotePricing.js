@@ -22,7 +22,7 @@ function QuoteResult() {
 				const response = await fetch(`${API_URL}/shipping/courier-plans`);
 				const plans = await response.json();
 
-				const { formData, quoteData } = state;
+				const { formData, quoteData, usdRate } = state;
 
 				const combined = quoteData.prices.map(price => {
 					const matchingPlan = plans.find(
@@ -39,11 +39,12 @@ function QuoteResult() {
 
 					const finalPlan = matchingPlan || fallback;
 
-					const displayPrice = `₹${Math.ceil(price.fixed_price || price.per_kg_price).toLocaleString()}`
+					const displayPrice = `${quoteData.currency}${Math.ceil(price.fixed_price || price.per_kg_price).toLocaleString()}`
 						+ (price.fixed_price == null ? '/kg' : '');
 
 					return {
 						...finalPlan,
+						usdRate: usdRate,
 						priceDisplay: displayPrice,
 						priceDetail: `${quoteData.chargeableWeight} ${formData.weightUnit} - ${quoteData.shippingTime} delivery`,
 					};
@@ -80,6 +81,7 @@ function QuoteResult() {
 			formData: formData,
 			quoteData: quoteData,
 			carrierPreference: carrierPreference,
+			usdRate: usdRate,
 		};
 
 		fetch(`${API_URL}/api/generate-quote-pdf/`, {
@@ -110,7 +112,7 @@ function QuoteResult() {
 	};
 
 	// Normal render
-	const { formData, quoteData } = state;
+	const { formData, quoteData, usdRate } = state;
 
 	return (
 		<div className="max-w-4xl mx-auto p-6">

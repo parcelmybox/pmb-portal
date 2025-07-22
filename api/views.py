@@ -247,9 +247,8 @@ class QuoteView(APIView):
             dim_length = serializer.validated_data["dim_length"]
             dim_width = serializer.validated_data["dim_width"]
             dim_height = serializer.validated_data["dim_height"]
+            currency = serializer.validated_data['currency']
             usd_rate = serializer.validated_data["usd_rate"]
-            carrier_preference_type = serializer.validated_data["carrier_preference_type"]
-            carrier_preference = serializer.validated_data["carrier_preference"]
 
             chargeable_weight = 0
             prices = []
@@ -259,7 +258,6 @@ class QuoteView(APIView):
             if type == "package":
                 if weight_metric == "lb":
                     weight *= 0.453592
-
 
                 if include_dimensions:
                     volumetric_weight = (dim_length * dim_width * dim_height) / 5000
@@ -274,17 +272,25 @@ class QuoteView(APIView):
                     if price.courier == "ups": price.courier = "UPS Shipping"
                     elif price.courier == "dhl": price.courier = "DHL Shipping"
                     elif price.courier == "fedex": price.courier = "FedEx Shipping"
+
+                    if currency == '$':
+                        if price.fixed_price: price.fixed_price = math.ceil(float(price.fixed_price) / usd_rate)
+                        elif price.per_kg_price: price.per_kg_price = math.ceil(float(price.per_kg_price) / usd_rate)
+                    
                     prices.append({
                         "fixed_price": price.fixed_price,
                         "per_kg_price": price.per_kg_price,
-                        "courier_name": price.courier
+                        "courier_name": price.courier,
                     })
             else:
                 relevant_prices = ShippingRates.objects.filter(min_kg__lte = weight, max_kg__gte = weight, package_type=type)
+                if currency == '$':
+                    if relevant_prices[0].fixed_price: relevant_prices[0].fixed_price = math.ceil(float(relevant_prices[0].fixed_price) / usd_rate)
+                    elif relevant_prices[0].per_kg_price: relevant_prices[0].per_kg_price = math.ceil(float(relevant_prices[0].per_kg_price) / usd_rate)
                 prices.append({
                     "fixed_price": relevant_prices[0].fixed_price,
                     "per_kg_price": relevant_prices[0].per_kg_price,
-                    "courier_name": ""
+                    "courier_name": "UPS Shipping",
                 })
             
             return Response({
@@ -292,10 +298,9 @@ class QuoteView(APIView):
                 "chargeable_weight": chargeable_weight if chargeable_weight else weight,
                 "shipping_time": shipping_time,
                 "volumetric_used": volumetric_used,
+                "currency": currency,
             })
         return Response(serializer.errors, status=400)
-
-import datetime
 
 class GenerateQuotePDF(APIView):
     permission_classes = [AllowAny]
@@ -331,9 +336,9 @@ class GenerateQuotePDF(APIView):
                 "volumetric_used": quote_data.get("volumetricUsed", False),
                 "shipping_time": quote_data.get("shippingTime", ""),
                 "carrier_name": carrier_preference,
-                "base_price": f"{form_data.get('currency', '')}{base_price}",
-                "currency": form_data.get("currency", "₹"),
-                "exchange_rate": f"1 USD = ₹{form_data.get('usdRate', '')}",
+                "base_price": f"{quote_data.get('currency', '₹')}{base_price}",
+                "currency": quote_data.get("currency", "₹"),
+                "exchange_rate": f"1$ = ₹{data.get('usdRate', '')}",
                 "dimensions": (
                     f"{form_data['dim_length']}L{form_data['dim_width']}W{form_data['dim_height']}H"
                     if form_data.get("dim_length") else "N/A"

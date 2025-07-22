@@ -213,6 +213,7 @@ class QuoteSerializer(serializers.Serializer):
     usd_rate = serializers.FloatField()
     carrier_preference_type = serializers.ChoiceField(choices=["fastest", "cheapest", "choose-manually"])
     carrier_preference = serializers.ChoiceField(choices=["", "ups", "dhl", "fedex"])
+    currency = serializers.ChoiceField(choices=['₹', '$'])
 
     def validate(self, data):
         route = data.get("shipping_route")
