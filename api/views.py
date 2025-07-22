@@ -297,7 +297,7 @@ class QuoteView(APIView):
 
 class GenerateQuotePDF(APIView):
     permission_classes = [AllowAny]
-    
+
     def post(self, request):
         try:
             data = request.data
@@ -344,24 +344,62 @@ class GenerateQuotePDF(APIView):
             template = get_template('api/quote-pdf-template-temp.html')
             html = template.render(context)
 
-            # Generate PDF
+            # Create HTTP response with PDF headers
             response = HttpResponse(content_type='application/pdf')
             response['Content-Disposition'] = f'attachment; filename="{invoice_id}.pdf"'
-            pisa_status = pisa.CreatePDF(html, dest=response)
 
-            if pisa_status.err:
-                return Response(
-                    {"error": "Failed to generate PDF"},
-                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            try:
+                # Generate PDF using xhtml2pdf
+                from xhtml2pdf import pisa
+
+                # Simple CSS to ensure basic formatting
+                default_css = """
+                    body {
+                        font-family: Arial, sans-serif;
+                        font-size: 10px;
+                        line-height: 1.4;
+                        margin: 0;
+                        padding: 0;
+                    }
+                    table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        margin: 10px 0;
+                    }
+                    th, td {
+                        border: 1px solid #ddd;
+                        padding: 6px;
+                        text-align: left;
+                    }
+                    th {
+                        background-color: #f5f5f5;
+                        font-weight: bold;
+                    }
+                """
+
+                pisa_status = pisa.CreatePDF(
+                    html,
+                    dest=response,
+                    encoding='UTF-8',
+                    link_callback=None,
+                    show_error_as_pdf=False,
+                    xhtml=False,
+                    default_css=default_css
                 )
 
-            return response
+                if pisa_status.err:
+                    return Response(
+                        {"error": "Failed to generate PDF"},
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                    )
+
+                return response
+
+            except Exception as e:
+                return Response({"error": f"PDF generation error: {str(e)}"}, status=500)
 
         except Exception as e:
-            return Response(
-                {"error": f"Unexpected error: {str(e)}"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({"error": str(e)}, status=400)
 
 #pickupRequest
 
