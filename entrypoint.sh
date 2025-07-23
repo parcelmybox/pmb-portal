@@ -38,6 +38,25 @@ python manage.py migrate --noinput || {
     exit 1
 }
 
+# Create superuser if it doesn't exist
+log "Creating superuser if needed..."
+python manage.py shell -c "
+import os
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+username = os.environ.get('DEFAULT_ADMIN_USER', 'admin')
+email = os.environ.get('DEFAULT_ADMIN_EMAIL', 'admin@example.com')
+password = os.environ.get('DEFAULT_ADMIN_PASSWORD', 'admin123')
+
+if not User.objects.filter(username=username).exists():
+    print(f'Creating superuser {username}...')
+    User.objects.create_superuser(username, email, password)
+    print('Superuser created successfully!')
+else:
+    print('Superuser already exists.')
+"
+
 # Load initial data
 log "Loading initial data..."
 python manage.py load_courier_plans || {
