@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Confirm Deletion | {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'shipping:shipment_list' %}">Shipping</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'shipping:invoice_list' %}">Invoices</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Confirm Deletion</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Confirm Deletion
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <h5 class="alert-heading">
+                            <i class="fas fa-exclamation-circle me-2"></i>
+                            Warning!
+                        </h5>
+                        <p class="mb-0">
+                            You are about to delete <strong>{{ count }} invoice(s)</strong>. This action cannot be undone.
+                        </p>
+                    </div>
+                    
+                    <h5 class="mt-4 mb-3">Invoices to be deleted:</h5>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Invoice #</th>
+                                    <th>Customer</th>
+                                    <th>Date</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for invoice in invoices %}
+                                <tr>
+                                    <td>{{ invoice.invoice_number|default:"N/A" }}</td>
+                                    <td>{{ invoice.customer.get_full_name|default:invoice.customer.username }}</td>
+                                    <td>{{ invoice.created_at|date:"M d, Y" }}</td>
+                                    <td>${{ invoice.total_amount|floatformat:2 }}</td>
+                                    <td>
+                                        <span class="badge bg-{{ invoice.get_status_display|lower }}">
+                                            {{ invoice.get_status_display }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center">No invoices found.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <form method="post" class="mt-4">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-between align-items-center">
+                            <a href="{% url 'shipping:invoice_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash-alt me-2"></i>Delete {{ count }} Invoice{{ count|pluralize }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .badge {
+        font-size: 0.85em;
+        padding: 0.35em 0.65em;
+    }
+    .bg-paid { background-color: #198754 !important; }
+    .bg-pending { background-color: #fd7e14 !important; }
+    .bg-overdue { background-color: #dc3545 !important; }
+    .bg-draft { background-color: #6c757d !important; }
+    .bg-cancelled { background-color: #6c757d !important; }
+</style>
+{% endblock %}

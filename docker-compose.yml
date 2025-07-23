@@ -1,4 +1,26 @@
 services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - CHOKIDAR_USEPOLLING=true
+      - WDS_SOCKET_PORT=0  # Disable WebSocket for hot reloading in Docker
+      - REACT_APP_API_URL= http://localhost:8000
+      - DANGEROUSLY_DISABLE_HOST_CHECK=true
+    networks:
+      - pmb_network
+    stdin_open: true
+    tty: true
+    restart: unless-stopped
+
   db:
     image: mariadb:10.11
     container_name: mariadb
@@ -10,7 +32,7 @@ services:
       MYSQL_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:-rootpassword}
       MYSQL_INITDB_SKIP_TZINFO: 1
     ports:
-      - "${DB_PORT:-3306}:3306"
+      - "${DB_PORT:-3307}:3306"
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:
@@ -28,16 +50,6 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: web
-    volumes:
-      - .:/app
-      - static_volume:/app/static
-      - media_volume:/app/media
-    ports:
-      - "8000:8000"
-      - "8501:8501"
-    depends_on:
-      db:
-        condition: service_healthy
     environment:
       - DB_HOST=mariadb  # Use container_name as hostname
       - DB_NAME=${DB_NAME:-pmb_db}
@@ -52,24 +64,21 @@ services:
       - STREAMLIT_SERVER_PORT=8501
       - STREAMLIT_SERVER_HEADLESS=true
       - STREAMLIT_BROWSER_GATHER_USAGE_STATS=false
+      - CORS_ORIGIN_WHITELIST=http://localhost:3000,http://localhost:8000
+      - CSRF_TRUSTED_ORIGINS=http://localhost:3000,http://localhost:8000
+    volumes:
+      - .:/app
+      - static_volume:/app/static
+      - media_volume:/app/media
+    ports:
+      - "8000:8000"
+      - "8501:8501"
     networks:
       - pmb_network
     restart: unless-stopped
     init: true  # Use tini as init process to handle signals properly
     working_dir: /app
-    command: >
-      sh -c "
-      echo 'Waiting for database...' &&
-      until mysqladmin ping -hmariadb -u${DB_USER:-pmb_user} -p${DB_PASSWORD:-pmb_user} --silent; do
-        echo 'Waiting for database...';
-        sleep 2;
-      done &&
-      echo 'Database is ready!' &&
-      python manage.py migrate &&
-      python manage.py init_city_codes &&
-      python manage.py collectstatic --noinput --clear &&
-      (streamlit run streamlit_app.py --server.port=8501 --server.address=0.0.0.0 &) &&
-      python manage.py runserver 0.0.0.0:8000"
+    command: ["sh", "-c", "dos2unix /app/entrypoint.sh && chmod +x /app/entrypoint.sh && exec /app/entrypoint.sh"]
 
 networks:
   pmb_network:

@@ -1,0 +1,101 @@
+{% extends 'shipping/billing/base_billing.html' %}
+
+{% block billing_title %}Create New Bill{% endblock %}
+
+{% block billing_content %}
+<div class="bill-form">
+    <form method="post">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label for="customer_id">Customer:</label>
+            <select name="customer_id" id="customer_id" required>
+                <option value="">Select a customer</option>
+                {% for customer in customers %}
+                <option value="{{ customer.id }}">
+                    {{ customer.get_full_name|default:customer.username }} ({{ customer.email }})
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="amount">Amount ($):</label>
+            <input type="number" name="amount" id="amount" step="0.01" min="0" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="description">Description (optional):</label>
+            <textarea name="description" id="description" rows="3"></textarea>
+        </div>
+        
+        <div class="form-actions">
+            <button type="submit" class="button">Create Bill</button>
+            <a href="{% url 'shipping:bill_list' %}" class="button">Cancel</a>
+        </div>
+    </form>
+</div>
+
+<style>
+.bill-form {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+input[type="number"],
+input[type="text"],
+select,
+textarea {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+.form-actions {
+    margin-top: 30px;
+    text-align: right;
+}
+
+.button {
+    display: inline-block;
+    padding: 8px 16px;
+    background: #79aec8;
+    color: white;
+    text-decoration: none;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-left: 10px;
+}
+
+.button:hover {
+    background: #609ab6;
+}
+
+.button[type="submit"] {
+    background: #5cb85c;
+}
+
+.button[type="submit"]:hover {
+    background: #4cae4c;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block title %}Shipping Pricing - Parcel My Box{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="text-center mb-5">
+        <h1 class="display-4">Shipping Pricing</h1>
+        <p class="lead">Choose the perfect shipping solution for your needs</p>
+    </div>
+    
+    <div class="row g-4">
+        {% for tier in pricing_tiers %}
+        <div class="col-md-4">
+            <div class="card h-100 {% if tier.popular %}border-primary border-2{% endif %}">
+                {% if tier.popular %}
+                <div class="card-header bg-primary text-white text-center">
+                    <span class="badge bg-light text-primary">MOST POPULAR</span>
+                </div>
+                {% endif %}
+                <div class="card-body text-center">
+                    <h3 class="card-title">{{ tier.name }}</h3>
+                    <h2 class="my-4">{{ tier.price }}</h2>
+                    <ul class="list-unstyled">
+                        {% for feature in tier.features %}
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>{{ feature }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div class="card-footer bg-transparent border-0 text-center mb-3">
+                    <a href="{% url 'admin:shipping_shipment_add' %}" class="btn {% if tier.popular %}btn-primary{% else %}btn-outline-primary{% endif %} w-75">
+                        Get Started
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h3 class="card-title mb-4">Need help choosing?</h3>
+                    <p>Our shipping experts are here to help you find the perfect solution for your shipping needs.</p>
+                    <a href="#" class="btn btn-outline-secondary">
+                        <i class="fas fa-phone-alt me-2"></i>Contact Support
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends "admin/app_index.html" %}
+{% load i18n static %}
+
+{% block content %}
+<div id="content-main">
+  <div class="app-shipping module">
+    <table>
+      <caption>
+        <a href="{% url 'admin:app_list' app_label='shipping' %}" class="section" title="Shipping">Quick Links</a>
+      </caption>
+      <tr class="model-shipment">
+        <th scope="row"><a href="{% url 'admin:shipping_shipment_changelist' %}">Shipments</a></th>
+        <td>&nbsp;</td>
+        <td><a href="{% url 'admin:shipping_shipment_add' %}" class="addlink">Add</a></td>
+      </tr>
+      <tr class="model-bill">
+        <th scope="row"><a href="{% url 'admin:shipping_bill_changelist' %}">Bills</a></th>
+        <td>&nbsp;</td>
+        <td><a href="{% url 'admin:shipping_bill_add' %}" class="addlink">Add</a></td>
+      </tr>
+
+      <tr class="model-shippingaddress">
+        <th scope="row"><a href="{% url 'admin:shipping_shippingaddress_changelist' %}">Shipping Addresses</a></th>
+        <td>&nbsp;</td>
+        <td><a href="{% url 'admin:shipping_shippingaddress_add' %}" class="addlink">Add</a></td>
+      </tr>
+    </table>
+  </div>
+  {{ block.super }}
+</div>
+{% endblock %}

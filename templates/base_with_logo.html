@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+    /* Logo styles */
+    .logo-container {
+        text-align: center;
+        margin: 2rem 0;
+    }
+    .logo {
+        max-width: 300px;
+        height: auto;
+    }
+    @media (max-width: 768px) {
+        .logo {
+            max-width: 200px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="logo-container">
+        <a href="{% url 'site_home_page' %}">
+            <img src="{% static 'images/logo.png' %}" alt="{{ COMPANY_NAME }} Logo" class="logo">
+        </a>
+    </div>
+    {% block page_content %}{% endblock %}
+</div>
+{% endblock %}

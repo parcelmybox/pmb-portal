@@ -13,13 +13,36 @@ export function AuthProvider({ children }) {
   });
 
   const login = async (email, password) => {
-    // TODO: Implement actual authentication logic
+    // Temporary hardcoded logic (until backend integration)
     const isAdmin = email === 'admin@parcelmybox.com';
+    const validUser = email && password; // simple check
+
+    if (!validUser) {
+      alert("Please enter valid credentials");
+      return false;
+    }
+
     setUser({
       isAuthenticated: true,
       isAdmin,
       name: isAdmin ? 'Admin User' : email.split('@')[0],
-      email: email
+      email
+    });
+    return true;
+  };
+
+  const signup = async (name, email, password) => {
+    if (!name || !email || !password) {
+      alert("All fields are required");
+      return false;
+    }
+
+    // Temporary placeholder logic
+    setUser({
+      isAuthenticated: true,
+      isAdmin: false,
+      name,
+      email
     });
     return true;
   };
@@ -34,10 +57,8 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, login, signup, logout }}>
       {children}
     </AuthContext.Provider>
   );
 }
-
-

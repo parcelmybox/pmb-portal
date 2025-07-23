@@ -1,0 +1,27 @@
+{% extends "admin/index.html" %}
+{% load i18n static %}
+
+{% block sidebar %}
+    <div id="content-related">
+        <div class="module" id="recent-actions-module">
+            <h2>Quick Links</h2>
+            <div class="module-content">
+                <ul class="actionlist">
+                    <li class="changelink">
+                        <a href="{% url 'admin:shipping_shipment_changelist' %}">Shipments</a>
+                        <a href="{% url 'admin:shipping_shipment_add' %}" class="addlink">Add</a>
+                    </li>
+                    <li class="changelink">
+                        <a href="{% url 'admin:shipping_bill_changelist' %}">Bills</a>
+                        <a href="{% url 'admin:shipping_bill_add' %}" class="addlink">Add</a>
+                    </li>
+                    <li class="changelink">
+                        <a href="{% url 'admin:shipping_shippingaddress_changelist' %}">Shipping Addresses</a>
+                        <a href="{% url 'admin:shipping_shippingaddress_add' %}" class="addlink">Add</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    {{ block.super }}
+{% endblock %}

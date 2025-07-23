@@ -1,0 +1,35 @@
+{% extends 'shipping/billing/bill_form.html' %}
+
+{% block title %}Create New Bill | Billing{% endblock %}
+
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="{% url 'shipping:bill_list' %}">Bills</a></li>
+    <li class="breadcrumb-item active">New Bill</li>
+{% endblock %}
+
+{% block page_title %}Create New Bill{% endblock %}
+
+{% block form_actions %}
+    <a href="{% url 'shipping:bill_list' %}" class="btn btn-secondary">
+        <i class="fas fa-times me-1"></i> Cancel
+    </a>
+    <button type="submit" class="btn btn-primary">
+        <i class="fas fa-save me-1"></i> Create Bill
+    </button>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+$(document).ready(function() {
+    // Set default due date to 30 days from now if not set
+    if (!$('#id_due_date').val()) {
+        const today = new Date();
+        const dueDate = new Date(today);
+        dueDate.setDate(today.getDate() + 30);
+        const formattedDate = dueDate.toISOString().split('T')[0];
+        $('#id_due_date').val(formattedDate);
+    }
+});
+</script>
+{% endblock %}

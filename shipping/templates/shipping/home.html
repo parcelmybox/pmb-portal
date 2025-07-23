@@ -20,22 +20,32 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% for shipment in recent_shipments %}
-                            <tr>
-                                <td>{{ shipment.tracking_number }}</td>
-                                <td>
-                                    <span class="badge {% if shipment.status == 'delivered' %}bg-success{% elif shipment.status == 'shipped' %}bg-info{% elif shipment.status == 'processing' %}bg-warning{% else %}bg-secondary{% endif %}">
-                                        {{ shipment.get_status_display }}
-                                    </span>
-                                </td>
-                                <td>{{ shipment.shipping_date }}</td>
-                                <td>
-                                    <a href="{% url 'shipping:shipment_detail' shipment.pk %}" class="btn btn-sm btn-primary">
-                                        View Details
-                                    </a>
-                                </td>
-                            </tr>
-                            {% endfor %}
+                            {% if shipments %}
+                                {% for shipment in shipments %}
+                                <tr>
+                                    <td>{{ shipment.tracking_number }}</td>
+                                    <td>
+                                        <span class="badge {% if shipment.status == 'delivered' %}bg-success{% elif shipment.status == 'shipped' %}bg-info{% elif shipment.status == 'processing' %}bg-warning{% elif shipment.status == 'cancelled' %}bg-danger{% else %}bg-secondary{% endif %}">
+                                            {{ shipment.get_status_display|title }}
+                                        </span>
+                                    </td>
+                                    <td>{{ shipment.created_at|date:"M d, Y" }}</td>
+                                    <td>
+                                        <a href="{% url 'shipping:shipment_detail' shipment.pk %}" class="btn btn-sm btn-primary">
+                                            <i class="bi bi-eye"></i> View
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="4" class="text-center">
+                                        <div class="alert alert-info">
+                                            No shipments found. <a href="{% url 'shipping:create_shipment' %}">Create your first shipment</a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endif %}
                         </tbody>
                     </table>
                 </div>

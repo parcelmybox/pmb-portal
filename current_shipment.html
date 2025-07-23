@@ -1,0 +1,740 @@
+﻿{% extends 'base.html' %}
+
+{% load static %}
+
+{% block title %}Create Shipment{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-box-seam me-2"></i>Create New Shipment
+                    </h4>
+                </div>
+                <div class="card-body">
+                    {% if form.errors or messages %}
+                    <div class="mb-4">
+                        {% for field, errors in form.errors.items %}
+                            {% for error in errors %}
+                                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                    <strong>Error:</strong> {{ error }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            {% endfor %}
+                        {% endfor %}
+                        
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <form method="post" id="shipment-form" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="card h-100">
+                                    <div class="card-header bg-light">
+                                        <h5 class="mb-0">Shipment Details</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label for="{{ form.package_type.id_for_label }}" class="form-label">
+                                                Package Type <span class="text-danger">*</span>
+                                            </label>
+                                            {{ form.package_type }}
+                                            <div class="invalid-feedback">
+                                                Please select a package type.
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label for="{{ form.weight.id_for_label }}" class="form-label">
+                                                    Weight (kg) <span class="text-danger">*</span>
+                                                </label>
+                                                <div class="input-group">
+                                                    {{ form.weight }}
+                                                    <span class="input-group-text">kg</span>
+                                                    <div class="invalid-feedback">
+                                                        Please enter a valid weight (minimum 0.1 kg).
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="{{ form.declared_value.id_for_label }}" class="form-label">
+                                                    Declared Value ($) <span class="text-danger">*</span>
+                                                </label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text">$</span>
+                                                    {{ form.declared_value }}
+                                                    <div class="invalid-feedback">
+                                                        Please enter a valid declared value.
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="row">
+                                            <div class="col-md-4 mb-3">
+                                                <label for="{{ form.length.id_for_label }}" class="form-label">
+                                                    Length (cm) <span class="text-danger">*</span>
+                                                </label>
+                                                <div class="input-group">
+                                                    {{ form.length }}
+                                                    <span class="input-group-text">cm</span>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 mb-3">
+                                                <label for="{{ form.width.id_for_label }}" class="form-label">
+                                                    Width (cm) <span class="text-danger">*</span>
+                                                </label>
+                                                <div class="input-group">
+                                                    {{ form.width }}
+                                                    <span class="input-group-text">cm</span>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 mb-3">
+                                                <label for="{{ form.height.id_for_label }}" class="form-label">
+                                                    Height (cm) <span class="text-danger">*</span>
+                                                </label>
+                                                <div class="input-group">
+                                                    {{ form.height }}
+                                                    <span class="input-group-text">cm</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label for="{{ form.shipping_date.id_for_label }}" class="form-label">
+                                                Shipping Date <span class="text-danger">*</span>
+                                            </label>
+                                            {{ form.shipping_date }}
+                                            <div class="form-text">
+                                                The date when the shipment will be ready for pickup.
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="card h-100">
+                                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                                        <h5 class="mb-0">Addresses</h5>
+                                        <a href="{% url 'shipping:manage_addresses' %}" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-plus-circle"></i> Manage Addresses
+                                        </a>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-4">
+                                            <h6 class="border-bottom pb-2">Sender Address</h6>
+                                            <div class="form-group mb-2">
+                                                <label for="{{ form.sender_address.id_for_label }}" class="form-label">Select Sender Address</label>
+                                                <div class="input-group mb-2">
+                                                    {{ form.sender_address }}
+                                                    <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#addSenderModal">
+                                                        <i class="bi bi-plus"></i> New
+                                                    </button>
+                                                </div>
+                                                <div class="invalid-feedback">
+                                                    Please select a sender address.
+                                                </div>
+                                            </div>
+                                            <div class="row g-2 mb-2">
+                                                <div class="col-md-6">
+                                                    <label for="{{ form.sender_first_name.id_for_label }}" class="form-label">First Name</label>
+                                                    {{ form.sender_first_name }}
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label for="{{ form.sender_last_name.id_for_label }}" class="form-label">Last Name</label>
+                                                    {{ form.sender_last_name }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <h6 class="border-bottom pb-2">Recipient Address</h6>
+                                            <div class="form-group mb-2">
+                                                <label for="{{ form.recipient_address.id_for_label }}" class="form-label">Select Recipient Address</label>
+                                                <div class="input-group mb-2">
+                                                    {{ form.recipient_address }}
+                                                    <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#addRecipientModal">
+                                                        <i class="bi bi-plus"></i> New
+                                                    </button>
+                                                </div>
+                                                <div class="invalid-feedback">
+                                                    Please select a recipient address.
+                                                </div>
+                                            </div>
+                                            <div class="row g-2 mb-2">
+                                                <div class="col-md-6">
+                                                    <label for="{{ form.recipient_first_name.id_for_label }}" class="form-label">First Name</label>
+                                                    {{ form.recipient_first_name }}
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label for="{{ form.recipient_last_name.id_for_label }}" class="form-label">Last Name</label>
+                                                    {{ form.recipient_last_name }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card mb-4">
+                            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">Shipment Items</h5>
+                                <button type="button" class="btn btn-sm btn-primary" id="add-item">
+                                    <i class="bi bi-plus-circle"></i> Add Item
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div id="items-container">
+                                    <div class="item-row mb-3 border-bottom pb-3">
+                                        <div class="row g-3 align-items-end">
+                                            <div class="col-md-5">
+                                                <label class="form-label">Item Name <span class="text-danger">*</span></label>
+                                                <input type="text" class="form-control item-name" name="item_name" required>
+                                                <div class="invalid-feedback">
+                                                    Please enter an item name.
+                                                </div>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <label class="form-label">Quantity <span class="text-danger">*</span></label>
+                                                <input type="number" class="form-control item-quantity" name="item_quantity" min="1" value="1" required>
+                                                <div class="invalid-feedback">
+                                                    Please enter a valid quantity (minimum 1).
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="form-label">Description</label>
+                                                <textarea class="form-control item-description" name="item_description" rows="1"></textarea>
+                                            </div>
+                                            <div class="col-md-1">
+                                                <button type="button" class="btn btn-outline-danger remove-item" disabled>
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="text-muted small">
+                                    <i class="bi bi-info-circle"></i> Add at least one item to this shipment.
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'shipping:shipping_home' %}" class="btn btn-outline-secondary me-md-2">
+                                <i class="bi bi-x-circle"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary" id="submit-btn">
+                                <i class="bi bi-send-check"></i> Create Shipment
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Flatpickr CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
+<!-- Add Address Modal -->
+<div class="modal fade" id="addSenderModal" tabindex="-1" aria-labelledby="addSenderModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addSenderModalLabel">Add New Sender Address</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="add-sender-form" class="needs-validation" novalidate>
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="sender_first_name" class="form-label">First Name *</label>
+                            <input type="text" class="form-control" id="sender_first_name" name="first_name" required>
+                            <div class="invalid-feedback">Please enter first name</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="sender_last_name" class="form-label">Last Name *</label>
+                            <input type="text" class="form-control" id="sender_last_name" name="last_name" required>
+                            <div class="invalid-feedback">Please enter last name</div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="sender_address_line1" class="form-label">Address Line 1 *</label>
+                        <input type="text" class="form-control" id="sender_address_line1" name="address_line1" required>
+                        <div class="invalid-feedback">Please enter address line 1</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="sender_address_line2" class="form-label">Address Line 2</label>
+                        <input type="text" class="form-control" id="sender_address_line2" name="address_line2">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="sender_city" class="form-label">City *</label>
+                            <input type="text" class="form-control" id="sender_city" name="city" required>
+                            <div class="invalid-feedback">Please enter city</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="sender_state" class="form-label">State/Province *</label>
+                            <input type="text" class="form-control" id="sender_state" name="state" required>
+                            <div class="invalid-feedback">Please enter state/province</div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="sender_postal_code" class="form-label">Postal Code *</label>
+                            <input type="text" class="form-control" id="sender_postal_code" name="postal_code" required>
+                            <div class="invalid-feedback">Please enter postal code</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="sender_country" class="form-label">Country *</label>
+                            <input type="text" class="form-control" id="sender_country" name="country" required>
+                            <div class="invalid-feedback">Please enter country</div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="sender_phone_number" class="form-label">Phone Number *</label>
+                        <input type="tel" class="form-control" id="sender_phone_number" name="phone_number" required>
+                        <div class="invalid-feedback">Please enter phone number</div>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="sender_is_default" name="is_default">
+                        <label class="form-check-label" for="sender_is_default">
+                            Set as default sender address
+                        </label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="save-sender-address">Save Address</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Recipient Address Modal -->
+<div class="modal fade" id="addRecipientModal" tabindex="-1" aria-labelledby="addRecipientModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addRecipientModalLabel">Add New Recipient Address</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="add-recipient-form" class="needs-validation" novalidate>
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="recipient_first_name" class="form-label">First Name *</label>
+                            <input type="text" class="form-control" id="recipient_first_name" name="first_name" required>
+                            <div class="invalid-feedback">Please enter first name</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="recipient_last_name" class="form-label">Last Name *</label>
+                            <input type="text" class="form-control" id="recipient_last_name" name="last_name" required>
+                            <div class="invalid-feedback">Please enter last name</div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="recipient_address_line1" class="form-label">Address Line 1 *</label>
+                        <input type="text" class="form-control" id="recipient_address_line1" name="address_line1" required>
+                        <div class="invalid-feedback">Please enter address line 1</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="recipient_address_line2" class="form-label">Address Line 2</label>
+                        <input type="text" class="form-control" id="recipient_address_line2" name="address_line2">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="recipient_city" class="form-label">City *</label>
+                            <input type="text" class="form-control" id="recipient_city" name="city" required>
+                            <div class="invalid-feedback">Please enter city</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="recipient_state" class="form-label">State/Province *</label>
+                            <input type="text" class="form-control" id="recipient_state" name="state" required>
+                            <div class="invalid-feedback">Please enter state/province</div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="recipient_postal_code" class="form-label">Postal Code *</label>
+                            <input type="text" class="form-control" id="recipient_postal_code" name="postal_code" required>
+                            <div class="invalid-feedback">Please enter postal code</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="recipient_country" class="form-label">Country *</label>
+                            <input type="text" class="form-control" id="recipient_country" name="country" required>
+                            <div class="invalid-feedback">Please enter country</div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="recipient_phone_number" class="form-label">Phone Number *</label>
+                        <input type="tel" class="form-control" id="recipient_phone_number" name="phone_number" required>
+                        <div class="invalid-feedback">Please enter phone number</div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="save-recipient-address">Save Address</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Function to update name fields when an address is selected
+    function updateNameFields(selectElement, type) {
+        const addressId = selectElement.value;
+        if (!addressId) return;
+        
+        // Make an AJAX request to get the address details
+        fetch(`{% url 'shipping:api_address_details' 0 %}`.replace('0', addressId))
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Address not found');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Update the name fields
+                document.getElementById(`id_${type}_first_name`).value = data.first_name || '';
+                document.getElementById(`id_${type}_last_name`).value = data.last_name || '';
+            })
+            .catch(error => {
+                console.error('Error fetching address:', error);
+            });
+    }
+    
+    // Add event listeners to both address selectors
+    const senderSelect = document.getElementById('id_sender_address');
+    const recipientSelect = document.getElementById('id_recipient_address');
+    
+    // Initialize tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+    
+    if (senderSelect) {
+        senderSelect.addEventListener('change', function() {
+            updateNameFields(this, 'sender');
+        });
+    }
+    
+    if (recipientSelect) {
+        recipientSelect.addEventListener('change', function() {
+            updateNameFields(this, 'recipient');
+        });
+    }
+    
+    // Handle saving new sender address
+    document.getElementById('save-sender-address')?.addEventListener('click', function() {
+        saveAddress('sender');
+    });
+    
+    // Handle saving new recipient address
+    document.getElementById('save-recipient-address')?.addEventListener('click', function() {
+        saveAddress('recipient');
+    });
+    
+    // Function to save a new address
+    function saveAddress(type) {
+        const formId = `add-${type}-form`;
+        const form = document.getElementById(formId);
+        
+        if (!form.checkValidity()) {
+            form.classList.add('was-validated');
+            return;
+        }
+        
+        const formData = new FormData(form);
+        formData.append('address_type', type);
+        
+        // Get CSRF token from the cookie
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        
+        const csrftoken = getCookie('csrftoken');
+        
+        fetch('{% url "shipping:add_address_ajax" %}', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrftoken,
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: formData,
+            credentials: 'same-origin'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Add the new address to the appropriate select
+                const select = document.getElementById(`id_${type}_address`);
+                const option = new Option(data.address_text, data.address_id);
+                select.add(option);
+                select.value = data.address_id;
+                
+                // Update the name fields
+                document.getElementById(`id_${type}_first_name`).value = data.first_name;
+                document.getElementById(`id_${type}_last_name`).value = data.last_name;
+                
+                // Close the modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById(`add${type.charAt(0).toUpperCase() + type.slice(1)}Modal`));
+                modal.hide();
+                
+                // Show success message
+                showToast('Success', 'Address added successfully!', 'success');
+                
+                // Reset the form
+                form.reset();
+                form.classList.remove('was-validated');
+            } else {
+                showToast('Error', data.error || 'Failed to add address', 'danger');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showToast('Error', 'An error occurred while saving the address', 'danger');
+        });
+    }
+    
+    // Function to show toast notifications
+    function showToast(title, message, type = 'info') {
+        const toastContainer = document.getElementById('toast-container');
+        if (!toastContainer) return;
+        
+        const toastId = 'toast-' + Date.now();
+        const toast = document.createElement('div');
+        toast.id = toastId;
+        toast.className = `toast align-items-center text-white bg-${type} border-0`;
+        toast.role = 'alert';
+        toast.setAttribute('aria-live', 'assertive');
+        toast.setAttribute('aria-atomic', 'true');
+        
+        toast.innerHTML = `
+            <div class="d-flex">
+                <div class="toast-body">
+                    <strong>${title}</strong><br>${message}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        `;
+        
+        toastContainer.appendChild(toast);
+        const bsToast = new bootstrap.Toast(toast, { autohide: true, delay: 5000 });
+        bsToast.show();
+        
+        // Remove toast from DOM after it's hidden
+        toast.addEventListener('hidden.bs.toast', function() {
+            toast.remove();
+        });
+    }
+});
+</script>
+<!-- Flatpickr JS -->
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize date picker with configuration
+    flatpickr("#id_shipping_date", {
+        dateFormat: "Y-m-d",
+        minDate: "today",
+        defaultDate: new Date(),
+        allowInput: true,
+        disableMobile: true
+    });
+
+    // Add item functionality
+    const addItemBtn = document.getElementById('add-item');
+    const itemsContainer = document.getElementById('items-container');
+    let itemCount = 1; // Start with 1 since we have one item by default
+
+    // Function to update remove buttons state
+    function updateRemoveButtons() {
+        const removeButtons = document.querySelectorAll('.remove-item');
+        removeButtons.forEach((btn, index) => {
+            // Disable if only one item remains, else enable
+            btn.disabled = removeButtons.length <= 1;
+        });
+    }
+
+    // Initialize remove buttons state
+    updateRemoveButtons();
+
+    // Add new item row
+    addItemBtn.addEventListener('click', function() {
+        itemCount++;
+        const itemRow = document.createElement('div');
+        itemRow.className = 'item-row mb-3 border-bottom pb-3';
+        itemRow.innerHTML = `
+            <div class="row g-3 align-items-end">
+                <div class="col-md-5">
+                    <label class="form-label">Item Name <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control item-name" name="item_name" required>
+                    <div class="invalid-feedback">
+                        Please enter an item name.
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Quantity <span class="text-danger">*</span></label>
+                    <input type="number" class="form-control item-quantity" name="item_quantity" min="1" value="1" required>
+                    <div class="invalid-feedback">
+                        Please enter a valid quantity (minimum 1).
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Description</label>
+                    <textarea class="form-control item-description" name="item_description" rows="1"></textarea>
+                </div>
+                <div class="col-md-1">
+                    <button type="button" class="btn btn-outline-danger remove-item">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+        itemsContainer.appendChild(itemRow);
+        updateRemoveButtons();
+    });
+
+    // Remove item row
+    itemsContainer.addEventListener('click', function(e) {
+        if (e.target.closest('.remove-item')) {
+            const itemRow = e.target.closest('.item-row');
+            if (itemRow && document.querySelectorAll('.item-row').length > 1) {
+                itemRow.remove();
+                updateRemoveButtons();
+            }
+        }
+    });
+
+    // Form validation
+    const form = document.getElementById('shipment-form');
+    
+    form.addEventListener('submit', function(event) {
+        if (!form.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        
+        // Check if at least one item is added
+        const itemNames = document.querySelectorAll('.item-name');
+        let hasValidItems = false;
+        
+        itemNames.forEach(input => {
+            if (input.value.trim() !== '') {
+                hasValidItems = true;
+            }
+        });
+        
+        if (!hasValidItems) {
+            event.preventDefault();
+            alert('Please add at least one item to the shipment.');
+            return false;
+        }
+        
+        form.classList.add('was-validated');
+    }, false);
+});
+</script>
+
+<style>
+/* Custom styles for the shipment form */
+.card {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    margin-bottom: 1.5rem;
+}
+
+.card-header {
+    font-weight: 600;
+}
+
+.form-label {
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+}
+
+.required:after {
+    content: " *";
+    color: #dc3545;
+}
+
+/* Style for address selection */
+.address-option {
+    display: block;
+    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+    border: 1px solid #dee2e6;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.address-option:hover {
+    border-color: #86b7fe;
+    background-color: #f8f9fa;
+}
+
+.address-option input[type="radio"] {
+    margin-right: 0.5rem;
+}
+
+/* Style for item rows */
+.item-row {
+    transition: all 0.3s ease;
+}
+
+.item-row:hover {
+    background-color: #f8f9fa;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .btn-responsive {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+    
+    .item-row .col-md-1 {
+        text-align: center;
+        margin-top: 0.5rem;
+    }
+}
+</style>
+{% endblock %}
+

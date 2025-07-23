@@ -1,0 +1,129 @@
+/* Admin Layout Reset */
+#header {
+    background: #2c3e50;
+    color: white;
+    height: 60px;
+    padding: 0 20px;
+    box-sizing: border-box;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+#branding {
+    display: flex;
+    align-items: center;
+}
+
+#site-logo {
+    display: flex;
+    align-items: center;
+}
+
+#site-logo a {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+}
+
+#site-logo img {
+    height: 40px;
+    width: auto;
+}
+
+#site-logo span {
+    margin-left: 12px;
+    font-weight: 700;
+    font-size: 1.5rem;
+    color: white !important;
+}
+
+/* Main Content */
+#container {
+    margin-top: 60px;
+    display: flex;
+    min-height: calc(100vh - 60px);
+}
+
+/* Sidebar */
+#content {
+    flex: 1;
+    padding: 20px;
+    margin-left: 0;
+    margin-right: 0;
+    box-sizing: border-box;
+    background: #f8f9fa;
+}
+
+/* Sidebar */
+#content-related {
+    width: 250px;
+    background: #fff;
+    border-left: 1px solid #e0e0e0;
+    padding: 20px;
+    box-sizing: border-box;
+    overflow-y: auto;
+}
+
+/* Dashboard */
+.dashboard {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.dashboard .module {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.dashboard .module h2 {
+    background: #3f51b5;
+    color: white;
+    padding: 10px 15px;
+    margin: 0;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.dashboard .module table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.dashboard .module th,
+.dashboard .module td {
+    padding: 10px 15px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+.dashboard .module th {
+    font-weight: 500;
+    background: #f5f5f5;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    #container {
+        flex-direction: column;
+    }
+    
+    #content-related {
+        width: 100%;
+        border-left: none;
+        border-top: 1px solid #e0e0e0;
+    }
+    
+    .dashboard {
+        grid-template-columns: 1fr;
+    }
+}

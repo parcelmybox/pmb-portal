@@ -1,0 +1,20 @@
+{% extends "admin/app_index.html" %}
+{% load i18n %}
+
+{% block sidebar %}
+<div id="content-related">
+    <div class="module" id="recent-actions-module">
+        <h2>{% translate 'Admin Tools' %}</h2>
+        <div class="module-content">
+            <ul class="actionlist">
+                <li class="addlink">
+                    <a href="http://localhost:8000/api/" target="_blank">
+                        <i class="fas fa-plug"></i> API Documentation
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+{{ block.super }}
+{% endblock %}

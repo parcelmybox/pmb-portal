@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Invoice #{{ bill.id }} - ParcelMyBox</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm 1.5cm 2cm 1.5cm;
+        }
+        body { 
+            font-family: Arial, sans-serif; 
+            line-height: 1.4;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            font-size: 10pt;
+            width: 100%;
+        }
+        .row-even {
+            background-color: #f8f9fa;
+        }
+        .row-odd {
+            background-color: #ffffff;
+        }
+        .header {
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #3498db;
+            position: relative;
+        }
+        .company-logo {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .company-logo img {
+            max-width: 200px;
+            height: auto;
+        }
+        .company-info { 
+            float: left; 
+            width: 60%;
+            margin-bottom: 25px;
+        }
+        .invoice-info { 
+            float: right; 
+            text-align: right;
+            margin-bottom: 25px;
+            width: 35%;
+        }
+        .company-name { 
+            font-size: 16px; 
+            font-weight: bold; 
+            margin: 15px 0 5px 0; 
+            color: #333; 
+        }
+        .company-address {
+            margin: 5px 0;
+            line-height: 1.4;
+        }
+        .invoice-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 5px;
+            letter-spacing: -0.5px;
+            text-transform: uppercase;
+        }
+        .bill-info { 
+            margin: 20px 0; 
+        }
+        .info-row { 
+            margin-bottom: 10px; 
+            overflow: hidden; 
+        }
+        .info-group { 
+            width: 50%; 
+            float: left; 
+        }
+        .info-label { 
+            font-weight: bold; 
+            margin-bottom: 3px; 
+        }
+        .section-title { 
+            font-size: 16px; 
+            font-weight: 600; 
+            color: #2c3e50; 
+            margin: 25px 0 15px 0; 
+            padding-bottom: 8px; 
+            border-bottom: 1px solid #e9ecef; 
+            text-transform: uppercase; 
+            letter-spacing: 0.5px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0 25px 0;
+        }
+        th {
+            background-color: #f8f9fa;
+            text-align: left;
+            padding: 8px 12px;
+            border: 1px solid #dee2e6;
+            font-weight: 600;
+            color: #495057;
+            text-transform: uppercase;
+            font-size: 8pt;
+            white-space: nowrap;
+        }
+        td {
+            padding: 10px 12px;
+            border: 1px solid #e9ecef;
+            vertical-align: middle;
+            font-size: 9pt;
+        }
+        tr.even {
+            background-color: #f8f8f8;
+        }
+        .totals {
+            width: 250px;
+            margin: 0 0 0 auto;
+            background: #f8f9fa;
+            padding: 15px 20px;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+        }
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            padding: 6px 0;
+            font-size: 10pt;
+        }
+        /* Removed :not(:last-child) selector as it's not well supported by xhtml2pdf */
+        .total-row {
+            border-bottom: 1px solid #e9ecef;
+        }
+        .total-row.grand-total {
+            border-bottom: none;
+        }
+        .grand-total {
+            font-weight: 700;
+            border-top: 2px solid #3498db;
+            margin-top: 12px;
+            padding-top: 12px;
+            font-size: 16px;
+            color: #2c3e50;
+            border-bottom: none !important;
+        }
+        .total-label {
+            color: #6c757d;
+        }
+        .total-amount {
+            font-weight: 600;
+        }
+        .footer { 
+            margin-top: 60px; 
+            padding: 20px 0; 
+            text-align: center; 
+            font-size: 11px; 
+            color: #7f8c8d;
+            border-top: 1px solid #e9ecef;
+            background-color: #f8f9fa;
+            border-radius: 0 0 5px 5px;
+        }
+        .page-number {
+            text-align: center;
+            font-size: 10px;
+            color: #666;
+            margin-top: 30px;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .status-paid {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .status-pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+    </style>
+</head>
+<body style="margin: 0; padding: 0;">
+    <!-- Main Container -->
+    <div style="width: 100%; max-width: 21cm; margin: 0 auto; padding: 1cm 1.5cm;">
+        <!-- Header with Logo -->
+        <div style="margin-bottom: 30px; padding-bottom: 15px; border-bottom: 2px solid #3498db;">
+            <table width="100%" cellspacing="0" cellpadding="0" border="0">
+                <tr>
+                    <td style="vertical-align: top;">
+                        <h1 style="color: #2c3e50; margin: 0 0 5px 0; font-size: 22px; font-weight: 700; letter-spacing: -0.5px;">ParcelMyBox</h1>
+                        <div style="color: #6c757d; margin: 0 0 3px 0; font-size: 10px; line-height: 1.4;">
+                            123 Business Street, San Francisco, CA 94105<br>
+                            Phone: (415) 555-0123 | Email: billing@parcelmybox.com
+                        </div>
+                    </td>
+                    <td style="text-align: right; vertical-align: top;">
+                        <h2 style="margin: 0; color: #2c3e50; font-size: 20px; text-align: right; font-weight: 700;">INVOICE</h2>
+                        <div style="margin-top: 8px; text-align: right;">
+                            <div style="color: #6c757d; font-size: 10px; margin-bottom: 3px;">INVOICE #</div>
+                            <div style="font-weight: 600; font-size: 14px;">{{ bill.id }}</div>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        
+        <!-- Billing and Invoice Info -->
+        <table width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom: 25px; page-break-inside: avoid;">
+            <tr>
+                <td width="50%" style="vertical-align: top; padding-right: 20px;">
+                    <div style="background: #f8f9fa; padding: 8px 12px; margin-bottom: 12px; font-weight: 600; color: #495057; font-size: 9pt; text-transform: uppercase; letter-spacing: 0.5px; border: 1px solid #e9ecef; border-radius: 3px;">
+                        Bill To:
+                    </div>
+                    <div style="margin-bottom: 5px; font-weight: 600; color: #2c3e50; font-size: 10pt;">
+                        {{ bill.customer.get_full_name|default:bill.customer.username|title }}
+                    </div>
+                    {% if bill.customer.email %}
+                        <div style="color: #6c757d; font-size: 9pt; margin-bottom: 3px; line-height: 1.4;">
+                            {{ bill.customer.email }}
+                        </div>
+                    {% endif %}
+                    {% if bill.customer.profile.phone %}
+                        <div style="color: #6c757d; font-size: 9pt; line-height: 1.4;">
+                            {{ bill.customer.profile.phone }}
+                        </div>
+                    {% endif %}
+                </td>
+                <td width="50%" style="vertical-align: top;">
+                    <div style="background: #f8f9fa; padding: 8px 12px; margin-bottom: 12px; font-weight: 600; color: #495057; font-size: 9pt; text-transform: uppercase; letter-spacing: 0.5px; border: 1px solid #e9ecef; border-radius: 3px;">
+                        Invoice Details
+                    </div>
+            <table style="width: 100%; border: none;">
+                <tr>
+                    <td style="border: none; padding: 4px 0; color: #6c757d; text-align: left; font-size: 9pt; width: 40%;">Invoice #:</td>
+                    <td style="border: none; padding: 4px 0; text-align: right; font-weight: 500; font-size: 9pt; width: 60%;">{{ bill.id }}</td>
+                </tr>
+                <tr>
+                    <td style="border: none; padding: 4px 0; color: #6c757d; text-align: left; font-size: 9pt;">Date:</td>
+                    <td style="border: none; padding: 4px 0; text-align: right; font-size: 9pt;">{{ bill.created_at|date:"M d, Y" }}</td>
+                </tr>
+                <tr>
+                    <td style="border: none; padding: 4px 0; color: #6c757d; text-align: left; font-size: 9pt;">Status:</td>
+                    <td style="border: none; padding: 4px 0; text-align: right;">
+                        {% if bill.status == 'PAID' %}
+                        <span style="display: inline-block; padding: 3px 10px; border-radius: 3px; font-size: 8pt; font-weight: 600; text-transform: uppercase; background: #d4edda; color: #155724;">
+                        {% else %}
+                        <span style="display: inline-block; padding: 3px 10px; border-radius: 3px; font-size: 8pt; font-weight: 600; text-transform: uppercase; background: #fff3cd; color: #856404;">
+                        {% endif %}
+                            {{ bill.get_status_display }}
+                        </span>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+            </table>
+
+            <!-- Package Details -->
+            <div style="margin: 30px 0 15px 0; padding-bottom: 8px; border-bottom: 1px solid #e0e0e0; font-size: 10.5pt; font-weight: 700; color: #2c3e50; text-transform: uppercase; letter-spacing: 0.5px;">
+                Package Details
+            </div>
+            
+            <table style="width: 100%; margin: 0 0 30px 0; border: 1px solid #e0e0e0; border-collapse: collapse; table-layout: fixed;">
+                <colgroup>
+                    <col style="width: 20%;">
+                    <col style="width: 30%;">
+                    <col style="width: 20%;">
+                    <col style="width: 30%;">
+                </colgroup>
+                <tr>
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; font-weight: 600; background-color: #f5f7fa; color: #4a5568;">Package Type</td>
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0;">{{ bill.package|default:"-" }}</td>
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; font-weight: 600; background-color: #f5f7fa; color: #4a5568;">Weight</td>
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0;">
+                        {% if bill.weight %}{{ bill.weight|floatformat:2 }} kg{% else %}-{% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; font-weight: 600; background-color: #f5f7fa; color: #4a5568;">Courier Service</td>
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0;" colspan="3">
+                        {{ bill.get_courier_service_display|default:"-" }}
+                    </td>
+                </tr>
+                {% if bill.description %}
+                <tr>
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0; font-weight: 600; background-color: #f5f7fa; color: #4a5568; vertical-align: top;">Package Contents</td>
+                    <td style="padding: 12px 15px; border: 1px solid #e0e0e0;" colspan="3">
+                        <div style="line-height: 1.5;">
+                            {{ bill.description|linebreaksbr }}
+                        </div>
+                    </td>
+                </tr>
+                {% endif %}
+            </table>
+            
+            <!-- Invoice Items -->
+            <div style="margin: 30px 0 10px 0; padding-bottom: 8px; border-bottom: 1px solid #e9ecef; font-size: 10pt; font-weight: 600; color: #495057; text-transform: uppercase; letter-spacing: 0.5px;">
+                Invoice Items
+            </div>
+    <table cellspacing="0" cellpadding="0">
+        <thead>
+            <tr>
+                <th style="text-align: left;">Description</th>
+                <th style="width: 15%; text-align: right; padding-right: 15px;">Qty</th>
+                <th style="width: 20%; text-align: right; padding-right: 15px;">Unit Price</th>
+                <th style="width: 20%; text-align: right;">Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr class="{% if forloop.counter0|divisibleby:2 %}row-odd{% else %}row-even{% endif %}">
+                <td style="border: 1px solid #e9ecef; padding: 10px 12px;">{{ item.description|default:"Shipping Service" }}</td>
+                <td style="text-align: right; border: 1px solid #e9ecef; padding: 10px 12px;">{{ item.quantity|default:1 }}</td>
+                <td style="text-align: right; border: 1px solid #e9ecef; padding: 10px 12px;">${{ item.unit_price|default:0|floatformat:2 }}</td>
+                <td style="text-align: right; border: 1px solid #e9ecef; padding: 10px 12px; font-weight: 500;">${{ item.total|default:bill.amount|floatformat:2 }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td style="border: 1px solid #e9ecef; padding: 10px 12px;">Shipping Service</td>
+                <td style="text-align: right; border: 1px solid #e9ecef; padding: 10px 12px;">1</td>
+                <td style="text-align: right; border: 1px solid #e9ecef; padding: 10px 12px;">${{ bill.amount|floatformat:2 }}</td>
+                <td style="text-align: right; border: 1px solid #e9ecef; padding: 10px 12px; font-weight: 500;">${{ bill.amount|floatformat:2 }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Totals -->
+    <div class="totals">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+            <span style="color: #6c757d; font-size: 9pt;">Subtotal:</span>
+            <span style="font-weight: 500; font-size: 9pt;">${{ subtotal|floatformat:2 }}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+            <span style="color: #6c757d; font-size: 9pt;">Tax ({{ tax_rate|floatformat:2 }}%):</span>
+            <span style="font-weight: 500; font-size: 9pt;">${{ tax_amount|floatformat:2 }}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin: 12px 0 5px 0; padding-top: 10px; border-top: 1px solid #dee2e6;">
+            <span style="font-weight: 600; font-size: 11pt; color: #2c3e50;">Total:</span>
+            <span style="font-weight: 700; font-size: 12pt; color: #2c3e50;">${{ total|floatformat:2 }}</span>
+        </div>
+    </div>
+
+    <!-- Payment Information -->
+    <div class="section-title">Payment Information</div>
+    <p>
+        Please make checks payable to <strong>{{ company_name }}</strong>.<br>
+        For bank transfers, please contact our billing department for account details.
+    </p>
+
+            <!-- Footer -->
+            <div style="margin-top: 60px; padding: 20px 0; text-align: center; font-size: 11px; color: #7f8c8d; border-top: 1px solid #e9ecef; background-color: #f8f9fa; border-radius: 0 0 5px 5px;">
+                <div style="margin-bottom: 5px;">Thank you for choosing ParcelMyBox!</div>
+                <div>If you have any questions about this invoice, please contact our billing team at billing@parcelmybox.com</div>
+                <div style="margin-top: 10px; color: #95a5a6;">123 Business Street, San Francisco, CA 94105 | (415) 555-0123</div>
+            </div>
+            <div style="text-align: center; font-size: 10px; color: #666; margin-top: 30px;">
+                Page <pdf:pagenumber />
+            </div>
+        </div>
+    </div>
+</body>
+</html>

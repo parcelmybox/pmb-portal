@@ -1,0 +1,128 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block title %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block branding %}
+<h1 id="site-name">
+    <a href="{% url 'admin:index' %}" style="display: flex; align-items: center; text-decoration: none;">
+        <img src="{% static 'images/logo.png' %}" alt="Parcel My Box" style="height: 40px; width: auto; max-width: 200px; object-fit: contain; margin-right: 15px;">
+        <span style="color: white;">Parcel My Box Administration</span>
+    </a>
+</h1>
+{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    /* Hide the sidebar */
+    #content-related, #nav-sidebar {
+        display: none !important;
+    }
+    
+    /* Adjust main content to take full width */
+    #content {
+        margin-left: 0 !important;
+        width: 100% !important;
+    }
+    
+    /* Ensure the page takes full width */
+    .dashboard {
+        max-width: none !important;
+        padding: 0 20px !important;
+    }
+    
+    /* Style the breadcrumbs to align properly */
+    .breadcrumbs {
+        margin: 0 0 15px 0 !important;
+        padding: 8px 0 !important;
+    }
+    
+    /* Custom header styles */
+    #header {
+        background: #2c3e50 !important;
+        color: white !important;
+        padding: 10px 20px !important;
+    }
+    
+    /* Ensure header is visible */
+    #header, #branding, #user-tools {
+        display: block !important;
+    }
+    
+    /* Quick links styles */
+    .quick-links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        margin: 0 0 20px 0;
+        padding: 0;
+    }
+    
+    .quick-link {
+        background: #fff;
+        border: 1px solid #e0e0e0;
+        border-radius: 4px;
+        padding: 15px 20px;
+        min-width: 200px;
+        flex: 1;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+    
+    .quick-link:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+    
+    .quick-link a {
+        color: #333;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    .quick-link i {
+        font-size: 24px;
+        margin-right: 10px;
+        color: #666;
+    }
+    
+    .quick-link .info {
+        flex: 1;
+    }
+    
+    .quick-link .count {
+        background: #f0f0f0;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 0.9em;
+    }
+    
+    .quick-link.bg-info {
+        background-color: #17a2b8 !important;
+        color: white;
+    }
+    
+    .quick-link.bg-info a {
+        color: white;
+    }
+    
+    .quick-link.bg-info i {
+        color: white;
+    }
+    
+    .quick-link.bg-info .count {
+        background: rgba(255,255,255,0.2);
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block nav-global %}{% endblock %}

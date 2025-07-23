@@ -1,0 +1,141 @@
+{% extends 'shipping/billing/base_billing.html' %}
+
+{% block title %}Bill #{{ bill.id }} - Details{% endblock %}
+
+{% block breadcrumb %}
+    <li class="breadcrumb-item active">Bill #{{ bill.id }}</li>
+{% endblock %}
+
+{% block page_title %}
+    Bill #{{ bill.id }}
+    <span class="badge {% if bill.status == 'PAID' %}bg-success{% elif bill.status == 'OVERDUE' %}bg-danger{% else %}bg-warning{% endif %} ms-2">
+        {{ bill.get_status_display }}
+    </span>
+{% endblock %}
+
+{% block header_actions %}
+    <div class="btn-group" role="group">
+        <a href="{% url 'shipping:export_bill_pdf' bill.id %}?v={{ now|date:'YmdHis' }}" class="btn btn-outline-primary">
+            <i class="fas fa-file-pdf me-1"></i> Export PDF
+        </a>
+        {% if request.user.is_staff %}
+        <div class="btn-group" role="group">
+            <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fas fa-cog me-1"></i> Actions
+            </button>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#updateStatusModal">
+                    <i class="fas fa-sync-alt me-2"></i>Update Status
+                </a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item text-danger" href="#" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                    <i class="fas fa-trash-alt me-2"></i>Delete Bill
+                </a></li>
+            </ul>
+        </div>
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block billing_content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Bill Information</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-3">Customer</dt>
+                    <dd class="col-sm-9">
+                        {{ bill.customer.get_full_name|default:bill.customer.username }}
+                        <div class="text-muted small">{{ bill.customer.email }}</div>
+                    </dd>
+
+                    <dt class="col-sm-3">Amount</dt>
+                    <dd class="col-sm-9">${{ bill.amount|floatformat:2 }}</dd>
+
+                    <dt class="col-sm-3">Status</dt>
+                    <dd class="col-sm-9">
+                        <span class="badge {% if bill.status == 'PAID' %}bg-success{% elif bill.status == 'OVERDUE' %}bg-danger{% else %}bg-warning{% endif %}">
+                            {{ bill.get_status_display }}
+                        </span>
+                    </dd>
+
+                    <dt class="col-sm-3">Created</dt>
+                    <dd class="col-sm-9">{{ bill.created_at|date:"F j, Y H:i" }}</dd>
+
+                    {% if bill.paid_at %}
+                    <dt class="col-sm-3">Paid On</dt>
+                    <dd class="col-sm-9">{{ bill.paid_at|date:"F j, Y H:i" }}</dd>
+                    {% endif %}
+
+                    {% if bill.description %}
+                    <dt class="col-sm-3">Description</dt>
+                    <dd class="col-sm-9">{{ bill.description|linebreaksbr }}</dd>
+                    {% endif %}
+                    
+                    <dt class="col-sm-3">Payment Method</dt>
+                    <dd class="col-sm-9">
+                        {{ bill.get_payment_method_display|default:"Not specified" }}
+                    </dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Update Form -->
+    {% if request.user.is_staff %}
+    <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-8 p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Update Bill Status</h3>
+        <form method="post" action="{% url 'shipping:update_bill_status' bill.id %}" class="space-y-4">
+            {% csrf_token %}
+            <div class="flex items-center space-x-4">
+                <select name="status" class="mt-1 block w-48 pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                    {% for value, label in status_choices.items %}
+                        <option value="{{ value }}" {% if bill.status == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Update Status
+                </button>
+            </div>
+        </form>
+    </div>
+    {% endif %}
+
+    <!-- Activity History -->
+    <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+        <div class="px-4 py-5 sm:px-6">
+            <h3 class="text-lg leading-6 font-medium text-gray-900">
+                Activity History
+            </h3>
+        </div>
+        <div class="border-t border-gray-200">
+            <ul class="divide-y divide-gray-200">
+                {% for activity in activities %}
+                <li class="px-4 py-4 sm:px-6">
+                    <div class="flex items-center justify-between">
+                        <p class="text-sm font-medium text-indigo-600 truncate">
+                            {{ activity.get_activity_type_display }}
+                        </p>
+                        <div class="ml-2 flex-shrink-0 flex">
+                            <p class="text-sm text-gray-500">
+                                {{ activity.created_at|timesince }} ago
+                            </p>
+                        </div>
+                    </div>
+                    <div class="mt-2">
+                        <p class="text-sm text-gray-500">{{ activity.description }}</p>
+                    </div>
+                </li>
+                {% empty %}
+                <li class="px-4 py-4 sm:px-6 text-center text-gray-500">
+                    No activity history found.
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

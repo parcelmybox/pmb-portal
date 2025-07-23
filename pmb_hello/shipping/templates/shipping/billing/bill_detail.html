@@ -1,0 +1,182 @@
+{% extends 'shipping/billing/base_billing.html' %}
+
+{% block billing_title %}Bill #{{ bill.id }}{% endblock %}
+
+{% block billing_content %}
+<div class="bill-details">
+    <div class="bill-header">
+        <h2>Bill #{{ bill.id }}</h2>
+        <span class="status-{{ bill.status|lower }}">
+            {{ bill.get_status_display }}
+        </span>
+    </div>
+    
+    <div class="bill-info">
+        <div class="info-row">
+            <span class="label">Customer:</span>
+            <span class="value">{{ bill.customer.get_full_name|default:bill.customer.username }}</span>
+        </div>
+        <div class="info-row">
+            <span class="label">Email:</span>
+            <span class="value">{{ bill.customer.email }}</span>
+        </div>
+        <div class="info-row">
+            <span class="label">Amount:</span>
+            <span class="value">${{ bill.amount }}</span>
+        </div>
+        <div class="info-row">
+            <span class="label">Created:</span>
+            <span class="value">{{ bill.created_at|date:"M d, Y H:i" }}</span>
+        </div>
+        <div class="info-row">
+            <span class="label">Last Updated:</span>
+            <span class="value">{{ bill.updated_at|date:"M d, Y H:i" }}</span>
+        </div>
+        {% if bill.description %}
+        <div class="info-row">
+            <span class="label">Description:</span>
+            <div class="value">{{ bill.description|linebreaksbr }}</div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="bill-actions">
+        {% if bill.status != 'PAID' %}
+        <form method="post" action="{% url 'shipping:update_bill_status' bill.id %}" style="display: inline;">
+            {% csrf_token %}
+            <input type="hidden" name="status" value="PAID">
+            <button type="submit" class="button mark-paid">Mark as Paid</button>
+        </form>
+        {% endif %}
+        
+        <a href="{% url 'shipping:bill_list' %}" class="button">Back to List</a>
+    </div>
+    
+    <div class="activity-log">
+        <h3>Activity Log</h3>
+        {% if activities %}
+            {% for activity in activities %}
+            <div class="activity-item">
+                <div class="activity-message">
+                    {{ activity.get_activity_type_display }} - {{ activity.description }}
+                </div>
+                <div class="activity-time">
+                    {{ activity.created_at|date:"M d, Y H:i" }} by {{ activity.user.get_full_name|default:activity.user.username }}
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p>No activity recorded for this bill.</p>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.bill-details {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.bill-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.bill-info {
+    background: #f9f9f9;
+    padding: 20px;
+    border-radius: 4px;
+    margin-bottom: 30px;
+}
+
+.info-row {
+    display: flex;
+    margin-bottom: 10px;
+    line-height: 1.5;
+}
+
+.info-row .label {
+    font-weight: bold;
+    width: 150px;
+    flex-shrink: 0;
+}
+
+.info-row .value {
+    flex-grow: 1;
+}
+
+.bill-actions {
+    margin: 30px 0;
+    text-align: right;
+}
+
+.mark-paid {
+    background-color: #5cb85c;
+    margin-right: 10px;
+}
+
+.mark-paid:hover {
+    background-color: #4cae4c;
+}
+
+.activity-log {
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+.activity-log h3 {
+    margin-top: 0;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.activity-item {
+    padding: 10px 15px;
+    margin-bottom: 10px;
+    background: #f5f5f5;
+    border-left: 3px solid #79aec8;
+    border-radius: 0 4px 4px 0;
+}
+
+.activity-message {
+    font-weight: 500;
+    margin-bottom: 5px;
+}
+
+.activity-time {
+    color: #666;
+    font-size: 0.85em;
+}
+
+.status-pending {
+    color: #d58512;
+    font-weight: bold;
+}
+
+.status-paid {
+    color: #398439;
+    font-weight: bold;
+}
+
+.button {
+    display: inline-block;
+    padding: 8px 16px;
+    background: #79aec8;
+    color: white;
+    text-decoration: none;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.button:hover {
+    background: #609ab6;
+}
+</style>
+{% endblock %}

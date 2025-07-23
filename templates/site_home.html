@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %}Welcome - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="px-4 py-5 my-5 text-center">
+        <img class="d-block mx-auto mb-4" src="{{ COMPANY_LOGO }}" alt="{{ COMPANY_NAME }} Logo" width="72" height="auto">
+        <h1 class="display-5 fw-bold text-body-emphasis">Welcome to {{ COMPANY_NAME }}</h1>
+        <div class="col-lg-6 mx-auto">
+            <p class="lead mb-4">Your one-stop solution for seamless and reliable parcel services. Get quotes, track shipments, and manage your deliveries with ease.</p>
+            <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+                <a href="{% url 'shipping_price_form' %}" class="btn btn-primary btn-lg px-4 gap-3">Get a Quote</a>
+                <a href="{% url 'shipping:tracking_input_page' %}" class="btn btn-outline-secondary btn-lg px-4">Track a Package</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-5">
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="fas fa-truck fa-3x mb-3 text-primary"></i>
+                    <h5 class="card-title">Ship Packages</h5>
+                    <p class="card-text">Send your parcels domestically or internationally with our reliable shipping services.</p>
+                    <a href="{% url 'shipping:shipping_home' %}" class="btn btn-primary">Start Shipping</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="fas fa-search-location fa-3x mb-3 text-primary"></i>
+                    <h5 class="card-title">Track Shipments</h5>
+                    <p class="card-text">Stay updated on your package's journey with our real-time tracking system.</p>
+                    <a href="{% url 'shipping:tracking_input_page' %}" class="btn btn-primary">Track Now</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="fas fa-calculator fa-3x mb-3 text-primary"></i>
+                    <h5 class="card-title">Calculate Prices</h5>
+                    <p class="card-text">Get an estimate for your shipping costs quickly and easily.</p>
+                    <a href="{% url 'shipping_price_form' %}" class="btn btn-primary">Get Pricing</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

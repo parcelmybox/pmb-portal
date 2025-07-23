@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Bill #{{ bill.id }}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 1.5cm;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        .header h1 {
+            margin: 0;
+            color: #2c3e50;
+        }
+        .bill-info {
+            margin-bottom: 30px;
+        }
+        .bill-info p {
+            margin: 5px 0;
+        }
+        .from-to {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+        }
+        .from-to > div {
+            width: 48%;
+        }
+        .from-to h3 {
+            margin-top: 0;
+            color: #2c3e50;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+        .text-right {
+            text-align: right;
+        }
+        .total {
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        .status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 0.8em;
+        }
+        .status-pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        .status-paid {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .status-overdue {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            font-size: 0.9em;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <!-- TEST LINE - This should appear at the top of the PDF -->
+    <div style="background: #ffeb3b; padding: 5px; text-align: center; font-weight: bold; margin-bottom: 10px;">
+        PDF Template Updated: {{ now|date:"Y-m-d H:i:s" }}
+    </div>
+    <div style="width: 100%; margin: 0 0 20px 0; overflow: hidden;">
+        <div style="float: left; width: 60%;">
+            <h1 style="color: #2c3e50; margin: 0 0 5px 0; font-size: 28px;">INVOICE</h1>
+            <p style="margin: 0 0 8px 0; color: #7f8c8d; font-size: 14px;">Bill #{{ bill.id }}</p>
+            <span class="status status-{{ bill.status|lower }}" style="display: inline-block; padding: 4px 8px; border-radius: 3px; font-weight: bold; text-transform: uppercase; font-size: 11px; background: #e9ecef; color: #495057;">
+                {{ bill.get_status_display }}
+            </span>
+        </div>
+        <div style="float: right; width: 35%;">
+            <div style="background: #f8f9fa; padding: 12px; border-radius: 4px; border: 1px solid #e9ecef; font-size: 13px;">
+                <p style="margin: 4px 0;"><strong>Date:</strong> {{ bill.created_at|date:"F d, Y" }}</p>
+                {% if bill.due_date %}
+                    <p style="margin: 4px 0;"><strong>Due Date:</strong> {{ bill.due_date|date:"F d, Y" }}</p>
+                {% endif %}
+                {% if bill.paid_at %}
+                    <p style="margin: 4px 0;"><strong>Paid On:</strong> {{ bill.paid_at|date:"F d, Y" }}</p>
+                {% endif %}
+                <p style="margin: 4px 0;"><strong>Payment Method:</strong> 
+                    {% if bill.payment_method %}
+                        {{ bill.get_payment_method_display }}
+                    {% else %}
+                        Not specified
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+    <div style="clear: both;"></div>
+
+    <div style="width: 100%; margin: 15px 0; overflow: hidden;">
+        <div style="float: left; width: 48%; padding: 12px; background: #f8f9fa; border-radius: 4px; border: 1px solid #e9ecef; font-size: 13px;">
+            <h3 style="color: #2c3e50; border-bottom: 1px solid #dee2e6; padding-bottom: 5px; margin: 0 0 10px 0; font-size: 15px;">From</h3>
+            <p style="margin: 4px 0;"><strong>Parcel My Box</strong></p>
+            <p style="margin: 4px 0;">123 Business Street</p>
+            <p style="margin: 4px 0;">City, State, 12345</p>
+            <p style="margin: 4px 0;">Email: billing@parcelmybox.com</p>
+            <p style="margin: 4px 0;">Phone: (123) 456-7890</p>
+        </div>
+        <div style="float: right; width: 48%; padding: 12px; background: #f8f9fa; border-radius: 4px; border: 1px solid #e9ecef; font-size: 13px;">
+            <h3 style="color: #2c3e50; border-bottom: 1px solid #dee2e6; padding-bottom: 5px; margin: 0 0 10px 0; font-size: 15px;">Bill To</h3>
+            <p style="margin: 4px 0;"><strong>{{ bill.customer.get_full_name|default:bill.customer.username }}</strong></p>
+            <p style="margin: 4px 0;">{{ bill.customer.email }}</p>
+            {% if bill.customer.profile.phone %}
+                <p style="margin: 4px 0;">Phone: {{ bill.customer.profile.phone }}</p>
+            {% endif %}
+        </div>
+    </div>
+    <div style="clear: both;"></div>
+
+    <table style="width: 100%; border-collapse: collapse; margin: 15px 0 20px 0; font-size: 13px;">
+        <thead>
+            <tr style="background-color: #2c3e50; color: white;">
+                <th style="padding: 8px 12px; text-align: left; font-weight: 500;">Description</th>
+                <th style="padding: 8px 12px; text-align: right; font-weight: 500;">Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr style="border-bottom: 1px solid #e9ecef;">
+                <td style="padding: 10px 12px; vertical-align: top;">
+                    <div style="font-weight: 500;">{{ bill.description|default:"Shipping Charges" }}</div>
+                    <div style="color: #6c757d; font-size: 12px; margin-top: 2px;">Bill #{{ bill.id }} - Created on {{ bill.created_at|date:"M d, Y" }}</div>
+                </td>
+                <td style="padding: 10px 12px; text-align: right; vertical-align: top;">${{ bill.amount|floatformat:2 }}</td>
+            </tr>
+            <tr style="background-color: #f8f9fa; border-top: 2px solid #e9ecef;">
+                <td style="padding: 12px; text-align: right; font-weight: 500;" colspan="2">
+                    <div style="display: inline-block; text-align: right; width: 200px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                            <span>Subtotal:</span>
+                            <span>${{ bill.amount|floatformat:2 }}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 6px; color: #6c757d;">
+                            <span>Tax (0%):</span>
+                            <span>$0.00</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-weight: 600; font-size: 14px; padding-top: 8px; margin-top: 8px; border-top: 1px solid #dee2e6;">
+                            <span>Total:</span>
+                            <span>${{ bill.amount|floatformat:2 }}</span>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    {% if bill.description %}
+    <div class="notes">
+        <h3>Description</h3>
+        <p>{{ bill.description|linebreaksbr }}</p>
+    </div>
+    {% endif %}
+
+    {% if bill.notes %}
+        <div class="notes">
+            <h3>Notes</h3>
+            <p>{{ bill.notes|linebreaksbr }}</p>
+        </div>
+    {% endif %}
+
+    <div class="footer">
+        <p>Thank you for your business!</p>
+        <p><strong>Payment Information:</strong></p>
+        <p>Bank: Your Bank | Account: 1234 5678 9012 3456 | SWIFT: YOURBANKXXX</p>
+        <p>Please include bill number #{{ bill.id }} in your payment reference.</p>
+    </div>
+</body>
+</html>

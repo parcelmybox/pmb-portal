@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+    /* Custom styles specific to billing pages */
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.25rem 0.5rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+    
+    .status-pending {
+        background-color: #fef3c7;
+        color: #92400e;
+    }
+    
+    .status-paid {
+        background-color: #d1fae5;
+        color: #065f46;
+    }
+    
+    .status-overdue {
+        background-color: #fee2e2;
+        color: #b91c1c;
+    }
+    
+    .amount-due {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #111827;
+    }
+    
+    .activity-item {
+        padding-left: 1rem;
+        border-left: 2px solid #e5e7eb;
+        padding-bottom: 1rem;
+        position: relative;
+    }
+    
+    .activity-item:last-child {
+        padding-bottom: 0;
+    }
+    
+    .activity-item::before {
+        content: '';
+        position: absolute;
+        width: 0.75rem;
+        height: 0.75rem;
+        background-color: #d1d5db;
+        border-radius: 9999px;
+        left: -0.4rem;
+        top: 0.25rem;
+    }
+    
+    .activity-item.paid::before {
+        background-color: #10b981;
+    }
+    
+    .activity-item.pending::before {
+        background-color: #f59e0b;
+    }
+    
+    .activity-item.overdue::before {
+        background-color: #ef4444;
+    }
+    
+    /* Breadcrumb styles */
+    .breadcrumb {
+        background: none;
+        padding: 0.5rem 0;
+        margin-bottom: 1.5rem;
+    }
+    
+    .breadcrumb-item a {
+        color: #3b82f6;
+        text-decoration: none;
+    }
+    
+    .breadcrumb-item.active {
+        color: #6b7280;
+    }
+    
+    .breadcrumb-item + .breadcrumb-item::before {
+        content: '›';
+        padding: 0 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Breadcrumb Navigation -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/admin/"><i class="fas fa-tachometer-alt me-1"></i> Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'shipping:shipping_home' %}">Shipping</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'shipping:bill_list' %}">Billing</a></li>
+            {% block breadcrumb %}{% endblock %}
+        </ol>
+    </nav>
+    
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">{% block page_title %}{% endblock %}</h1>
+        {% block header_actions %}{% endblock %}
+    </div>
+    
+    <!-- Messages -->
+    {% if messages %}
+    <div class="mb-4">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <!-- Main Content -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            {% block billing_content %}
+            {% endblock %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Common JavaScript for billing pages
+$(document).ready(function() {
+    // Initialize tooltips
+    $('[data-toggle="tooltip"]').tooltip();
+    
+    // Format currency inputs
+    $('.currency-input').on('input', function() {
+        let value = this.value.replace(/[^0-9.]/g, '');
+        let parts = value.split('.');
+        if (parts.length > 2) {
+            value = parts[0] + '.' + parts.slice(1).join('');
+        }
+        this.value = value;
+    });
+    
+    // Confirm before performing destructive actions
+    $('.confirm-action').on('click', function(e) {
+        if (!confirm('Are you sure you want to perform this action?')) {
+            e.preventDefault();
+        }
+    });
+});
+</script>
+{% endblock %}
