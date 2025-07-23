@@ -1,7 +1,4 @@
 from django.db import models
-
-# Create your models here.
-from django.db import models
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
@@ -31,3 +28,22 @@ class PickupRequest(models.Model):
     
     def __str__(self):
         return f"Pickup for {self.name}"
+
+
+# ✅ New SupportRequest model added here
+class SupportRequest(models.Model):
+    STATUS_CHOICES = [
+        ('new', 'New'),
+        ('assigned', 'Assigned'),
+        ('closed', 'Closed'),
+    ]
+    name = models.CharField(max_length=255)
+    contact = models.CharField(max_length=255)
+    category = models.CharField(max_length=50)
+    subject = models.CharField(max_length=255)
+    message = models.TextField()
+    attachment = models.FileField(upload_to='support_attachments/', null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=100, default='new')
+    def __str__(self):
+        return f"Support #{self.id} - {self.subject}"

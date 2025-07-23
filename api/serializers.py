@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from .models import SupportRequest
 from django.contrib.auth import get_user_model
 from shipping.models import (
     Shipment, ShippingAddress, Bill, Invoice, 
@@ -199,11 +200,30 @@ class PickupRequestSerializer(serializers.ModelSerializer):
             'package_type': {'required': False},
             'weight': {'required': False}
         }
+from rest_framework import serializers
+from .models import SupportRequest  # Make sure this import exists
+
+class SupportRequestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SupportRequest
+        fields = [
+            'id', 'name', 'contact', 'category', 'subject',
+            'message', 'attachment', 'status', 'created_at'
+        ]
+        read_only_fields = ['id', 'created_at']
+
+
 class QuoteSerializer(serializers.Serializer):
     shipping_route = serializers.ChoiceField(choices=["india-to-usa", "usa-to-india"])
     type = serializers.ChoiceField(choices=["document", "package"])
-    origin = serializers.ChoiceField(choices=["mumbai", "delhi", "bangalore", "chennai", "hyderabad", "new-york", "los-angeles", "chicago", "houston", "atlanta"])
-    destination = serializers.ChoiceField(choices=["mumbai", "delhi", "bangalore", "chennai", "hyderabad", "new-york", "los-angeles", "chicago", "houston", "atlanta"])
+    origin = serializers.ChoiceField(choices=[
+        "mumbai", "delhi", "bangalore", "chennai", "hyderabad",
+        "new-york", "los-angeles", "chicago", "houston", "atlanta"
+    ])
+    destination = serializers.ChoiceField(choices=[
+        "mumbai", "delhi", "bangalore", "chennai", "hyderabad",
+        "new-york", "los-angeles", "chicago", "houston", "atlanta"
+    ])
     weight = serializers.FloatField()
     weight_metric = serializers.ChoiceField(choices=["kg", "lb"])
     dim_length = serializers.FloatField()

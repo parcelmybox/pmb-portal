@@ -26,7 +26,7 @@ if os.path.isfile(env_file):
 SECRET_KEY = env('SECRET_KEY', default='django-insecure-$@6a$g-5_%+8cqziz=0ncydiz)0628*j3n4vl_1+*=oe+eolzf')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env.bool('DEBUG', default=True)
+DEBUG = True
 
 ALLOWED_HOSTS = ['*']  # Allow all hosts in development
 
@@ -252,7 +252,8 @@ STATICFILES_DIRS = [
 
 # Media files configuration
 MEDIA_URL = '/media/'
-MEDIA_ROOT = str(BASE_DIR / 'media')
+MEDIA_ROOT = BASE_DIR / 'media'
+
 
 # Add this to ensure static files are collected correctly
 STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'

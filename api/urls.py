@@ -15,7 +15,9 @@ from django.views.decorators.csrf import csrf_exempt
 from .views import QuoteView
 
 from . import views
+from django.conf.urls.static import static
 
+# urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 # Create a router and register our viewsets with it.
 router = DefaultRouter()
 router.register(r'users', views.UserViewSet, basename='user')
@@ -25,6 +27,7 @@ router.register(r'bills', views.BillViewSet, basename='bill')
 router.register(r'invoices', views.InvoiceViewSet, basename='invoice')
 router.register(r'pickup-requests', views.PickupRequestViewSet, basename='pickuprequest')
 router.register(r'support-requests', views.SupportRequestViewSet, basename='supportrequest')
+
 
 # Schema View for API documentation
 schema_view = get_schema_view(
