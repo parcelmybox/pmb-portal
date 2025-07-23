@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>All Lockers</title>
+</head>
+<body>
+    <h1>All Lockers</h1>
+    <table border="1">
+        <tr>
+            <th>Customer</th>
+            <th>Receiver Address</th>
+            <th>Receiver Phone</th>
+            <th>Locker Code</th>
+            <th>Warehouse</th>
+            <th>Sender Address</th>
+            <th>Sender Phone</th>
+        </tr>
+        {% for l in lockers %}
+        <tr>
+            <td>{{ l[0] }}</td>
+            <td>{{ l[1] }}</td>
+            <td>{{ l[2] }}</td>
+            <td>{{ l[3] }}</td>
+            <td>{{ l[4] }}</td>
+            <td>{{ l[5] }}</td>
+            <td>{{ l[6] }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <br>
+    <a href="/">Back to Home</a>
+</body>
+</html>
