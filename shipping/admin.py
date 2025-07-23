@@ -490,3 +490,5 @@ class SupportRequestAdmin(admin.ModelAdmin):
                 'shipping/css/admin_supportrequest.css',
             ]
             return media
+
+# The SupportRequest model is registered using the @admin.register decorator above

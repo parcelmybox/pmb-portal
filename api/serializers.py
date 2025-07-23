@@ -75,7 +75,7 @@ class ShipmentSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'tracking_number', 'sender_address', 'recipient_address',
             'package_type', 'weight', 'length', 'width', 'height',
-            'declared_value', 'status', 'shipping_date', 'delivery_date',
+            'status', 'shipping_date', 'delivery_date',
             'shipping_cost', 'created_at', 'updated_at', 'items', 'tracking_events'
         ]
         read_only_fields = [
@@ -274,6 +274,11 @@ class SupportRequestSerializer(serializers.ModelSerializer):
     created_at = serializers.DateTimeField(read_only=True)
     updated_at = serializers.DateTimeField(read_only=True)
     resolved_at = serializers.DateTimeField(read_only=True)
+    assigned_to = serializers.PrimaryKeyRelatedField(
+        queryset=get_user_model().objects.filter(is_staff=True, is_active=True),
+        required=False,
+        allow_null=True
+    )
     category_display = serializers.CharField(source='get_request_type_display', read_only=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     
@@ -423,9 +428,12 @@ class SupportRequestSerializer(serializers.ModelSerializer):
         message = validated_data.get('message', 'No message provided')
         request_type = validated_data.get('request_type', 'general')
         
-        # Get assigned_to and created_by from context
-        assigned_to = self.context.get('assigned_to')
-        created_by_id = self.context.get('created_by_id')
+        # Get assigned_to and created_by from validated_data or context
+        assigned_to = validated_data.pop('assigned_to', None) or self.context.get('assigned_to')
+        created_by_id = validated_data.pop('created_by_id', None) or self.context.get('created_by_id')
+        
+        print(f"Assigned to: {assigned_to}")
+        print(f"Created by ID: {created_by_id}")
         
         # Create the support request with all required fields
         support_request = SupportRequest.objects.create(

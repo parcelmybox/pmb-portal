@@ -95,6 +95,11 @@ class APIRootView(APIView):
     
     def get(self, request, format=None):
         data = {
+            'admin': {
+                'url': reverse('admin:index', request=request, format=format),
+                'description': 'Django admin interface',
+                'methods': ['GET']
+            },
             'users': {
                 'url': reverse('user-list', request=request, format=format),
                 'description': 'User management endpoints',
@@ -478,6 +483,41 @@ class SupportRequestViewSet(viewsets.ModelViewSet):
         print("\n[DEBUG] User not authenticated or has no email, returning no support requests")
         return ShippingSupportRequest.objects.none()
 
+    def get_random_staff_member(self):
+        """
+        Returns a random active staff member to assign to the support request.
+        Returns None if no staff members are available.
+        """
+        from django.db.models import Count, Q
+        
+        # First try to find staff with the fewest open/in-progress tickets
+        staff_members = get_user_model().objects.filter(
+            is_staff=True,
+            is_active=True
+        ).annotate(
+            ticket_count=Count('assigned_support_requests', 
+                            filter=Q(assigned_support_requests__status__in=['open', 'in_progress']))
+        ).order_by('ticket_count')
+        
+        if staff_members.exists():
+            # Get the first staff member with the fewest tickets
+            return staff_members.first()
+            
+        # Fallback to any active staff member
+        staff = get_user_model().objects.filter(
+            is_staff=True,
+            is_active=True
+        ).order_by('?').first()
+        
+        if staff:
+            return staff
+            
+        # Last resort: get any active superuser
+        return get_user_model().objects.filter(
+            is_superuser=True,
+            is_active=True
+        ).first()
+        
     def create(self, request, *args, **kwargs):
         print("\n=== Support Request Data ===")
         print("Request data:", request.data)
@@ -567,14 +607,42 @@ class SupportRequestViewSet(viewsets.ModelViewSet):
         Returns a random active staff member to assign to the support request.
         Returns None if no staff members are available.
         """
+        import random
+        from django.db.models import Count, Q
+        
+        # First try to get staff with the fewest open/in-progress tickets
         staff_members = get_user_model().objects.filter(
             is_staff=True,
             is_active=True
-        )
+        ).annotate(
+            ticket_count=Count('assigned_support_requests', 
+                            filter=Q(assigned_support_requests__status__in=['open', 'in_progress']))
+        ).order_by('ticket_count')
         
         if staff_members.exists():
-            return random.choice(staff_members)
-        return None
+            # Get all staff with the minimum number of tickets
+            min_tickets = staff_members.first().ticket_count
+            candidates = list(staff_members.filter(ticket_count=min_tickets))
+            
+            # If we have multiple candidates with the same minimum tickets, choose randomly
+            if len(candidates) > 1:
+                return random.choice(candidates)
+            return candidates[0]
+            
+        # Fallback to any active staff member if no tickets exist yet
+        staff = get_user_model().objects.filter(
+            is_staff=True,
+            is_active=True
+        ).order_by('?').first()
+        
+        if staff:
+            return staff
+            
+        # Last resort: get any active superuser
+        return get_user_model().objects.filter(
+            is_superuser=True,
+            is_active=True
+        ).first()
     
     def perform_create(self, serializer):
         """
@@ -590,58 +658,28 @@ class SupportRequestViewSet(viewsets.ModelViewSet):
         print("Request POST:", self.request.POST)
         print("Request FILES:", dict(self.request.FILES) if hasattr(self.request, 'FILES') else 'No files')
         
-        # Ensure we're using the correct model
-        from shipping.models import SupportRequest as ShippingSupportRequest
-        if not isinstance(serializer.instance, ShippingSupportRequest):
-            print("\n[WARNING] Using wrong model class in serializer. Creating new instance with correct model.")
-            
-            # Create a new instance with the correct model
-            data = serializer.validated_data
-            support_request = ShippingSupportRequest(
-                email=data.get('email'),
-                phone=data.get('phone'),
-                name=data.get('name'),
-                subject=data.get('subject'),
-                message=data.get('message'),
-                request_type=data.get('request_type', 'general'),
-                status='open',
-                ticket_number=serializer.validated_data.get('ticket_number')
-            )
-            
-            # Save the instance
-            support_request.save()
-            print("\n[DEBUG] Created support request with ID:", support_request.id)
-            
-            # Set the instance on the serializer
-            serializer.instance = support_request
-            return
-            
-        # Get or create a staff member to assign the ticket
-        staff_members = User.objects.filter(is_staff=True, is_active=True)
-        
-        if staff_members.exists():
-            # Get the staff member with the fewest assigned tickets
-            assigned_to = staff_members.annotate(
-                ticket_count=models.Count('assigned_support_requests', 
-                                       filter=models.Q(assigned_support_requests__status__in=['open', 'in_progress']))
-            ).order_by('ticket_count').first()
-        else:
-            # Fallback to superuser if no staff members found
-            assigned_to = User.objects.filter(is_superuser=True).first()
-        
-        # Set the assigned_to in the serializer context
+        # Get or assign a staff member
+        assigned_to = self.get_random_staff_member()
         if assigned_to:
             print(f"\n=== Assigning to Staff ===")
             print(f"Assigned to: {assigned_to.get_full_name() or assigned_to.username} (ID: {assigned_to.id})")
-            serializer.context['assigned_to'] = assigned_to
+            # Set assigned_to in both context and validated_data
+            serializer._validated_data['assigned_to'] = assigned_to
+            serializer._context['assigned_to'] = assigned_to
+            
+            # Also set it in the request data to ensure it's included in the response
+            if hasattr(self.request, 'data') and isinstance(self.request.data, dict):
+                self.request.data._mutable = True
+                self.request.data['assigned_to'] = assigned_to.id
+                self.request.data._mutable = False
         else:
-            print("\n=== WARNING: No staff members found to assign ticket ===")
+            print("\n=== WARNING: No active staff members found to assign ticket ===")
         
         # Set created_by if user is authenticated
-        if self.request.user.is_authenticated:
-            created_by = self.request.user
-            print(f"Created by: {created_by.get_full_name() or created_by.username} (ID: {created_by.id})")
-            serializer.context['created_by_id'] = created_by.id
+        if self.request.user.is_authenticated and not self.request.user.is_anonymous:
+            serializer._validated_data['created_by'] = self.request.user
+            serializer._context['created_by'] = self.request.user
+            print(f"Created by: {self.request.user.username} (ID: {self.request.user.id})")
         else:
             print("Created by: Anonymous user")
         
