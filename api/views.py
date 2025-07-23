@@ -284,8 +284,8 @@ class QuoteView(APIView):
             else:
                 relevant_prices = ShippingRates.objects.filter(min_kg__lte = weight, max_kg__gte = weight, package_type=type)
                 if currency == '$':
-                    if relevant_prices[0].fixed_price: relevant_prices[0].fixed_price = math.ceil(float(relevant_prices[0].fixed_price) / usd_rate)
-                    elif relevant_prices[0].per_kg_price: relevant_prices[0].per_kg_price = math.ceil(float(relevant_prices[0].per_kg_price) / usd_rate)
+                    for price in relevant_prices:
+                        price.fixed_price = math.ceil(float(price.fixed_price) / usd_rate)
                 prices.append({
                     "fixed_price": relevant_prices[0].fixed_price,
                     "per_kg_price": relevant_prices[0].per_kg_price,
