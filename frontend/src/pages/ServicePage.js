@@ -1,14 +1,16 @@
 import React from "react";
+import ImageCarousel from "../components/ImageCarousel";
 
 const ServicePage = () => {
   return (
     <div className="flex flex-col md:flex-row max-w-6xl mx-auto p-4 gap-6">
       {/* Image */}
       <div className="w-full md:w-1/2">
-        <img
-          src={'https://cdn.store.link/products/deliveryhub/vhw4tp-whatsapp%20image%202025-02-11%20at%2013.40.25.jpeg?versionId=mSOKdS8hZ7KuLmh_GLmQ3PRDGRI50Zqw'}
-          alt={'Fedex Document Shipping Image'}
-          className="rounded-lg shadow-md w-full h-auto object-contain"
+        <ImageCarousel
+          images = {[
+            {name: 'Lotus', src: 'https://cdn.store.link/products/deliveryhub/3yefvf-pink%20lotus%20thuumbnail.jpg?versionId=GxIFTAHpxLkDEWwirUAUo9QtqHrRwekx'},
+            {name: 'Lotus', src: 'https://cdn.store.link/products/deliveryhub/iv6wxp-pink-lotus-flower.jpg?versionId=HD2F_NWFlTJd_NdpAh9d1y0EHAf3jmMB'}
+          ]}
         />
       </div>
 
