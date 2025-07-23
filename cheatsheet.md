@@ -163,6 +163,14 @@ docker-compose up          # Start services
 > 🧼 **Why this step?**  
 > Rebuilding ensures you’re testing the exact environment with the new PR changes, avoiding cached/stale builds.
 
+Docker compose cheatsheet : https://devhints.io/docker-compose
+Docker references for knowledge and trouble shooting:
+  https://devhints.io/dockerfile
+  https://docs.docker.com/reference/compose-file/
+  https://github.com/docker/awesome-compose/tree/master/django
+  DJANGO SAMPLE : https://github.com/docker/awesome-compose/tree/master/official-documentation-samples/django/
+  REACT SAMPLE : https://github.com/docker/awesome-compose/tree/master/react-express-mysql
+  WORDPRESS SAMPLE : https://github.com/docker/awesome-compose/tree/master/wordpress-mysql
 ---
 
 ### 🔎 Validate PR Changes in Browser
