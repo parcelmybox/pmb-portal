@@ -1,6 +1,6 @@
 import React from 'react';
 
-function CourierPlanCard({ plan }) {
+function CourierPlanCard({ plan, setCarrierPreference }) {
   return (
     <div
       className={`rounded-lg shadow-lg overflow-hidden border-2 flex flex-col justify-between ${
@@ -31,6 +31,7 @@ function CourierPlanCard({ plan }) {
               ? 'bg-white text-orange-500 border border-orange-500 hover:bg-orange-100'
               : 'bg-green-500 text-white hover:bg-green-600'
           }`}
+          onClick={setCarrierPreference && (() => setCarrierPreference(plan.name))}
         >
           {plan.cta}
         </button>

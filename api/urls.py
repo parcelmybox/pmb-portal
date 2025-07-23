@@ -12,7 +12,7 @@ from django.views.generic import TemplateView
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views.decorators.csrf import csrf_exempt
-from .views import QuoteView
+from .views import QuoteView, GenerateQuotePDF
 
 from . import views
 
@@ -51,6 +51,8 @@ urlpatterns = [
 
     # Quote calculation API endpoint
     path('quote/', QuoteView.as_view(), name='quote'),
+
+    path('generate-quote-pdf/', GenerateQuotePDF.as_view(), name='generate_quote_pdf'),
     
     # Authentication endpoints
     path('auth/', include([
