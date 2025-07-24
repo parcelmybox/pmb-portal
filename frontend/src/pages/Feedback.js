@@ -35,10 +35,32 @@ function Feedback() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Feedback submitted:', formData); // ← This contains rating too
-    setSuccess(true);
+
+    const formDataToSend = new FormData();
+    formDataToSend.append('order_id', formData.orderId);  // ✅ Correct key
+    formDataToSend.append('rating', formData.rating);
+    formDataToSend.append('message', formData.message);
+    if (formData.image) {
+      formDataToSend.append('image', formData.image);
+    }
+
+    try {
+      const response = await fetch('http://localhost:8000/api/feedback/', {
+        method: 'POST',
+        body: formDataToSend,
+      });
+
+      if (response.ok) {
+        setSuccess(true);
+      } else {
+        const err = await response.json();
+        console.error('❌ Server rejected:', err);
+      }
+    } catch (err) {
+      console.error('❌ Network error:', err);
+    }
   };
 
   return (
