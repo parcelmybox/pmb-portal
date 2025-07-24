@@ -19,7 +19,7 @@ import PickupRequest from './pages/PickupRequest';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import About from './pages/About';
-import ServicePage from './pages/ServicePage';
+import ProductPage from './pages/ProductPage';
 
 function App() {
   const [showSidebar, setShowSidebar] = useState(false);
@@ -83,7 +83,7 @@ function App() {
                   </ProtectedRoute>
                 }
               />
-              <Route path="/service/:serviceName" element={<ServicePage />} />
+              <Route path="/product/:productName" element={<ProductPage />} />
             </Routes>
           </div>
         </div>

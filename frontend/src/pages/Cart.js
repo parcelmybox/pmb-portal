@@ -44,7 +44,15 @@ function Cart() {
 			description: 'USA to India - Up to 10kg, delivery within 7-10 business days',
 			quantity: 1,
 			currency: '₹'
-		}
+		},
+		{
+			id: 6,
+			name: 'FedEx Document Shipping',
+			price: 65,
+			description: 'Document shipping FedEx Express. 5 day shipping to your destination in India',
+			quantity: 1,
+			currency: '$'
+		},
 	];
 
 	const addToCart = (item) => {
@@ -91,7 +99,7 @@ function Cart() {
 						<div key={item.id} className="bg-white rounded-lg shadow-md p-4">
 							<h3 className="text-lg font-medium mb-2">
 								<a
-									href={`/service/${item.name}`}
+									href={`/product/${item.name}`}
 									className="text-gray-800 underline hover:text-indigo-600"
 									target='_blank'
 								>

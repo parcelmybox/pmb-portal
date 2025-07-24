@@ -5,7 +5,7 @@ from shipping.models import (
     ShipmentItem, TrackingEvent, Contact, SupportRequest
 )
 from django.utils import timezone
-
+from api.models import Product, ProductImage
 User = get_user_model()
 
 class UserSerializer(serializers.ModelSerializer):
@@ -245,4 +245,35 @@ class QuoteSerializer(serializers.Serializer):
         if errors:
             raise serializers.ValidationError(errors)
 
+        return data
+
+class ProductImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductImage
+        fields = ['image_url']
+        read_only_fields = fields
+
+class ProductSerializer(serializers.ModelSerializer):
+    images = ProductImageSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Product
+        fields = [
+            'id',
+            'name',
+            'category',
+            'price',
+            'discounted_price',
+            'description',
+            'weight',
+            'tag',
+            'stock',
+            'images',
+        ]
+        read_only_fields = fields
+
+    def validate(self, data):
+        if data.get('discounted_price') and data.get('price'):
+            if data['discounted_price'] > data['price']:
+                raise serializers.ValidationError("Discounted price cannot be greater than the original price.")
         return data

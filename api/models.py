@@ -31,3 +31,23 @@ class PickupRequest(models.Model):
     
     def __str__(self):
         return f"Pickup for {self.name}"
+
+class Product(models.Model):
+    name = models.CharField(max_length=150)
+    category = models.CharField(max_length=100)
+    price = models.FloatField()
+    discounted_price = models.FloatField()
+    description = models.CharField(max_length=400)
+    weight = models.CharField(max_length=50, blank=True)
+    tag = models.CharField(max_length=25)
+    stock = models.IntegerField()
+
+    def __str__(self):
+        return f"{self.name} - {self.discounted_price}"
+
+class ProductImage(models.Model):
+    product = models.ForeignKey(Product, related_name='images', on_delete=models.CASCADE)
+    image_url = models.URLField()
+
+    def __str__(self):
+        return f"Image for {self.product.name} - {self.image_url}"

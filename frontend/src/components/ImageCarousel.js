@@ -1,31 +1,16 @@
 import React, { useState, useEffect } from 'react';
 
-// const images = [
-// 	{
-// 		id: 1,
-// 		src: 'https://cdn.store.link/products/deliveryhub/3yefvf-pink%20lotus%20thuumbnail.jpg?versionId=GxIFTAHpxLkDEWwirUAUo9QtqHrRwekx',
-// 		alt: 'Flower 1',
-// 	},
-// 	{
-// 		id: 2,
-// 		src: 'https://cdn.store.link/products/deliveryhub/iv6wxp-pink-lotus-flower.jpg?versionId=HD2F_NWFlTJd_NdpAh9d1y0EHAf3jmMB',
-// 		alt: 'Flower 2',
-// 	},
-// ];
-
-
-
 const ImageCarousel = (props) => {
 	const [images, setImages] = useState([]);
 	const [selectedImage, setSelectedImage] = useState(0);
 
 	useEffect(() => {
 		let counter = 0;
-		const imagesDict = props.images.map(image => {
+		const imagesDict = props.product.images.map(image => {
 			return {
 				id: counter, 
-				src: image.src,
-				alt: `${image.name} Image ${counter++}`
+				src: image.image_url,
+				alt: `${props.product.name} Image ${counter++}`
 			}
 		})
 		setImages(imagesDict);

@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -13,12 +13,12 @@ from .serializers import (
     UserSerializer, ShipmentSerializer, 
     ShippingAddressSerializer, BillSerializer, InvoiceSerializer,
     ShipmentItemSerializer, TrackingEventSerializer, ContactSerializer, PickupRequestSerializer,
-    QuoteSerializer, SupportRequestSerializer,
+    QuoteSerializer, SupportRequestSerializer, ProductSerializer
 )
 from .permissions import IsOwnerOrAdmin, IsAdminOrReadOnly
 
 from rest_framework import generics
-from .models import PickupRequest
+from .models import PickupRequest, Product, ProductImage
 
 from rest_framework import views
 from rest_framework.response import Response
@@ -358,11 +358,15 @@ class PickupRequestViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """Only show requests belonging to current user"""
         return PickupRequest.objects.filter(user=self.request.user)
+
+class ProductViewSet(viewsets.ModelViewSet):
+    permission_classes = [AllowAny]
+    serializer_class = ProductSerializer
+
+    def get_queryset(self): 
+        return Product.objects.prefetch_related('images').all()
     
-    def perform_create(self, serializer):
-        """Auto-set user on creation"""
-        serializer.save(user=self.request.user)
-        
-    def perform_update(self, serializer):
-        """Auto-update without changing user"""
-        serializer.save()
+    def get_object(self):
+        queryset = self.get_queryset()
+        name = self.kwargs.get(self.lookup_field)
+        return get_object_or_404(queryset, name__iexact=name)
