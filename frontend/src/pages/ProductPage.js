@@ -9,7 +9,7 @@ const ProductPage = () => {
 
 	useEffect(() => {
 		const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
-		fetch(`${API_URL}/api/products/${productName}/`)
+		fetch(`${API_URL}/api/products/fetch-product/${productName}/`)
 			.then((response) => {
 				if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 				return response.json();

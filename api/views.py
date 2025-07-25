@@ -18,7 +18,7 @@ from .serializers import (
 from .permissions import IsOwnerOrAdmin, IsAdminOrReadOnly
 
 from rest_framework import generics
-from .models import PickupRequest, Product, ProductImage
+from .models import PickupRequest, Product
 
 from rest_framework import views
 from rest_framework.response import Response
@@ -363,10 +363,17 @@ class ProductViewSet(viewsets.ModelViewSet):
     permission_classes = [AllowAny]
     serializer_class = ProductSerializer
 
-    def get_queryset(self): 
+    def get_queryset(self):
         return Product.objects.prefetch_related('images').all()
-    
-    def get_object(self):
-        queryset = self.get_queryset()
-        name = self.kwargs.get(self.lookup_field)
-        return get_object_or_404(queryset, name__iexact=name)
+
+    @action(detail=False, methods=['get'], url_path='fetch-product/(?P<name>[^/.]+)')
+    def fetch_product(self, request, name=None):
+        product = get_object_or_404(self.get_queryset(), name__iexact=name)
+        serializer = self.get_serializer(product)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'], url_path='fetch-category/(?P<category>[^/.]+)')
+    def fetch_category(self, request, category=None):
+        products = self.get_queryset().filter(category__iexact=category)
+        serializer = self.get_serializer(products, many=True)
+        return Response(serializer.data)

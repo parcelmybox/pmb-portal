@@ -33,13 +33,13 @@ class PickupRequest(models.Model):
         return f"Pickup for {self.name}"
 
 class Product(models.Model):
-    name = models.CharField(max_length=150)
-    category = models.CharField(max_length=100)
-    price = models.FloatField()
-    discounted_price = models.FloatField()
+    name = models.CharField(max_length=150, unique=True, blank=False, null=False)
+    category = models.CharField(max_length=100, blank=False, null=False)
+    price = models.FloatField(blank=False, null=False)
+    discounted_price = models.FloatField(blank=False, null=False)
     description = models.CharField(max_length=400)
     weight = models.CharField(max_length=50, blank=True)
-    tag = models.CharField(max_length=25)
+    tag = models.CharField(max_length=25, blank=False, null=False)
     stock = models.IntegerField()
 
     def __str__(self):
