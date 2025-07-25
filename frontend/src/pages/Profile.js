@@ -5,86 +5,57 @@ function Profile() {
   const { user } = useAuth();
 
   if (!user.isAuthenticated) {
-    return <div className="p-6 text-center">Please sign in to view your profile.</div>;
+    return <div className="p-6 text-center text-lg">Please sign in to view your profile.</div>;
   }
 
-  const infoRowClass = "py-3 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6";
-  const labelClass = "text-sm font-medium text-gray-500";
-  const valueClass = "mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2";
-  const buttonClass = "mt-4 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500";
-
-  // Temporary static values for now
-  const phone = "+91-9876543210";
-  const lockerCode = "PMB-98765";
-  const warehouseAddress = "ParcelMyBox Warehouse, Hyderabad, Telangana";
-  const totalPickupRequests = 3;
-  const totalBills = 2;
+  // Static dummy values
+  const phone = '+91-9848012345';
+  const email = 'tonystark@gmail.com';
+  const location = 'River view Heights, River street, Anna Nagar, Chennai, India';
+  const lockerCode = '#1056';
+  const pickupRequests = 3;
 
   return (
-    <div className="p-6 max-w-3xl mx-auto">
-      <h1 className="text-3xl font-bold text-gray-800 mb-8">{user.isAdmin ? 'Admin Profile' : 'Your Profile'}</h1>
+    <div className="min-h-screen bg-cover bg-center flex items-center justify-center px-6 py-10" style={{ backgroundImage: 'url(/images/container-bg.jpg)' }}>
+      <div className="max-w-6xl w-full grid grid-cols-1 md:grid-cols-2 gap-10">
+        {/* Left Profile Card */}
+        <div className="bg-white rounded-2xl shadow-lg p-8 text-center flex flex-col items-center">
+          <div className="h-20 w-20 rounded-full bg-gradient-to-br from-purple-600 to-pink-500 flex items-center justify-center text-white text-3xl font-semibold shadow-lg mb-4">
+            {user.name?.charAt(0).toUpperCase() || 'U'}
+          </div>
+          <h2 className="text-xl font-bold text-gray-800">{user.name || 'Tony Stark'}</h2>
+          <p className="text-sm text-gray-500 mb-6">@pmb{Math.floor(1000 + Math.random() * 9000)}</p>
 
-      <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-        <div className="px-4 py-5 sm:px-6">
-          <h3 className="text-lg leading-6 font-medium text-gray-900">
-            Account Information
-          </h3>
-          <p className="mt-1 max-w-2xl text-sm text-gray-500">
-            {user.isAdmin 
-              ? 'Admin account details and settings.' 
-              : 'Personal details and application settings.'}
-          </p>
-        </div>
-        <div className="border-t border-gray-200">
-          <dl>
-            <div className={`${infoRowClass} bg-gray-50`}>
-              <dt className={labelClass}>Full Name</dt>
-              <dd className={valueClass}>{user.name}</dd>
-            </div>
-            <div className={infoRowClass}>
-              <dt className={labelClass}>Email Address</dt>
-              <dd className={valueClass}>{user.email}</dd>
-            </div>
-            <div className={`${infoRowClass} bg-gray-50`}>
-              <dt className={labelClass}>Phone Number</dt>
-              <dd className={valueClass}>{phone}</dd>
-            </div>
-            <div className={infoRowClass}>
-              <dt className={labelClass}>Locker Code</dt>
-              <dd className={valueClass}>{lockerCode}</dd>
-            </div>
-            <div className={`${infoRowClass} bg-gray-50`}>
-              <dt className={labelClass}>Warehouse Address</dt>
-              <dd className={valueClass}>{warehouseAddress}</dd>
-            </div>
-            <div className={infoRowClass}>
-              <dt className={labelClass}>Total Pickup Requests</dt>
-              <dd className={valueClass}>{totalPickupRequests}</dd>
-            </div>
-            <div className={`${infoRowClass} bg-gray-50`}>
-              <dt className={labelClass}>Total Bills</dt>
-              <dd className={valueClass}>{totalBills}</dd>
-            </div>
-          </dl>
-        </div>
-      </div>
+          <div className="w-full text-left text-sm text-gray-700 space-y-2">
+            <p><strong>Mobile:</strong> {phone}</p>
+            <p><strong>Email:</strong> {email}</p>
+            <p><strong>Location:</strong><br />{location}</p>
+          </div>
 
-      <div className="mt-8">
-        <button type="button" className={buttonClass}>
-          Edit Profile
-        </button>
-      </div>
-
-      <div className="mt-10 bg-white shadow overflow-hidden sm:rounded-lg">
-        <div className="px-4 py-5 sm:px-6">
-          <h3 className="text-lg leading-6 font-medium text-gray-900">
-            Security Settings
-          </h3>
-        </div>
-        <div className="border-t border-gray-200 px-4 py-5 sm:px-6">
-          <button type="button" className={buttonClass.replace('mt-4', '')}>
-            Change Password
+          <button className="mt-6 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-md shadow">
+            Edit Profile
           </button>
+        </div>
+
+        {/* Right Stats Card */}
+        <div className="bg-white rounded-2xl shadow-lg p-8 flex flex-col justify-between">
+          <div className="grid grid-cols-2 gap-6 mb-6">
+            <div className="text-center">
+              <p className="text-sm text-gray-500">Locker Code</p>
+              <p className="text-xl font-bold text-gray-800">{lockerCode}</p>
+            </div>
+            <div className="text-center">
+              <p className="text-sm text-gray-500">Total Pickup Requests</p>
+              <p className="text-xl font-bold text-gray-800">{pickupRequests}</p>
+            </div>
+          </div>
+
+          <hr className="my-4" />
+
+          <div className="text-center">
+            <h3 className="text-lg font-semibold text-gray-800 mb-2">Current & Past Delivery</h3>
+            <p className="text-sm text-gray-600">Details and Status Updates</p>
+          </div>
         </div>
       </div>
     </div>

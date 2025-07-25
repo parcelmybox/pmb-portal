@@ -1,0 +1,148 @@
+{% extends "admin/change_form.html" %}
+{% load i18n admin_urls static admin_modify %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% static 'shipping/css/admin_supportrequest.css' %}">
+<style>
+/* Additional inline styles for maximum compactness */
+body.change-form {
+    font-size: 13px;
+    line-height: 1.3;
+}
+
+.module {
+    margin-bottom: 10px;
+}
+
+.form-row {
+    margin-bottom: 4px !important;
+}
+
+.fieldBox {
+    margin-bottom: 2px !important;
+}
+
+.selector {
+    margin: 0 !important;
+}
+
+.selector-available, .selector-chosen {
+    width: 200px !important;
+}
+
+.selector select {
+    width: 100% !important;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="compact-form">
+    <div class="submit-row" style="background: transparent; border: none; padding: 0 0 10px 0; margin: 0 0 10px 0; border-bottom: 1px solid #ddd; position: relative; z-index: 1;">
+        <input type="button" value="Close with Comments" class="close-with-comments" style="margin-right: 10px;">
+    </div>
+    <div id="custom-messages" style="position: relative; z-index: 2;"></div>
+    {{ block.super }}
+</div>
+{% endblock %}
+
+{% block extrahead %}
+{{ block.super }}
+<script type="text/javascript" src="{% static 'admin/js/vendor/jquery/jquery.js' %}"></script>
+<script type="text/javascript">
+(function($) {
+    $(document).ready(function() {
+        // Make form more compact
+        $('form').addClass('compact');
+        
+        // Make all form controls more compact
+        $('input, select, textarea, button, .vTextField, .vLargeTextField, .vURLField, .vIntegerField')
+            .css({
+                'margin': '0',
+                'padding': '2px 5px',
+                'height': '24px',
+                'line-height': '20px',
+                'font-size': '12px',
+                'border-radius': '2px'
+            });
+            
+        $('textarea').css({
+            'min-height': '60px',
+            'padding': '3px 5px'
+        });
+        
+        // Style the Close with Comments button
+        $('.close-with-comments').css({
+            'background': '#ba2121',
+            'border': '1px solid #a41515',
+            'border-radius': '4px',
+            'color': 'white',
+            'cursor': 'pointer',
+            'font-weight': 'bold',
+            'padding': '5px 10px',
+            'margin': '0',
+            'height': 'auto',
+            'line-height': '1.3',
+            'font-size': '12px',
+            'transition': 'background-color 0.2s'
+        }).hover(function() {
+            $(this).css('background', '#a41515');
+        }, function() {
+            $(this).css('background', '#ba2121');
+        });
+        
+        // Handle Close with Comments button click
+        $('.close-with-comments').on('click', function() {
+            // Set status to closed
+            $('#id_status').val('closed');
+            
+            // If resolved_at is empty, set it to now
+            if (!$('#id_resolved_at').val()) {
+                var now = new Date();
+                var day = String(now.getDate()).padStart(2, '0');
+                var month = String(now.getMonth() + 1).padStart(2, '0');
+                var year = now.getFullYear();
+                var hours = String(now.getHours()).padStart(2, '0');
+                var minutes = String(now.getMinutes()).padStart(2, '0');
+                var formattedDate = `${year}-${month}-${day} ${hours}:${minutes}`;
+                $('#id_resolved_at').val(formattedDate);
+            }
+            
+            // Scroll to resolution_notes and focus on it
+            $('html, body').animate({
+                scrollTop: $('#id_resolution_notes').closest('.form-row').offset().top - 20
+            }, 300);
+            $('textarea#id_resolution_notes').focus();
+            
+            // Show a properly formatted message in our custom container
+            var messagesContainer = $('#custom-messages');
+            messagesContainer.empty(); // Clear any existing messages
+            
+            // Add our custom message
+            messagesContainer.html(
+                '<div class="messagelist" style="margin-bottom: 15px; background: #fff8e1; border-left: 5px solid #ffc107; padding: 10px 15px;">' +
+                '  <span style="display: flex; align-items: flex-start;">' +
+                '    <span style="margin-right: 10px; color: #ffc107; font-size: 16px; line-height: 1.3;">⚠</span>' +
+                '    <span style="line-height: 1.3;">Please add closing comments and click Save</span>' +
+                '  </span>' +
+                '</div>'
+            );
+            
+            // Scroll to show the message
+            $('html, body').animate({
+                scrollTop: messagesContainer.offset().top - 20
+            }, 300);
+        });
+    });
+})(django.jQuery);
+</script>
+{% endblock %}
+
+{% block submit_buttons_bottom %}
+<div class="submit-row" style="padding: 5px; margin: 5px 0 0 0;">
+    <input type="submit" value="{% trans 'Save' %}" class="default" name="_save" style="padding: 4px 10px; font-size: 12px; line-height: 1; height: auto;">
+    <input type="submit" value="{% trans 'Save and continue editing' %}" name="_continue" style="padding: 4px 10px; font-size: 12px; line-height: 1; height: auto;">
+    <input type="submit" value="{% trans 'Save and add another' %}" name="_addanother" style="padding: 4px 10px; font-size: 12px; line-height: 1; height: auto;">
+</div>
+{% endblock %}
