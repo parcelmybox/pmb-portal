@@ -5,7 +5,7 @@ from shipping.models import (
     ShipmentItem, TrackingEvent, Contact, SupportRequest
 )
 from django.utils import timezone
-from api.models import Product, ProductImage
+from api.models import Product, ProductImage, ProductWeights
 User = get_user_model()
 
 class UserSerializer(serializers.ModelSerializer):
@@ -253,8 +253,15 @@ class ProductImageSerializer(serializers.ModelSerializer):
         fields = ['image_url']
         read_only_fields = fields
 
+class ProductWeightsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductWeights
+        fields = ['weights']
+        read_only_fields = fields
+
 class ProductSerializer(serializers.ModelSerializer):
     images = ProductImageSerializer(many=True, read_only=True)
+    weights = ProductWeightsSerializer(many=True, read_only=True)
 
     class Meta:
         model = Product
@@ -265,10 +272,10 @@ class ProductSerializer(serializers.ModelSerializer):
             'price',
             'discounted_price',
             'description',
-            'weight',
             'tag',
             'stock',
             'images',
+            'weights',
         ]
         read_only_fields = fields
 

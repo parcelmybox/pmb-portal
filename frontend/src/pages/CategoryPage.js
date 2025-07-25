@@ -187,7 +187,7 @@ const CategoryPage = () => {
                                             </span>
                                         </div>
                                         <button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 rounded-md transition mt-5">
-                                            {item.weights ? "See Options" : "Add to Cart"}
+                                            {item.weights.length !== 0 ? "See Options" : "Add to Cart"}
                                         </button>
                                     </div>
                                 </div>

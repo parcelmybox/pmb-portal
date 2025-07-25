@@ -38,7 +38,6 @@ class Product(models.Model):
     price = models.FloatField(blank=False, null=False)
     discounted_price = models.FloatField(blank=False, null=False)
     description = models.CharField(max_length=400)
-    weight = models.CharField(max_length=50, blank=True)
     tag = models.CharField(max_length=25, blank=False, null=False)
     stock = models.IntegerField()
 
@@ -51,3 +50,7 @@ class ProductImage(models.Model):
 
     def __str__(self):
         return f"Image for {self.product.name} - {self.image_url}"
+
+class ProductWeights(models.Model):
+    product = models.ForeignKey(Product, related_name='weights', on_delete=models.CASCADE, blank=True, null=True)
+    weights = models.CharField(max_length=20)
