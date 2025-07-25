@@ -20,6 +20,7 @@ import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import About from './pages/About';
 import ProductPage from './pages/ProductPage';
+import CategoryPage from './pages/CategoryPage';
 
 function App() {
   const [showSidebar, setShowSidebar] = useState(false);
@@ -84,6 +85,7 @@ function App() {
                 }
               />
               <Route path="/product/:productName" element={<ProductPage />} />
+              <Route path="/category/:categoryName" element={<CategoryPage />} />
             </Routes>
           </div>
         </div>
