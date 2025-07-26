@@ -256,7 +256,7 @@ class ProductImageSerializer(serializers.ModelSerializer):
 class ProductWeightsSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductWeights
-        fields = ['weights']
+        fields = ['weights', 'price', 'discounted_price']
         read_only_fields = fields
 
 class ProductSerializer(serializers.ModelSerializer):

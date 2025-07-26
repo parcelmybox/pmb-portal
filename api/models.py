@@ -54,6 +54,8 @@ class ProductImage(models.Model):
 class ProductWeights(models.Model):
     product = models.ForeignKey(Product, related_name='weights', on_delete=models.CASCADE, blank=True, null=True)
     weights = models.CharField(max_length=20)
+    price = models.FloatField(null=True, blank=True)
+    discounted_price = models.FloatField(null=True, blank=True)
 
     def __str__(self):
-        return f"Weight for {self.product.name} - {self.weights}"
+        return f"Weight for {self.product.name} - {self.weights} - {self.discounted_price}"

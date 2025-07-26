@@ -6,6 +6,7 @@ import { useParams } from 'react-router-dom';
 const ProductPage = () => {
 	const [product, setProduct] = useState();
 	const [selectedVariant, setSelectedVariant] = useState();
+
 	const { productName } = useParams();
 
 	useEffect(() => {
@@ -19,11 +20,16 @@ const ProductPage = () => {
 				console.log(data);
 				setProduct(data);
 				if (data.weights.length !== 0) {
-					setSelectedVariant(data.weights[0].weights);
-					console.log(data.weights[0].weights);
+					setSelectedVariant(data.weights[0]);
 				}
 			});
 	}, []);
+
+	const onVariantButtonClick = (weight) => {
+		const selectedProduct = product.weights.find((product) => product.weights === weight);
+		console.log(selectedProduct);
+		setSelectedVariant(selectedProduct);
+	};
 
 	return (
 		<div className="flex flex-col md:flex-row max-w-6xl mx-auto p-4 gap-6">
@@ -52,8 +58,12 @@ const ProductPage = () => {
 
 					{/* Price */}
 					<div className="flex items-center space-x-4">
-						<span className="text-2xl font-semibold text-gray-900">${product.discounted_price}</span>
-						<span className="text-lg line-through text-gray-400">${product.price}</span>
+						<span className="text-2xl font-semibold text-gray-900">
+							${product.weights.length !== 0 ? selectedVariant.discounted_price : product.discounted_price}
+						</span>
+						<span className="text-lg line-through text-gray-400">
+							${product.weights.length !== 0 ? selectedVariant.price : product.price}
+						</span>
 					</div>
 
 					{/* Weight Unit */}
@@ -63,8 +73,9 @@ const ProductPage = () => {
 							{product.weights.map((weight) => (
 								<button
 									className={`inline-block border-2 bg-white text-gray-800 font-medium px-4 py-2 rounded-lg text-center min-w-[60px]
-												${(selectedVariant === weight.weights) ? 'border-indigo-600' : 'border-gray-200'} mr-3`}
-									onClick={() => setSelectedVariant(weight.weights)}
+												${(selectedVariant?.weights === weight.weights) ? 'border-indigo-600' : 'border-gray-200'} mr-3
+												hover:bg-gray-100 transition-colors duration-200`}
+									onClick={() => onVariantButtonClick(weight.weights)}
 								>
 									{weight.weights}
 								</button>
