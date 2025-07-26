@@ -19,6 +19,7 @@ import PickupRequest from './pages/PickupRequest';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import About from './pages/About';
+import Package from './pages/Package';
 
 function App() {
   const [showSidebar, setShowSidebar] = useState(false);
@@ -55,6 +56,7 @@ function App() {
               <Route path="/about" element={<About />} />
               <Route path="/tracking" element={<Tracking />} />
               <Route path="/feedback" element={<Feedback />} />
+              <Route path="/package" element={<Package />} />
               <Route
                 path="/profile"
                 element={

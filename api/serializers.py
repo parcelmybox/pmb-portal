@@ -158,7 +158,7 @@ class InvoiceSerializer(serializers.ModelSerializer):
 
 
 from rest_framework import serializers
-from .models import PickupRequest
+from .models import PickupRequest,PackageDetail
 
 
 class SupportRequestSerializer(serializers.ModelSerializer):
@@ -246,3 +246,36 @@ class QuoteSerializer(serializers.Serializer):
             raise serializers.ValidationError(errors)
 
         return data
+    
+
+class PackageDetailSerializer(serializers.ModelSerializer):
+    # now just a raw integer
+    pickup_id = serializers.IntegerField()
+
+    class Meta:
+        model = PackageDetail
+        fields = [
+            'id',
+            'pickup_id',
+            'weight',
+            'dimensions',
+            'contents_description',
+            'packaging_status',
+            'created_at',
+        ]
+        read_only_fields = ['id', 'created_at']
+    
+"""
+class PackageDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PackageDetail
+        fields = '__all__'
+        read_only_fields = ('package_id', 'created_at', 'updated_at')
+        extra_kwargs = {
+            'pickup':              {'required': False},
+            'weight':              {'required': False},
+            'dimensions':          {'required': False},
+            'contents_description':{'required': False},
+            'packaging_status':    {'required': False},
+        }
+"""

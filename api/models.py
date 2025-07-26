@@ -31,3 +31,69 @@ class PickupRequest(models.Model):
     
     def __str__(self):
         return f"Pickup for {self.name}"
+    
+
+class PackageDetail(models.Model):
+    PACKAGING_STATUS = [
+        ('boxed', 'Boxed'),
+        ('loose', 'Loose'),
+        ('fragile', 'Fragile'),
+    ]
+
+    # no longer a FK—just store whatever integer the front end sends
+    pickup_id = models.IntegerField(
+        null=True,
+        blank=True,
+        help_text="Arbitrary pickup‐request ID (no FK check)"
+    )
+
+    weight = models.DecimalField(
+        max_digits=8,
+        decimal_places=2,
+        help_text="Weight in kilograms (e.g. 2.50)"
+    )
+    dimensions = models.CharField(
+        max_length=50,
+        help_text="L×W×H and unit, e.g. '30x20x10cm'"
+    )
+    contents_description = models.TextField()
+    packaging_status = models.CharField(
+        max_length=10,
+        choices=PACKAGING_STATUS
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Package {self.id} (pickup_id={self.pickup_id})"
+    
+"""
+class PackageDetail(models.Model):
+    PACKAGING_STATUS_CHOICES = [
+        ('boxed',   'Boxed'),
+        ('loose',   'Loose'),
+        ('fragile', 'Fragile'),
+    ]
+
+    package_id       = models.AutoField(primary_key=True)
+    pickup           = models.ForeignKey(
+                          'PickupRequest',
+                          on_delete=models.CASCADE,
+                          related_name='packages'
+                       )
+    weight           = models.DecimalField(max_digits=6, decimal_places=2)
+    dimensions       = models.CharField(
+                          max_length=100,
+                          help_text="Length x Width x Height in cm"
+                       )
+    contents_description = models.TextField()
+    packaging_status = models.CharField(
+                          max_length=10,
+                          choices=PACKAGING_STATUS_CHOICES
+                       )
+    created_at       = models.DateTimeField(auto_now_add=True)
+    updated_at       = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Package {self.package_id} for {self.pickup.name}"
+
+"""

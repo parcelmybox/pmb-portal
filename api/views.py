@@ -13,12 +13,12 @@ from .serializers import (
     UserSerializer, ShipmentSerializer, 
     ShippingAddressSerializer, BillSerializer, InvoiceSerializer,
     ShipmentItemSerializer, TrackingEventSerializer, ContactSerializer, PickupRequestSerializer,
-    QuoteSerializer, SupportRequestSerializer,
+    QuoteSerializer, SupportRequestSerializer,PackageDetailSerializer,
 )
 from .permissions import IsOwnerOrAdmin, IsAdminOrReadOnly
 
 from rest_framework import generics
-from .models import PickupRequest
+from .models import PickupRequest,PackageDetail
 
 from rest_framework import views
 from rest_framework.response import Response
@@ -366,3 +366,63 @@ class PickupRequestViewSet(viewsets.ModelViewSet):
     def perform_update(self, serializer):
         """Auto-update without changing user"""
         serializer.save()
+
+
+class PackageDetailViewSet(viewsets.ModelViewSet):
+    """
+    CRUD for package‐details.
+    Expects JSON like:
+      {
+        "pickup_id": 42,
+        "weight": 2.5,
+        "dimensions": "30x20x10cm",
+        "contents_description": "...",
+        "packaging_status": "boxed"
+      }
+    """
+    queryset = PackageDetail.objects.all()
+    serializer_class = PackageDetailSerializer
+    permission_classes = [AllowAny]
+
+"""
+class PackageDetailViewSet(viewsets.ModelViewSet):
+    
+    #CRUD for individual package details tied to a PickupRequest.
+    
+    serializer_class    = PackageDetailSerializer
+    permission_classes  = [AllowAny]
+    filter_backends     = [filters.OrderingFilter]
+    ordering_fields     = ['created_at', 'updated_at']
+    ordering            = ['-created_at']
+    queryset = PackageDetail.objects.all()
+
+    def get_queryset(self):
+        # Only return package details for pickup requests owned by the user
+        #return PackageDetail.objects.filter(
+        #    pickup__user=self.request.user
+        #).select_related('pickup')
+        return PackageDetail.objects.all()
+
+    def perform_create(self, serializer):
+        # Ensure that the pickup belongs to this user
+        #pickup_obj = serializer.validated_data['pickup']
+        #pickup = get_object_or_404(
+        #    pickup_obj.__class__,
+        #    id=pickup_obj.id,
+        #    user=self.request.user
+        #)
+        #serializer.save(pickup=pickup)
+        serializer.save()
+
+    #def perform_update(self, serializer):
+    #    # If the user is trying to change pickup, enforce ownership
+    #    new_pickup = serializer.validated_data.get('pickup', None)
+    #    if new_pickup and new_pickup.user != self.request.user:
+    #        return Response(
+    #            {'detail': 'Invalid pickup request.'},
+    #            status=status.HTTP_400_BAD_REQUEST
+    #        )
+    #    serializer.save()
+
+"""
+
