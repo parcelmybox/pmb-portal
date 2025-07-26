@@ -158,7 +158,7 @@ class InvoiceSerializer(serializers.ModelSerializer):
 
 
 from rest_framework import serializers
-from .models import PickupRequest
+from .models import PickupRequest,Location
 
 
 class SupportRequestSerializer(serializers.ModelSerializer):
@@ -246,3 +246,10 @@ class QuoteSerializer(serializers.Serializer):
             raise serializers.ValidationError(errors)
 
         return data
+    
+class LocationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Location
+        fields = '__all__'
+
+        

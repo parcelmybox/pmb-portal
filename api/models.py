@@ -31,3 +31,24 @@ class PickupRequest(models.Model):
     
     def __str__(self):
         return f"Pickup for {self.name}"
+    
+class Location(models.Model):
+    LOCATION_CHOICES = [
+        ('CHENNAI', 'Chennai'),
+        ('BANGALORE', 'Bangalore'),
+        ('MUMBAI', 'Mumbai'),
+        # Add more if needed
+    ]
+
+    id = models.CharField(
+        max_length=50,
+        primary_key=True,
+        choices=LOCATION_CHOICES,
+        help_text="Unique location identifier, e.g., 'CHENNAI'"
+    )
+    name = models.CharField(max_length=100)
+    lat = models.FloatField(help_text="Latitude")
+    lng = models.FloatField(help_text="Longitude")
+
+    def __str__(self):
+        return self.name

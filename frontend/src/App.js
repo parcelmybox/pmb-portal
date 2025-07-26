@@ -20,6 +20,10 @@ import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import About from './pages/About';
 
+// ✅ NEW IMPORTS
+import LocationsPage from './pages/LocationsPage';
+import ServicesPage from './pages/ServicesPage';
+
 function App() {
   const [showSidebar, setShowSidebar] = useState(false);
 
@@ -89,5 +93,6 @@ function App() {
     </AuthProvider>
   );
 }
+
 
 export default App;

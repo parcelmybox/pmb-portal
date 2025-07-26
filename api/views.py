@@ -273,8 +273,8 @@ class QuoteView(APIView):
 
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
-from .models import PickupRequest
-from .serializers import PickupRequestSerializer
+from .models import PickupRequest,Location
+from .serializers import PickupRequestSerializer,LocationSerializer
 
 class SupportRequestViewSet(viewsets.ModelViewSet):
     """
@@ -366,3 +366,7 @@ class PickupRequestViewSet(viewsets.ModelViewSet):
     def perform_update(self, serializer):
         """Auto-update without changing user"""
         serializer.save()
+
+class LocationViewSet(viewsets.ReadOnlyModelViewSet):  # ReadOnly since no create/update is needed
+    queryset = Location.objects.all()
+    serializer_class = LocationSerializer

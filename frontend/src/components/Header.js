@@ -44,6 +44,8 @@ export default function Header({ showSidebar, setShowSidebar }) {
             <Link to="/pricing" className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium text-indigo-700 hover:border-indigo-500 hover:text-indigo-900">Pricing</Link>
             <Link to="/pickup" className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium text-indigo-700 hover:border-indigo-500 hover:text-indigo-900">Pickup Request</Link>
             <Link to="/about" className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium text-indigo-700 hover:border-indigo-500 hover:text-indigo-900">About</Link>
+            <Link to="/LocationsPage" className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium text-indigo-700 hover:border-indigo-500 hover:text-indigo-900">Locations</Link>
+            
           </div>
 
           <div className="flex items-center">

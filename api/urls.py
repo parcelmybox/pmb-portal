@@ -24,6 +24,7 @@ router.register(r'shipments', views.ShipmentViewSet, basename='shipment')
 router.register(r'bills', views.BillViewSet, basename='bill')
 router.register(r'invoices', views.InvoiceViewSet, basename='invoice')
 router.register(r'pickup-requests', views.PickupRequestViewSet, basename='pickuprequest')
+router.register(r'locations', views.LocationViewSet, basename='location')
 router.register(r'support-requests', views.SupportRequestViewSet, basename='supportrequest')
 
 # Schema View for API documentation
@@ -91,3 +92,4 @@ if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 # Removed the duplicate and misplaced code
+

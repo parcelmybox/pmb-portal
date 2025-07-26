@@ -12,8 +12,11 @@ echo "Database is ready!"
 
 # Run migrations
 echo "Running migrations..."
-python manage.py makemigrations --noinput
-python manage.py migrate --noinput
+python manage.py makemigrations
+python manage.py migrate
+python manage.py migrate shipping zero
+python manage.py migrate shipping
+
 
 # Create superuser if it doesn't exist
 echo "Creating superuser if needed..."
