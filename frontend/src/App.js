@@ -48,7 +48,7 @@ function App() {
           )}
 
           {/* Main Content */}
-          <div className="flex-1 p-4 mt-2 z-0">
+          <div className="flex-1 p-4 pt-20 z-0">
             <Routes>
               <Route path="/" element={<Dashboard />} />
               <Route path="/quote" element={<Quote />} />

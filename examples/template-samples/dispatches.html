@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Dispatches{% endblock %}
+{% block content %}
+<h2>Dispatch & Tracking</h2>
+<table class="table table-bordered">
+  <thead>
+    <tr>
+      <th>Dispatch ID</th>
+      <th>Carrier</th>
+      <th>Tracking #</th>
+      <th>Status</th>
+      <th>Dispatch Date</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for dispatch in dispatches %}
+    <tr>
+      <td>{{ dispatch.id }}</td>
+      <td>{{ dispatch.carrier_name }}</td>
+      <td>{{ dispatch.tracking_number }}</td>
+      <td>{{ dispatch.tracking_status }}</td>
+      <td>{{ dispatch.dispatch_date }}</td>
+      <td>
+        <a href="{% url 'track_package' dispatch.tracking_number %}" class="btn btn-sm btn-info">Track</a>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

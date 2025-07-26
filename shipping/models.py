@@ -2,6 +2,7 @@ import re
 import logging
 from django.db import models
 from django.utils import timezone
+from django.conf import settings
 from django.core.validators import MinValueValidator, EmailValidator
 from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
@@ -434,6 +435,136 @@ class CourierPlan(models.Model):
     is_highlighted = models.BooleanField(default=False)
     features = models.JSONField()
     cta = models.CharField(max_length=100)
+
+class SupportRequest(models.Model):
+    STATUS_CHOICES = [
+        ('open', 'Open'),
+        ('in_progress', 'In Progress'),
+        ('resolved', 'Resolved'),
+        ('closed', 'Closed'),
+    ]
+    
+    REQUEST_TYPES = [
+        ('general', 'General Inquiry'),
+        ('technical', 'Technical Issue'),
+        ('billing', 'Billing Question'),
+        ('shipment', 'Shipment Issue'),
+        ('other', 'Other'),
+    ]
+    
+    ticket_number = models.CharField(max_length=50, unique=True, editable=False, null=True, blank=True)
+    subject = models.CharField(max_length=200, verbose_name='Subject')
+    name = models.CharField(max_length=100, verbose_name='Customer Name')
+    email = models.EmailField(verbose_name='Email')
+    phone = models.CharField(max_length=20, blank=True, null=True, verbose_name='Phone')
+    request_type = models.CharField(
+        max_length=20, 
+        choices=REQUEST_TYPES, 
+        default='general',
+        verbose_name='Type of Support Request'
+    )
+    message = models.TextField(verbose_name='Message')
+    attachment = models.FileField(
+        upload_to='support_attachments/', 
+        blank=True, 
+        null=True,
+        verbose_name='Attachment'
+    )
+    status = models.CharField(
+        max_length=20, 
+        choices=STATUS_CHOICES, 
+        default='open',
+        verbose_name='Status'
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Created At')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='Updated At')
+    resolved_at = models.DateTimeField(null=True, blank=True, verbose_name='Resolved At')
+    resolution_notes = models.TextField(blank=True, null=True, verbose_name='Resolution Notes')
+    
+    assigned_to = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='assigned_support_requests',
+        verbose_name='Assigned To'
+    )
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='created_support_requests',
+        verbose_name='Created By'
+    )
+    shipment = models.ForeignKey(
+        'Shipment',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='support_requests',
+        verbose_name='Related Shipment',
+        help_text='Optional: Link this support request to a shipment'
+    )
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Support Request'
+        verbose_name_plural = 'Support Requests'
+
+    def __str__(self):
+        return f"{self.ticket_number} - {self.subject}"
+    
+    def save(self, *args, **kwargs):
+        if not self.ticket_number:
+            # Generate ticket number: TICKET-YYYYMMDD-XXXXX
+            date_str = timezone.now().strftime('%Y%m%d')
+            last_ticket = SupportRequest.objects.filter(
+                ticket_number__startswith=f'TICKET-{date_str}'
+            ).order_by('-ticket_number').first()
+            
+            if last_ticket:
+                last_num = int(last_ticket.ticket_number.split('-')[-1])
+                new_num = last_num + 1
+            else:
+                new_num = 1
+                
+            self.ticket_number = f'TICKET-{date_str}-{new_num:05d}'
+        
+        # Update timestamps
+        if self.status in ['resolved', 'closed'] and not self.resolved_at:
+            self.resolved_at = timezone.now()
+        
+        super().save(*args, **kwargs)
+
+
+class SupportRequestHistory(models.Model):
+    """
+    Tracks the history of changes to support requests
+    """
+    support_request = models.ForeignKey(
+        SupportRequest, 
+        on_delete=models.CASCADE, 
+        related_name='history_entries'
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True
+    )
+    action = models.CharField(max_length=100)
+    details = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Support Request History'
+        verbose_name_plural = 'Support Request History'
+    
+    def __str__(self):
+        return f"{self.support_request.ticket_number} - {self.action} - {self.created_at}"
+
 
 class Bill(models.Model):
     """Model for managing customer bills and invoices."""

@@ -1,0 +1,230 @@
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Shipping Estimator</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      color: #333;
+      background-image: url('145.jpg'); /* ✅ Correct syntax */
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .container {
+      max-width: 600px;
+      background-color: rgba(255, 255, 255, 0.95);
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.2);
+    }
+
+    h1 {
+      color: #2c3e50;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+
+    select, input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 16px;
+    }
+
+    button {
+      background-color: #3498db;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      width: 100%;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      background-color: #2980b9;
+    }
+
+    .results {
+      margin-top: 30px;
+      display: none;
+    }
+
+    .result-card {
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 15px;
+      margin-bottom: 15px;
+      background: #fff;
+    }
+
+    .result-header {
+      display: flex;
+      justify-content: space-between;
+      font-weight: bold;
+      margin-bottom: 10px;
+      font-size: 18px;
+    }
+
+    .result-detail {
+      display: flex;
+      justify-content: space-between;
+      margin: 8px 0;
+    }
+
+    .best-value {
+      background-color: #e8f4fc;
+      border: 2px solid #3498db;
+    }
+
+    .highlight {
+      color: #e74c3c;
+      font-weight: bold;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>Shipping Estimator</h1>
+
+    <div class="form-group">
+      <label for="pickup-city">Pickup City:</label>
+      <select id="pickup-city">
+        <option value="Hyderabad">Hyderabad</option>
+        <option value="Chennai">Chennai</option>
+        <option value="vizag">Vizag</option>
+        <option value="delhi">Delhi</option>
+        <option value="mumbai">Mumbai</option>
+        <option value="kerala">Kerala</option>
+        <option value="Maharashtra">Maharashtra</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="destination-country">Destination Country:</label>
+      <select id="Droping-country">
+        <option value="USA">USA</option>
+        <option value="Bayarea">Bayarea</option>
+        <option value="Japan">Japan</option>
+        <option value="China">China</option>
+        <option value="Germany">Germany</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="zip-code">Destination Zip Code:</label>
+      <input type="text" id="zip-code" placeholder="Enter zip code" value="95330">
+    </div>
+
+    <div class="form-group">
+      <label for="package-type">Package Type:</label>
+      <select id="package-type">
+        <option value="Document">Document</option>
+        <option value="Box">Box</option>
+      </select>
+    </div>
+
+    <button id="calculate-btn">Calculate Shipping Options</button>
+
+    <div id="results" class="results">
+      <h2>Shipping Options</h2>
+
+      <div id="dhl-result" class="result-card">
+        <div class="result-header">
+          <span>DHL</span>
+        </div>
+        <div class="result-detail">
+          <span>Price:</span>
+          <span id="dhl-price" class="highlight">₹0</span>
+        </div>
+        <div class="result-detail">
+          <span>Delivery Days:</span>
+          <span id="dhl-days">0 days</span>
+        </div>
+      </div>
+
+      <div id="fedex-result" class="result-card">
+        <div class="result-header">
+          <span>FedEx</span>
+        </div>
+        <div class="result-detail">
+          <span>Price:</span>
+          <span id="fedex-price" class="highlight">₹0</span>
+        </div>
+        <div class="result-detail">
+          <span>Delivery Days:</span>
+          <span id="fedex-days">0 days</span>
+        </div>
+      </div>
+
+      <div id="ups-result" class="result-card">
+        <div class="result-header">
+          <span>UPS</span>
+        </div>
+        <div class="result-detail">
+          <span>Price:</span>
+          <span id="ups-price" class="highlight">₹0</span>
+        </div>
+        <div class="result-detail">
+          <span>Delivery Days:</span>
+          <span id="ups-days">0 days</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('calculate-btn').addEventListener('click', function () {
+      const prices = { DHL: 3000, FedEx: 2500, UPS: 2400 };
+      const deliveryDays = { DHL: 3, FedEx: 5, UPS: 7 };
+
+      document.getElementById('dhl-price').textContent = '₹' + prices.DHL;
+      document.getElementById('fedex-price').textContent = '₹' + prices.FedEx;
+      document.getElementById('ups-price').textContent = '₹' + prices.UPS;
+
+      document.getElementById('dhl-days').textContent = deliveryDays.DHL + ' days';
+      document.getElementById('fedex-days').textContent = deliveryDays.FedEx + ' days';
+      document.getElementById('ups-days').textContent = deliveryDays.UPS + ' days';
+
+      const cards = document.querySelectorAll('.result-card');
+      cards.forEach(card => card.classList.remove('best-value'));
+
+      let minPrice = Math.min(prices.DHL, prices.FedEx, prices.UPS);
+      if (prices.DHL === minPrice) {
+        document.getElementById('dhl-result').classList.add('best-value');
+      } else if (prices.FedEx === minPrice) {
+        document.getElementById('fedex-result').classList.add('best-value');
+      } else {
+        document.getElementById('ups-result').classList.add('best-value');
+      }
+
+      document.getElementById('results').style.display = 'block';
+    });
+  </script>
+</body>
+</html>

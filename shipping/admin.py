@@ -1,15 +1,18 @@
 from django.contrib import admin
+from django.contrib.auth import get_user_model
 from django.urls import path, reverse
 from django.shortcuts import render, redirect
 from django.utils.html import format_html
 from django.contrib.admin.views.decorators import staff_member_required
 from django.utils.safestring import mark_safe
-from .models import ShippingAddress, Shipment, ShipmentItem, TrackingEvent, Bill
+from .models import ShippingAddress, Shipment, ShipmentItem, TrackingEvent, Bill, SupportRequest, SupportRequestHistory
+from django.utils import timezone
+from .admin_index import custom_admin_site
 from .admin_views import billing_dashboard
 from .admin_index import get_billing_stats
 
-# Get the admin instance
-site = admin.site
+# Use our custom admin site instance
+site = custom_admin_site
 
 # Inline Models
 class ShipmentItemInline(admin.TabularInline):
@@ -238,3 +241,187 @@ class BillAdmin(admin.ModelAdmin):
         extra_context = extra_context or {}
         extra_context['billing_stats'] = get_billing_stats()
         return super().changelist_view(request, extra_context=extra_context)
+
+
+class SupportRequestHistoryInline(admin.TabularInline):
+    model = SupportRequestHistory
+    extra = 0
+    readonly_fields = ('user', 'action', 'details', 'created_at')
+    can_delete = False
+    
+    def has_add_permission(self, request, obj=None):
+        return False
+
+@admin.register(SupportRequest, site=site)
+class SupportRequestAdmin(admin.ModelAdmin):
+    list_display = ('ticket_number', 'subject', 'name', 'email', 'request_type', 'status_display', 'assigned_to_display', 'created_at')
+    list_filter = ('status', 'request_type', 'created_at', 'assigned_to')
+    search_fields = ('ticket_number', 'subject', 'name', 'email', 'message')
+    list_select_related = ('assigned_to', 'created_by', 'shipment')
+    date_hierarchy = 'created_at'
+    readonly_fields = ('ticket_number', 'created_at', 'updated_at', 'resolved_at')
+    inlines = [SupportRequestHistoryInline]
+    actions = ['assign_to_me', 'mark_in_progress', 'mark_resolved', 'mark_closed']
+    list_per_page = 20
+    
+    fieldsets = (
+        ('Ticket Information', {
+            'fields': ('ticket_number', 'status', 'assigned_to', 'created_at', 'updated_at', 'resolved_at')
+        }),
+        ('Requester Information', {
+            'fields': ('name', 'email', 'phone')
+        }),
+        ('Request Details', {
+            'fields': ('subject', 'request_type', 'message', 'attachment', 'shipment')
+        }),
+        ('Resolution', {
+            'fields': ('resolution_notes',),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    def status_display(self, obj):
+        status_colors = {
+            'open': 'gray',
+            'in_progress': 'blue',
+            'resolved': 'green',
+            'closed': 'black',
+        }
+        color = status_colors.get(obj.status, 'gray')
+        return format_html(
+            '<span style="color: white; background-color: {}; padding: 3px 8px; border-radius: 4px;">{}</span>',
+            color,
+            obj.get_status_display()
+        )
+    status_display.short_description = 'Status'
+    status_display.admin_order_field = 'status'
+    
+    def assigned_to_display(self, obj):
+        return obj.assigned_to.get_full_name() if obj.assigned_to else 'Unassigned'
+    assigned_to_display.short_description = 'Assigned To'
+    
+    def created_by_display(self, obj):
+        return obj.created_by.get_full_name() if obj.created_by else 'System'
+    created_by_display.short_description = 'Created By'
+    
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        # Only filter by assigned_to if the user is not a staff member
+        if request.user.is_superuser or request.user.is_staff:
+            return qs
+        return qs.filter(assigned_to=request.user)
+    
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == 'assigned_to':
+            # Only show staff users in the assigned_to dropdown
+            kwargs['queryset'] = get_user_model().objects.filter(is_staff=True).order_by('first_name', 'last_name')
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+        
+    def save_model(self, request, obj, form, change):
+        if not obj.pk:  # New ticket
+            obj.created_by = request.user
+        
+        # Create history entry for status changes
+        if change and 'status' in form.changed_data:
+            action = f'Status changed to {obj.get_status_display()}'
+            SupportRequestHistory.objects.create(
+                support_request=obj,
+                user=request.user,
+                action=action,
+                details=f'Status was changed from {form.initial.get("status", "unknown")} to {obj.status}.'
+            )
+        
+        # Create history entry for assignment changes
+        if change and 'assigned_to' in form.changed_data:
+            old_assignee = form.initial.get('assigned_to')
+            new_assignee = obj.assigned_to
+            action = f'Assigned to {new_assignee.get_full_name() if new_assignee else "Unassigned"}'
+            details = f'Changed from {old_assignee.get_full_name() if old_assignee else "Unassigned"} to {new_assignee.get_full_name() if new_assignee else "Unassigned"}'
+            SupportRequestHistory.objects.create(
+                support_request=obj,
+                user=request.user,
+                action=action,
+                details=details
+            )
+        
+        super().save_model(request, obj, form, change)
+    
+    # Custom actions
+    def assign_to_me(self, request, queryset):
+        updated = queryset.update(assigned_to=request.user)
+        for ticket in queryset:
+            SupportRequestHistory.objects.create(
+                support_request=ticket,
+                user=request.user,
+                action='Assigned to me',
+                details=f'Ticket was assigned to {request.user.get_full_name()}'
+            )
+        self.message_user(request, f'Successfully assigned {updated} ticket(s) to you.')
+    assign_to_me.short_description = 'Assign selected tickets to me'
+    
+    def mark_in_progress(self, request, queryset):
+        updated = 0
+        for ticket in queryset:
+            if ticket.status != 'in_progress':
+                ticket.status = 'in_progress'
+                ticket.save()
+                updated += 1
+                SupportRequestHistory.objects.create(
+                    support_request=ticket,
+                    user=request.user,
+                    action='Marked as In Progress',
+                    details='Ticket status changed to In Progress'
+                )
+        self.message_user(request, f'Successfully marked {updated} ticket(s) as In Progress.')
+    mark_in_progress.short_description = 'Mark selected tickets as In Progress'
+    
+    def mark_resolved(self, request, queryset):
+        updated = 0
+        for ticket in queryset:
+            if ticket.status != 'resolved':
+                ticket.status = 'resolved'
+                ticket.resolved_at = timezone.now()
+                ticket.save()
+                updated += 1
+                SupportRequestHistory.objects.create(
+                    support_request=ticket,
+                    user=request.user,
+                    action='Marked as Resolved',
+                    details='Ticket status changed to Resolved'
+                )
+        self.message_user(request, f'Successfully marked {updated} ticket(s) as Resolved.')
+    mark_resolved.short_description = 'Mark selected tickets as Resolved'
+    
+    def mark_closed(self, request, queryset):
+        updated = 0
+        for ticket in queryset:
+            if ticket.status != 'closed':
+                ticket.status = 'closed'
+                if not ticket.resolved_at:
+                    ticket.resolved_at = timezone.now()
+                ticket.save()
+                updated += 1
+                SupportRequestHistory.objects.create(
+                    support_request=ticket,
+                    user=request.user,
+                    action='Marked as Closed',
+                    details='Ticket status changed to Closed'
+                )
+        self.message_user(request, f'Successfully closed {updated} ticket(s).')
+    mark_closed.short_description = 'Close selected tickets'
+    
+    def get_readonly_fields(self, request, obj=None):
+        # Make certain fields read-only based on user permissions
+        if obj:  # Editing an existing object
+            readonly_fields = list(self.readonly_fields)
+            if not request.user.is_superuser:
+                readonly_fields.extend(['status', 'assigned_to'])
+            return readonly_fields
+        return self.readonly_fields
+    
+    def get_actions(self, request):
+        actions = super().get_actions(request)
+        if not request.user.is_superuser:
+            # Only show assign to me action for non-superusers
+            return {'assign_to_me': actions.get('assign_to_me')}
+        return actions

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Shipping Estimate Result</title>
+  <style>
+    body {
+      background-color: #f0fff0;
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    .container {
+      background-color: white;
+      max-width: 600px;
+      margin: auto;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    h2 {
+      text-align: center;
+      color: #2e7d32;
+      margin-bottom: 20px;
+    }
+    p {
+      margin-bottom: 10px;
+      color: #333;
+    }
+    strong {
+      color: #000;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Shipping Estimate</h2>
+    <p><strong>Pickup City:</strong> {{ order.pickup_city }}</p>
+    <p><strong>Destination Country:</strong> {{ order.destination_country }}</p>
+    <p><strong>Destination Zip:</strong> {{ order.destination_zip }}</p>
+    <p><strong>Carrier:</strong> {{ order.carrier }}</p>
+    <p><strong>Package Type:</strong> {{ order.package_type }}</p>
+
+    {% if order.package_type == 'Box' %}
+      <p><strong>Length:</strong> {{ order.length }} cm</p>
+      <p><strong>Width:</strong> {{ order.width }} cm</p>
+      <p><strong>Height:</strong> {{ order.height }} cm</p>
+      <p><strong>Volumetric Weight:</strong> {{ order.volumetric_weight }} kg</p>
+    {% endif %}
+
+    <p><strong>Price:</strong> ₹{{ order.price }}</p>
+    <p><strong>Estimated Shipping Days:</strong> {{ order.ship_days }}</p>
+  </div>
+</body>
+</html>

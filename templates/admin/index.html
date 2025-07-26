@@ -293,6 +293,18 @@
                         <span style="font-weight: 500;">API</span>
                         <i class="fas fa-external-link-alt" style="margin-left: auto; opacity: 0.6; font-size: 12px;"></i>
                     </a>
+                    <!-- Support Requests -->
+                    <a href="{% url 'admin:shipping_supportrequest_changelist' %}" style="display: flex; align-items: center; padding: 12px; color: #1a365d; text-decoration: none; border-radius: 8px; transition: all 0.2s; background: #f0f9ff; border-left: 4px solid #0ea5e9;">
+                        <i class="fas fa-headset" style="width: 24px; margin-right: 10px; color: #0ea5e9; font-size: 16px;"></i>
+                        <span style="font-weight: 500;">Support Requests</span>
+                        {% if quick_links %}
+                            {% for link in quick_links %}
+                                {% if link.label == 'Support Requests' %}
+                                    <span style="margin-left: auto; background: #0ea5e9; color: white; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 10px;">{{ link.count }}</span>
+                                {% endif %}
+                            {% endfor %}
+                        {% endif %}
+                    </a>
                 </div>
             </div>
         </div>
@@ -301,6 +313,23 @@
     <!-- Main Content -->
     <div style="flex: 1; min-width: 0;">
         <!-- Welcome Section -->
+        <!-- Quick Links Section -->
+        {% if quick_links %}
+        <div class="quick-links" style="margin-bottom: 30px;">
+            {% for link in quick_links %}
+            <div class="quick-link {{ link.color }}">
+                <a href="{{ link.url }}">
+                    <i class="{{ link.icon }}"></i>
+                    <span class="info">{{ link.label }}</span>
+                    {% if link.count is not None %}
+                    <span class="count">{{ link.count }}</span>
+                    {% endif %}
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
         <div class="welcome-section">
             <h1>{% translate 'Welcome back, ' %}{{ request.user.get_full_name|default:request.user.username }}</h1>
             <p>{% translate 'Here\'s what\'s happening with your store today.' %}</p>

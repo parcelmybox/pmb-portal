@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Invoices{% endblock %}
+{% block content %}
+<h2>Invoices</h2>
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>Invoice #</th>
+      <th>Customer</th>
+      <th>Amount</th>
+      <th>Status</th>
+      <th>Issued Date</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for invoice in invoices %}
+    <tr>
+      <td>{{ invoice.invoice_number }}</td>
+      <td>{{ invoice.quote.package.pickup.user.name }}</td>
+      <td>${{ invoice.amount }}</td>
+      <td><span class="badge bg-{{ 'success' if invoice.status == 'Paid' else 'danger' }}">{{ invoice.status }}</span></td>
+      <td>{{ invoice.issued_at }}</td>
+      <td>
+        <a href="{% url 'view_invoice' invoice.id %}" class="btn btn-sm btn-primary">View</a>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
