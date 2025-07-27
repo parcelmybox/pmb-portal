@@ -51,6 +51,22 @@ const CategoryPage = () => {
         }));
     };
 
+    const filterItems = () => {
+        const filtered = products.filter((item) => {
+            const inTag = filters.tags.length === 0 || filters.tags.includes(item.tag);
+            const inPrice =
+                item.price >= filters.priceRange[0] &&
+                item.price <= filters.priceRange[1];
+            return inTag && inPrice;
+        });
+        return filtered;
+    }
+
+    useEffect(() => {
+        const filtered = filterItems();
+        setFilteredItems(filtered);
+    }, [filters]);
+
     useEffect(() => {
         const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
         fetch(`${API_URL}/api/products/fetch-category/${categoryName}/`)
@@ -59,18 +75,14 @@ const CategoryPage = () => {
                 return response.json();
             })
             .then((data) => {
-                console.log(data);
                 const uniqueTags = [...new Set(data.map(product => product.tag))];
+                setFilters((prevState) => ({
+                    ...prevState,
+                    tags: [...uniqueTags],
+                }));
                 setTagList(uniqueTags);
                 setProducts(data);
-                const filtered = data.filter((item) => {
-                    const inTag = filters.tags.length === 0 || filters.tags.includes(item.tag);
-                    const inPrice =
-                        item.price >= filters.priceRange[0] &&
-                        item.price <= filters.priceRange[1];
-                    return inTag && inPrice;
-                });
-                console.log(filtered);
+                const filtered = filterItems();
                 setFilteredItems(filtered);
             });
     }, []);
