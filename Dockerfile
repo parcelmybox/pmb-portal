@@ -20,6 +20,7 @@ RUN apt-get update && \
     pkg-config \
     default-mysql-client \
     dos2unix \
+    wkhtmltopdf \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
