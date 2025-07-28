@@ -6,6 +6,9 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
 from rest_framework.views import APIView
 from django.contrib.auth import get_user_model
 from django.db import models
+from rest_framework import generics, permissions
+from .models import Feedback, Order
+from .serializers import FeedbackSerializer, OrderSerializer
 from django.db.models import Q
 from django.utils import timezone
 from shipping.models import Shipment, ShippingAddress, Bill, Invoice, ShipmentItem, TrackingEvent, SupportRequest
@@ -366,3 +369,22 @@ class PickupRequestViewSet(viewsets.ModelViewSet):
     def perform_update(self, serializer):
         """Auto-update without changing user"""
         serializer.save()
+
+
+# class FeedbackViewSet(viewsets.ModelViewSet):
+class FeedbackViewSet(viewsets.ModelViewSet):
+    queryset = Feedback.objects.all()
+    serializer_class = FeedbackSerializer
+    permission_classes = [AllowAny]
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            self.perform_create(serializer)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            print("Serializer Errors:", serializer.errors)  # 🔴 This will print the actual reason
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+class OrderViewSet(viewsets.ModelViewSet):
+    queryset = Order.objects.all()
+    serializer_class = OrderSerializer
+    permission_classes = [AllowAny]

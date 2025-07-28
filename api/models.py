@@ -31,3 +31,20 @@ class PickupRequest(models.Model):
     
     def __str__(self):
         return f"Pickup for {self.name}"
+    
+class Order(models.Model):
+    order_id = models.CharField(max_length=100, unique=True)  # Add unique=True
+    customer_name = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.order_id
+
+class Feedback(models.Model):
+    order_id = models.CharField(max_length=100, null=True, blank=True)
+    rating = models.IntegerField()
+    message = models.TextField()
+    image = models.ImageField(upload_to='feedback_images/', null=True, blank=True)
+    submitted_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Feedback for {self.order_id}"
