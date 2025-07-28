@@ -29,8 +29,6 @@ class PickupRequest(models.Model):
     def __str__(self):
         return f"Pickup for {self.name}"
 
-
-# ✅ New SupportRequest model added here
 class SupportRequest(models.Model):
     STATUS_CHOICES = [
         ('new', 'New'),
@@ -45,5 +43,17 @@ class SupportRequest(models.Model):
     attachment = models.FileField(upload_to='support_attachments/', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=100, default='new')
+    
     def __str__(self):
         return f"Support #{self.id} - {self.subject}"
+
+class ShippingRates(models.Model):
+    courier = models.CharField(max_length=50, null=True, blank=True)
+    min_kg = models.DecimalField(max_digits=5, decimal_places=2)
+    max_kg = models.DecimalField(max_digits=5, decimal_places=2)
+    fixed_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    per_kg_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    package_type = models.CharField(max_length=20, default='package')
+
+    def __str__(self):
+        return f"{self.courier} ({self.min_kg}-{self.max_kg}kg): {self.fixed_price if self.per_kg_price is None else self.per_kg_price}"

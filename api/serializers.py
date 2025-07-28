@@ -493,8 +493,8 @@ class QuoteSerializer(serializers.Serializer):
         help_text="Shipping route (e.g., 'india-to-usa' or 'usa-to-india')"
     )
     type = serializers.ChoiceField(
-        choices=["document", "package"],
-        help_text="Type of shipment ('document' or 'package')"
+        choices=["document", "package", "medicine"],
+        help_text="Type of shipment ('document', 'package', or 'medicine')"
     )
     origin = serializers.ChoiceField(
         choices=[
@@ -519,21 +519,44 @@ class QuoteSerializer(serializers.Serializer):
         default="kg",
         help_text="Weight unit ('kg' or 'lb')"
     )
+    include_dimensions = serializers.BooleanField(
+        required=False,
+        default=False,
+        help_text="Whether to include package dimensions in the quote"
+    )
     dim_length = serializers.FloatField(
         min_value=1,
+        required=False,
         help_text="Length dimension in cm"
     )
     dim_width = serializers.FloatField(
         min_value=1,
+        required=False,
         help_text="Width dimension in cm"
     )
     dim_height = serializers.FloatField(
         min_value=1,
+        required=False,
         help_text="Height dimension in cm"
     )
     usd_rate = serializers.FloatField(
         min_value=0.01,
         help_text="Current USD to INR exchange rate"
+    )
+    carrier_preference_type = serializers.ChoiceField(
+        choices=["fastest", "cheapest", "choose-manually"],
+        default="fastest",
+        help_text="Preferred carrier selection method"
+    )
+    carrier_preference = serializers.ChoiceField(
+        choices=["", "ups", "dhl", "fedex"],
+        required=False,
+        help_text="Specific carrier preference (if 'choose-manually' is selected)"
+    )
+    currency = serializers.ChoiceField(
+        choices=['₹', '$'],
+        default='₹',
+        help_text="Preferred currency for the quote"
     )
 
     def validate(self, data):
@@ -543,32 +566,55 @@ class QuoteSerializer(serializers.Serializer):
         route = data.get("shipping_route")
         origin = data.get("origin")
         destination = data.get("destination")
+        include_dimensions = data.get("include_dimensions", False)
 
         india_cities = ["mumbai", "delhi", "bangalore", "chennai", "hyderabad"]
         usa_cities = ["new-york", "los-angeles", "chicago", "houston", "atlanta"]
 
-        if route == "india-to-usa":
-            valid_origins = india_cities
-            valid_destinations = usa_cities
-        elif route == "usa-to-india":
-            valid_origins = usa_cities
-            valid_destinations = india_cities
-        else:
-            raise serializers.ValidationError("Invalid shipping route.")
-
         errors = {}
 
-        if origin not in valid_origins:
-            errors["origin"] = (
-                f"'{origin}' is not valid for route '{route}'. "
-                f"Valid origins: {', '.join(valid_origins)}"
-            )
+        # Validate origin and destination based on route
+        if route == "india-to-usa":
+            if origin not in india_cities:
+                errors["origin"] = (
+                    f"'{origin}' is not a valid origin for route '{route}'. "
+                    f"Valid origins: {', '.join(india_cities)}"
+                )
+            if destination not in usa_cities:
+                errors["destination"] = (
+                    f"'{destination}' is not a valid destination for route '{route}'. "
+                    f"Valid destinations: {', '.join(usa_cities)}"
+                )
+        elif route == "usa-to-india":
+            if origin not in usa_cities:
+                errors["origin"] = (
+                    f"'{origin}' is not a valid origin for route '{route}'. "
+                    f"Valid origins: {', '.join(usa_cities)}"
+                )
+            if destination not in india_cities:
+                errors["destination"] = (
+                    f"'{destination}' is not a valid destination for route '{route}'. "
+                    f"Valid destinations: {', '.join(india_cities)}"
+                )
+        else:
+            errors["shipping_route"] = "Invalid shipping route."
 
-        if destination not in valid_destinations:
-            errors["destination"] = (
-                f"'{destination}' is not valid for route '{route}'. "
-                f"Valid destinations: {', '.join(valid_destinations)}"
-            )
+        # Validate carrier preferences
+        preference_type = data.get("carrier_preference_type")
+        preference = data.get("carrier_preference", "")
+
+        if preference_type == "choose-manually" and not preference:
+            errors["carrier_preference"] = "This field is required when preference type is 'choose-manually'."
+        elif preference_type != "choose-manually" and preference:
+            errors["carrier_preference"] = "This field should only be set when preference type is 'choose-manually'."
+
+        # Validate dimensions if included
+        if include_dimensions:
+            for dim in ["dim_length", "dim_width", "dim_height"]:
+                if dim not in data or data[dim] is None:
+                    errors[dim] = "This field is required when include_dimensions is True."
+                elif data[dim] <= 0:
+                    errors[dim] = "Must be greater than 0."
 
         if errors:
             raise serializers.ValidationError(errors)

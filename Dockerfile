@@ -20,6 +20,8 @@ RUN apt-get update && \
     default-libmysqlclient-dev \
     pkg-config \
     default-mysql-client \
+    dos2unix \
+    wkhtmltopdf \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
@@ -28,7 +30,7 @@ WORKDIR /app
 
 # Copy requirements first to leverage Docker cache
 COPY requirements.txt .
-
+w
 # Install Python dependencies with cache cleanup
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
