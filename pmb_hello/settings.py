@@ -26,7 +26,7 @@ if os.path.isfile(env_file):
 SECRET_KEY = env('SECRET_KEY', default='django-insecure-$@6a$g-5_%+8cqziz=0ncydiz)0628*j3n4vl_1+*=oe+eolzf')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env.bool('DEBUG', default=True)
+DEBUG = True
 
 ALLOWED_HOSTS = ['*']  # Allow all hosts in development
 
@@ -52,15 +52,17 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize',  # For human-readable formatting
+    
+    # Third-party apps
+    'rest_framework',
+    'crispy_forms',
+    'crispy_bootstrap5',
+    'corsheaders',
+    
+    # Local apps
     'category',
     'shipping',
     'api',
-    
-    # Third-party apps
-    'crispy_forms',
-    'crispy_bootstrap5',
-    
-    'corsheaders',
 ]
 
 
@@ -89,6 +91,7 @@ REST_FRAMEWORK = {
    
     'DEFAULT_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer',
+        'rest_framework.renderers.BrowsableAPIRenderer',
     ]
 }
 
@@ -187,8 +190,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': env('DB_NAME', default='pmb_db'),
-        'USER': env('DB_USER', default='pmb_user'),
-        'PASSWORD': env('DB_PASSWORD', default='pmb_user'),
+        'USER': env('DB_USER', default='root'),
+        'PASSWORD': env('DB_PASSWORD', default='rootpassword'),
         'HOST': env('DB_HOST', default='db'),
         'PORT': env('DB_PORT', default='3306'),
         'OPTIONS': {
@@ -252,7 +255,8 @@ STATICFILES_DIRS = [
 
 # Media files configuration
 MEDIA_URL = '/media/'
-MEDIA_ROOT = str(BASE_DIR / 'media')
+MEDIA_ROOT = BASE_DIR / 'media'
+
 
 # Add this to ensure static files are collected correctly
 STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'

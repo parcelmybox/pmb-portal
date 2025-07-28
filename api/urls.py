@@ -15,7 +15,9 @@ from django.views.decorators.csrf import csrf_exempt
 from .views import QuoteView, GenerateQuotePDF
 
 from . import views
+from django.conf.urls.static import static
 
+# urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 # Create a router and register our viewsets with it.
 router = DefaultRouter()
 router.register(r'users', views.UserViewSet, basename='user')
@@ -25,7 +27,6 @@ router.register(r'bills', views.BillViewSet, basename='bill')
 router.register(r'invoices', views.InvoiceViewSet, basename='invoice')
 router.register(r'pickup-requests', views.PickupRequestViewSet, basename='pickuprequest')
 router.register(r'support-requests', views.SupportRequestViewSet, basename='supportrequest')
-
 # Schema View for API documentation
 schema_view = get_schema_view(
    openapi.Info(
@@ -46,12 +47,15 @@ schema_view = get_schema_view(
 
 # The API URLs are now determined automatically by the router.
 urlpatterns = [
-    # API endpoints
+    # Custom API root view
+    path('', views.api_root, name='api-root'),
+    
+    # Include router URLs
     path('', include(router.urls)),
-
-    # Quote calculation API endpoint
+    
+    # Quote calculation endpoints
+    path('quotes/', QuoteView.as_view(), name='quote-calculate'),
     path('quote/', QuoteView.as_view(), name='quote'),
-
     path('generate-quote-pdf/', GenerateQuotePDF.as_view(), name='generate_quote_pdf'),
     
     # Authentication endpoints
@@ -60,7 +64,6 @@ urlpatterns = [
         path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
         path('token/verify/', TokenVerifyView.as_view(), name='token_verify'),
     ])),
-    
     
     # API documentation
     re_path(r'^swagger(?P<format>\.json|\.yaml)$', 
