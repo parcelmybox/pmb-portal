@@ -17,7 +17,6 @@ const ProductPage = () => {
 				return response.json();
 			})
 			.then((data) => {
-				console.log(data);
 				setProduct(data);
 				if (data.weights.length !== 0) {
 					setSelectedVariant(data.weights[0]);
@@ -35,7 +34,7 @@ const ProductPage = () => {
 		<div className="flex flex-col md:flex-row max-w-6xl mx-auto p-4 gap-6">
 			{/* Image */}
 			<div className="w-full md:w-1/2">
-				<BreadCrumbs />
+				<BreadCrumbs product={product} />
 				{product && (
 					<ImageCarousel
 						product={product}
