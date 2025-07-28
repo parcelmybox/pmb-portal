@@ -34,8 +34,9 @@ services:
       MYSQL_DATABASE: ${DB_NAME:-pmb_db}
       MYSQL_USER: ${DB_USER:-pmb_user}
       MYSQL_PASSWORD: ${DB_PASSWORD:-pmb_user}
-      MYSQL_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:-rootpassword}
-      MYSQL_INITDB_SKIP_TZINFO: 1
+      MYSQL_ROOT_PASSWORD: rootpassword  # Explicitly set root password
+      MYSQL_ALLOW_EMPTY_PASSWORD: 'no'
+      MYSQL_INITDB_SKIP_TZINFO: '1'
     ports:
       - "${DB_PORT:-3306}:3306"  # Map container's 3306 to host's 3306 (or specified port)
     volumes:
@@ -57,7 +58,7 @@ services:
       dockerfile: Dockerfile
     container_name: web
     environment:
-      - DB_HOST=mariadb  # Use container_name as hostname
+      - DB_HOST=db  # Use service name as hostname
       - DB_NAME=${DB_NAME:-pmb_db}
       - DB_USER=${DB_USER:-pmb_user}
       - DB_PASSWORD=${DB_PASSWORD:-pmb_user}
