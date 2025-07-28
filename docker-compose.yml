@@ -40,6 +40,7 @@ services:
       - "${DB_PORT:-3306}:3306"  # Map container's 3306 to host's 3306 (or specified port)
     volumes:
       - mysql_data:/var/lib/mysql
+      - ./docker/db/initdb.d:/docker-entrypoint-initdb.d
     healthcheck:
       test: ["CMD-SHELL", "mysqladmin ping -u root -p${MARIADB_ROOT_PASSWORD:-rootpassword} --silent"]
       interval: 5s
