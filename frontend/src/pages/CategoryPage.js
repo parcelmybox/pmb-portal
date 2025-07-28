@@ -1,35 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-
-const shippingItems = [
-    {
-        id: 1,
-        title: 'FedEx Document Shipping',
-        price: 65,
-        originalPrice: 125,
-        tag: 'USA2INDIA',
-        image: 'https://cdn.store.link/products/deliveryhub/vhw4tp-whatsapp%20image%202025-02-11%20at%2013.40.25.jpeg?versionId=mSOKdS8hZ7KuLmh_GLmQ3PRDGRI50Zqw',
-        buttonText: 'Add to cart',
-    },
-    {
-        id: 2,
-        title: 'FedEx Shipping',
-        price: 87,
-        originalPrice: 93,
-        tag: 'India2USA',
-        image: 'https://cdn.store.link/products/deliveryhub/8-zoia-pmb-shipping.jpeg?versionId=4W5HLH9osaEbCTs_pig_eyCAEHaEcjyK',
-        buttonText: 'See options',
-    },
-    {
-        id: 3,
-        title: 'UPS Package',
-        price: 10,
-        originalPrice: 11,
-        tag: 'USA2INDIA',
-        image: 'https://cdn.store.link/products/deliveryhub/gfk-6n-dh-usa-to-india-flyer.png?versionId=2mpPVfldVCjbsnPuZsEqi3D.0epij9Vo',
-        buttonText: 'Add to cart',
-    },
-];
+import SortDropdown from '../components/SortDropdown';
 
 const CategoryPage = () => {
     const { categoryName } = useParams();
@@ -41,6 +12,7 @@ const CategoryPage = () => {
     const [products, setProducts] = useState([]);
     const [tagList, setTagList] = useState([]);
     const [filteredItems, setFilteredItems] = useState([]);
+    const [sortMethod, setSortMethod] = useState("Default");
 
     const toggleTag = (tag) => {
         setFilters((prev) => ({
@@ -51,21 +23,46 @@ const CategoryPage = () => {
         }));
     };
 
-    const filterItems = () => {
+    const handleSort = (filteredItems) => {
+        switch (sortMethod) {
+            case 'Letter: A to Z':
+                return filteredItems.sort((a, b) => a.name.localeCompare(b.name));
+            case 'Letter: Z to A':
+                return filteredItems.sort((a, b) => a.name.localeCompare(b.name) * -1);
+            case 'Price: Low to High':
+                return filteredItems.sort((a, b) => {
+                    const aPrice = a.weights.length !== 0 ? a.weights[0].discounted_price : a.discounted_price;
+                    const bPrice = b.weights.length !== 0 ? b.weights[0].discounted_price : b.discounted_price;
+                    return aPrice - bPrice;
+                });
+            case 'Price: High to Low':
+                return filteredItems.sort((a, b) => {
+                    const aPrice = a.weights.length !== 0 ? a.weights[0].discounted_price : a.discounted_price;
+                    const bPrice = b.weights.length !== 0 ? b.weights[0].discounted_price : b.discounted_price;
+                    return bPrice - aPrice;
+                });
+            default:
+                return filteredItems;
+        }
+    };
+
+    const filterItems = (products) => {
         const filtered = products.filter((item) => {
             const inTag = filters.tags.length === 0 || filters.tags.includes(item.tag);
+            const discountedPrice = item.weights.length !== 0 ? item.weights[0].discounted_price : item.discounted_price;
             const inPrice =
-                item.price >= filters.priceRange[0] &&
-                item.price <= filters.priceRange[1];
+                discountedPrice >= filters.priceRange[0] &&
+                discountedPrice <= filters.priceRange[1];
             return inTag && inPrice;
         });
         return filtered;
     }
 
     useEffect(() => {
-        const filtered = filterItems();
-        setFilteredItems(filtered);
-    }, [filters]);
+        const filtered = filterItems(products);
+        const sortedFiltered = handleSort(filtered);
+        setFilteredItems(sortedFiltered);
+    }, [filters, sortMethod]);
 
     useEffect(() => {
         const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
@@ -76,13 +73,9 @@ const CategoryPage = () => {
             })
             .then((data) => {
                 const uniqueTags = [...new Set(data.map(product => product.tag))];
-                setFilters((prevState) => ({
-                    ...prevState,
-                    tags: [...uniqueTags],
-                }));
                 setTagList(uniqueTags);
                 setProducts(data);
-                const filtered = filterItems();
+                const filtered = filterItems(data);
                 setFilteredItems(filtered);
             });
     }, []);
@@ -91,8 +84,9 @@ const CategoryPage = () => {
         <>
             {/* Top Heading Bar */}
             <div className="border-b border-gray-200 mb-6 pb-2 pt-6 max-w">
-                <div className="max-w-5xl mx-auto px-6 py-4 text-left">
+                <div className="max-w-5xl mx-auto px-6 py-4 text-left flex justify-between items-center">
                     <h2 className="text-xl font-bold">Shipping <span className='text-gray-600 font-normal'> - {filteredItems.length > 0 && (filteredItems.length)} items</span></h2>
+                    <SortDropdown sortMethod={sortMethod} setSortMethod={setSortMethod} />
                 </div>
             </div>
             <div className="max-w-5xl mx-auto min-h-screen px-6 py-4">
@@ -123,9 +117,9 @@ const CategoryPage = () => {
                                 max="180"
                                 value={filters.priceRange[1]}
                                 onChange={(e) =>
-                                    setFilters((prev) => ({
-                                        ...prev,
-                                        priceRange: [prev.priceRange[0], +e.target.value],
+                                        setFilters((prev) => ({
+                                            ...prev,
+                                            priceRange: [prev.priceRange[0], +e.target.value],
                                     }))
                                 }
                                 className="w-full accent-indigo-600"
@@ -181,26 +175,34 @@ const CategoryPage = () => {
                                     className="border rounded-lg overflow-hidden shadow hover:shadow-md transition"
                                 >
                                     <div className="relative">
-                                        <img
-                                            src={item.images[0].image_url}
-                                            alt={item.name}
-                                            className="w-full h-48 object-cover"
-                                        />
+                                        <a href={`/product/${item.name}`}>
+                                            <img
+                                                src={item.images[0].image_url}
+                                                alt={item.name}
+                                                className="w-full h-48 object-cover"
+                                            />
+                                        </a>
                                         <span className="absolute top-2 right-2 bg-indigo-100 text-indigo-600 text-sm font-semibold px-3 py-1 rounded-full">
                                             {item.tag}
                                         </span>
                                     </div>
                                     <div className="p-4">
-                                        <h3 className="font-semibold truncate">{item.name}</h3>
+                                        <a href={`/product/${item.name}`}><h3 className="font-semibold truncate">{item.name}</h3></a>
                                         <div className="text-indigo-600 font-bold">
-                                            ${item.discounted_price.toFixed(2)}
+                                            ${item.weights.length !== 0 ? item.weights[0].discounted_price.toFixed(2) : item.discounted_price.toFixed(2)}
                                             <span className="text-gray-400 line-through text-sm ml-2">
-                                                ${item.price.toFixed(2)}
+                                                ${item.weights.length !== 0 ? item.weights[0].price.toFixed(2) : item.price.toFixed(2)}
                                             </span>
                                         </div>
-                                        <button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 rounded-md transition mt-5">
-                                            {item.weights.length !== 0 ? "See Options" : "Add to Cart"}
-                                        </button>
+                                        <a href={(item.weights.length !== 0) && `/product/${item.name}`}>
+                                            <button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 rounded-md transition mt-5">
+                                                {
+                                                    (item.weights.length !== 0) ? 
+                                                    "See Options" : 
+                                                    "Add to Cart"
+                                                }
+                                            </button>
+                                        </a>
                                     </div>
                                 </div>
                             )))}

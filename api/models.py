@@ -33,13 +33,13 @@ class PickupRequest(models.Model):
         return f"Pickup for {self.name}"
 
 class Product(models.Model):
-    name = models.CharField(max_length=150, unique=True, blank=False, null=False)
-    category = models.CharField(max_length=100, blank=False, null=False)
-    price = models.FloatField(blank=False, null=False)
-    discounted_price = models.FloatField(blank=False, null=False)
-    description = models.CharField(max_length=400)
-    tag = models.CharField(max_length=25, blank=False, null=False)
-    stock = models.IntegerField()
+    name = models.CharField(max_length=150, unique=True, blank=True, null=True)
+    category = models.CharField(max_length=100, blank=True, null=True)
+    price = models.FloatField(blank=True, null=True)
+    discounted_price = models.FloatField(blank=True, null=True)
+    description = models.CharField(max_length=400, blank=True, null=True)
+    tag = models.CharField(max_length=25, blank=True, null=True)
+    stock = models.IntegerField(blank=True, null=True)
 
     def __str__(self):
         return f"{self.name} - {self.discounted_price}"
