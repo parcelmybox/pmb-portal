@@ -30,7 +30,7 @@ WORKDIR /app
 
 # Copy requirements first to leverage Docker cache
 COPY requirements.txt .
-w
+
 # Install Python dependencies with cache cleanup
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
