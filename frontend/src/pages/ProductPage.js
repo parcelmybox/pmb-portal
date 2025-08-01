@@ -6,6 +6,7 @@ import { useParams } from 'react-router-dom';
 const ProductPage = () => {
 	const [product, setProduct] = useState();
 	const [selectedVariant, setSelectedVariant] = useState();
+	const [quantity, setQuantity] = useState(1);
 
 	const { productName } = useParams();
 
@@ -26,8 +27,31 @@ const ProductPage = () => {
 
 	const onVariantButtonClick = (weight) => {
 		const selectedProduct = product.weights.find((product) => product.weights === weight);
-		console.log(selectedProduct);
 		setSelectedVariant(selectedProduct);
+	};
+
+	const addToCart = () => {
+		const cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+		const itemToAdd = {
+			productName: product.name,
+			variant: selectedVariant?.weights || null,
+			price: selectedVariant ? selectedVariant.discounted_price : product.discounted_price,
+			quantity,
+			id: selectedVariant?.id || product.id,
+			description: product.description,
+			currency: '$',
+		};
+
+		const existingItemIndex = selectedVariant ? cart.findIndex(item => item.variant === itemToAdd.variant) : cart.findIndex(item => item.id === itemToAdd.id)
+
+		if (existingItemIndex !== -1) {
+			cart[existingItemIndex].quantity += quantity;
+		} else {
+			cart.push(itemToAdd);
+		}
+
+		localStorage.setItem("cart", JSON.stringify(cart));
 	};
 
 	return (
@@ -84,12 +108,15 @@ const ProductPage = () => {
 
 					{/* Quantity & Add to cart */}
 					<div className="flex space-x-4">
-						<select className="border rounded-md px-3 py-2" defaultValue={1}>
+						<select className="border rounded-md px-3 py-2" value={quantity} onChange={(e) => setQuantity(parseInt(e.target.value))}>
 							{[...Array(10)].map((_, i) => (
-								<option key={i}>{i + 1}</option>
+								<option key={i} value={i + 1}>{i + 1}</option>
 							))}
 						</select>
-						<button className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-2 rounded-md transition">
+						<button 
+							onClick={addToCart}
+							className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-2 rounded-md transition"
+						>
 							Add to cart
 						</button>
 					</div>

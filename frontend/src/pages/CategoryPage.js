@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import SortDropdown from '../components/SortDropdown';
 
 const CategoryPage = () => {
     const { categoryName } = useParams();
+    const navigate = useNavigate();
 
     const [filters, setFilters] = useState({
         tags: [],
@@ -79,6 +80,30 @@ const CategoryPage = () => {
                 setFilteredItems(filtered);
             });
     }, []);
+
+    const addToCart = (product) => {
+		const cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+		const itemToAdd = {
+			productName: product.name,
+			variant: null,
+			price: product.discounted_price,
+			quantity: 1,
+			id: product.id,
+			description: product.description,
+			currency: '$',
+		};
+
+		const existingItemIndex = cart.findIndex(item => item.id === itemToAdd.id);
+
+		if (existingItemIndex !== -1) {
+			cart[existingItemIndex].quantity += 1;
+		} else {
+			cart.push(itemToAdd);
+		}
+
+		localStorage.setItem("cart", JSON.stringify(cart));
+	};
 
     return (
         <>
@@ -194,15 +219,17 @@ const CategoryPage = () => {
                                                 ${item.weights.length !== 0 ? item.weights[0].price.toFixed(2) : item.price.toFixed(2)}
                                             </span>
                                         </div>
-                                        <a href={(item.weights.length !== 0) && `/product/${item.name}`}>
-                                            <button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 rounded-md transition mt-5">
-                                                {
-                                                    (item.weights.length !== 0) ? 
-                                                    "See Options" : 
-                                                    "Add to Cart"
-                                                }
-                                            </button>
-                                        </a>
+                                        
+                                        <button
+                                            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 rounded-md transition mt-5"
+                                            onClick={item.weights.length === 0 ? () => addToCart(item) : () => navigate(`/product/${item.name}`)}
+                                        >
+                                            {
+                                                (item.weights.length !== 0) ? 
+                                                "See Options" : 
+                                                "Add to Cart"
+                                            }
+                                        </button>
                                     </div>
                                 </div>
                             )))}
