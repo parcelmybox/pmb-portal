@@ -19,6 +19,7 @@ import PickupRequest from './pages/PickupRequest';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import About from './pages/About';
+import QuotePricing from './pages/QuotePricing';
 import ProductPage from './pages/ProductPage';
 import CategoryPage from './pages/CategoryPage';
 
@@ -83,6 +84,10 @@ function App() {
                     <Admin />
                   </ProtectedRoute>
                 }
+              />
+              <Route
+                path="/quote-result"
+                element={<QuotePricing />}
               />
               <Route path="/product/:productName" element={<ProductPage />} />
               <Route path="/category/:categoryName" element={<CategoryPage />} />
