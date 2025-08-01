@@ -4,85 +4,46 @@ import { useNavigate } from 'react-router-dom';
 import { API_URL } from '../api';
 
 function Quote() {
-  const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    shippingRoute: 'india-to-usa',
-    originCity: '',
-    destinationCity: '',
-    weight: '',
-    includeDimensions: false,
-    length: 0,
-    width: 0,
-    height: 0,
-    packageType: 'package',
-    currency: '₹',
-    weightUnit: 'kg',
-    carrierPreferenceType: 'fastest',
-    carrierPreference: '',
-  });
+	const navigate = useNavigate();
+	const [formData, setFormData] = useState({
+		shippingRoute: 'india-to-usa',
+		originCity: '',
+		destinationCity: '',
+		weight: '',
+		includeDimensions: false,
+		length: 0,
+		width: 0,
+		height: 0,
+		packageType: 'package',
+		currency: '₹',
+		weightUnit: 'kg',
+		carrierPreferenceType: 'fastest',
+		carrierPreference: '',
+	});
 
-  // quote calculation output
-  const [quote, setQuote] = useState({
-    prices: [],
-    shippingTime: '',
-    loading: false,
-    error: '',
-    chargeableWeight: 0,
-    volumetricUsed: false,
-  });
+	// quote calculation output
+	const [quote, setQuote] = useState({
+		prices: [],
+		shippingTime: '',
+		loading: false,
+		error: '',
+		chargeableWeight: 0,
+		volumetricUsed: false,
+	});
 
-  // state variable for fetching USD -> INR conversion rate
-  const [usdRate, setUsdRate] = useState(82.5);
+	// state variable for fetching USD -> INR conversion rate
+	const [usdRate, setUsdRate] = useState(82.5);
 
-  const checkAllRequiredFields = () => {
-    const { originCity, destinationCity, weight, includeDimensions, length, height, width } = formData;
-    // Implementation of field validation
-    // ...
-  };
-
-  const calculateQuote = async () => {
-    try {
-      setQuote(prev => ({ ...prev, loading: true, error: '' }));
-      
-      // fetching calculated data from api
-      const response = await axios.post(`${API_URL}/api/quote/`, {
-        shipping_route: formData.shippingRoute,
-        type: formData.packageType,
-        weight: formData.weight,
-        weight_metric: formData.weightUnit,
-        dim_length: formData.length,
-        dim_width: formData.width,
-        dim_height: formData.height,
-        include_dimensions: formData.includeDimensions,
-        currency: formData.currency,
-        carrier_preference_type: formData.carrierPreferenceType,
-        carrier_preference: formData.carrierPreference
-      });
-
-      setQuote({
-        inrPrice: response.data.inr_price,
-        usdPrice: response.data.usd_price,
-        shippingTime: response.data.shipping_time,
-        loading: false,
-        error: ''
-      });
-    } catch (error) {
-      setQuote(prev => ({
-        ...prev,
-        loading: false,
-        error: error.response?.data?.error || 'Failed to calculate quote. Please try again.'
-      }));
-    }
-  };
-
-}		if (!originCity && !destinationCity) return false;
+	const checkAllRequiredFields = () => {
+		const { originCity, destinationCity, weight, includeDimensions, length, height, width } = formData;
+		if (!originCity && !destinationCity) return false;
 
 		if (!weight) return false;
 
 		if (includeDimensions && (length <= 0 || width <= 0 || height <= 0)) return false;
 
 		return true;
-	}
+	};
 
 	const calculateQuote = async () => {
 		try {
