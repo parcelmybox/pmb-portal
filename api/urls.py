@@ -20,6 +20,7 @@ from .views import (
     FeedbackViewSet,
 )
 
+
 # DRF Router - Register all viewsets
 router = DefaultRouter()
 router.register(r'users', views.UserViewSet, basename='user')
