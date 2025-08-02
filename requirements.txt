@@ -13,6 +13,7 @@ pandas==2.1.0
 openpyxl==3.1.2  # For Excel file support
 python-multipart==0.0.6  # For file uploads
 xhtml2pdf==0.2.15  # For PDF generation
+pymysql
 
 # API Development
 djangorestframework==3.16.0  # For building REST APIs
@@ -27,3 +28,5 @@ pyyaml==6.0.1  # For API schema generation
 coreapi==2.3.3  # For API documentation
 markdown==3.5.1  # For markdown support in API docs
 django-cors-headers
+
+pdfkit==1.0.0

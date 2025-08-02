@@ -16,9 +16,11 @@ COPY . .
 # Expose port 3000
 EXPOSE 3000
 
-# Set environment to development
+# Set environment variables
 ENV NODE_ENV=development
 ENV CHOKIDAR_USEPOLLING=true
+ENV WDS_SOCKET_PORT=0
+ENV BROWSER=none
 
-# Start development server
-CMD ["npm", "start"]
+# Start development server with explicit host and port
+CMD ["npm", "start", "--host", "0.0.0.0", "--port", "3000"]
