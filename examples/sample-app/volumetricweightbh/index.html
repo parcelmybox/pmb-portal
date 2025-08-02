@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Volumetric Weight Calculator</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>Parcel My Box.</h1>
+    
+  </header>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Volumetric Weight Calculator</title>
+    <style>
+body {
+  font-family: 'Segoe UI', sans-serif;
+  margin: 0;
+  background-color: #f6f6f8;
+}
+
+header h1 {
+  background-color: #2e2121; 
+  color: rgb(242, 245, 242);
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-content: center;
+
+}
+header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+nav {
+  display: flex;
+  gap: 1.5rem;
+}
+
+nav a {
+  color: rgb(254, 252, 252);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #0c0c0c;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        
+        h2 {
+            color: #2980b9;
+            margin-top: 30px;
+        }
+        
+        .calculator {
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        input {
+            padding: 8px;
+            width: 80px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+        }
+        
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e8f4fc;
+            border-radius: 4px;
+            display: none;
+        }
+        
+        .highlight {
+            font-weight: bold;
+            color: #e74c3c;
+        }
+        
+        .faq-section {
+            margin-top: 40px;
+        }
+        
+        .faq-item {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .faq-question {
+            font-weight: bold;
+            color: #2c3e50;
+            cursor: pointer;
+        }
+        
+        .add-parcel {
+            background-color: #2ecc71;
+            margin-right: 10px;
+        }
+        
+        .add-parcel:hover {
+            background-color: #27ae60;
+        }
+        
+        .parcel-item {
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #fff;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(7, 7, 7, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <h1>Volumetric Weight Calculator</h1>
+    
+    <p>If your parcel is large but lightweight, charges may be based on volumetric weight, calculated from the size of your parcel, rather than the actual weight.</p>
+    
+    <div class="calculator">
+        <h2>Enter your parcel details</h2>
+        
+        <div id="parcels-container">
+            <div class="parcel-item" data-id="1">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Quantity</th>
+                            <th>Weight (kg)</th>
+                            <th>Length (cm)</th>
+                            <th>Width (cm)</th>
+                            <th>Height (cm)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><input type="number" min="1" value="1" class="quantity"></td>
+                            <td><input type="number" min="0" value="0" class="weight"></td>
+                            <td><input type="number" min="0" value="0" class="length"></td>
+                            <td><input type="number" min="0" value="0" class="width"></td>
+                            <td><input type="number" min="0" value="0" class="height"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <button class="add-parcel" onclick="addParcel()">Add Parcel</button>
+        <button onclick="calculate()">Calculate</button>
+        
+        <div id="result" class="result">
+            <h3>Calculation Results</h3>
+            <p>Volumetric Weight: <span id="vol-weight" class="highlight">0</span> kg</p>
+            <p>Actual Weight: <span id="actual-weight" class="highlight">0</span> kg</p>
+            <p>Chargeable Weight: <span id="chargeable-weight" class="highlight">0</span> kg</p>
+        </div>
+    </div>
+    
+    <div class="info-section">
+        <h2>What is volumetric weight?</h2>
+        <p>Volumetric weight is the calculated weight based on the length, width and height of a parcel used to determine its dimensional weight. The formula used to calculate the volumetric weight varies by carrier and service type.</p>
+        
+        <h2>Why is volumetric weight charged?</h2>
+        <p>The larger a parcel is, the more space it takes up in a vehicle or aircraft, and therefore the more it costs to transport. Large but lightweight parcels can take up space that could be used for heavier items, so carriers use volumetric weight to ensure fair pricing.</p>
+    </div>
+    
+    <div class="faq-section">
+        <h2>Frequently Asked Questions</h2>
+        
+        <div class="faq-item">
+            <div class="faq-question">What is volumetric weight?</div>
+            <div class="faq-answer">Volumetric weight is a pricing technique used by carriers to account for lightweight but bulky packages.</div>
+        </div>
+        
+        <div class="faq-item">
+            <div class="faq-question">Why is volumetric weight used?</div>
+            <div class="faq-answer">It ensures carriers can charge appropriately for packages that take up valuable space but don't weigh much.</div>
+        </div>
+        
+        <div class="faq-item">
+            <div class="faq-question">How is it calculated for courier services?</div>
+            <div class="faq-answer">Most couriers use (L × W × H) / 5000 (where dimensions are in cm) to calculate volumetric weight.</div>
+        </div>
+        
+        <div class="faq-item">
+            <div class="faq-question">How is it calculated for freight?</div>
+            <div class="faq-answer">Freight services often use (L × W × H) / 6000 or other divisors depending on the carrier.</div>
+        </div>
+    </div>
+    
+    <script>
+        let parcelCount = 1;
+        
+        function addParcel() {
+            parcelCount++;
+            const parcelHTML = `
+                <div class="parcel-item" data-id="${parcelCount}">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Quantity</th>
+                                <th>Weight (kg)</th>
+                                <th>Length (cm)</th>
+                                <th>Width (cm)</th>
+                                <th>Height (cm)</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><input type="number" min="1" value="1" class="quantity"></td>
+                                <td><input type="number" min="0" value="0" class="weight"></td>
+                                <td><input type="number" min="0" value="0" class="length"></td>
+                                <td><input type="number" min="0" value="0" class="width"></td>
+                                <td><input type="number" min="0" value="0" class="height"></td>
+                                <td><button onclick="removeParcel(${parcelCount})">Remove</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            document.getElementById('parcels-container').insertAdjacentHTML('beforeend', parcelHTML);
+        }
+        
+        function removeParcel(id) {
+            const parcel = document.querySelector(`.parcel-item[data-id="${id}"]`);
+            if (parcel && document.querySelectorAll('.parcel-item').length > 1) {
+                parcel.remove();
+            } else if (document.querySelectorAll('.parcel-item').length === 1) {
+                alert("You need to have at least one parcel.");
+            }
+        }
+        
+        function calculate() {
+            const parcels = document.querySelectorAll('.parcel-item');
+            let totalVolWeight = 0;
+            let totalActualWeight = 0;
+            
+            parcels.forEach(parcel => {
+                const quantity = parseFloat(parcel.querySelector('.quantity').value) || 0;
+                const weight = parseFloat(parcel.querySelector('.weight').value) || 0;
+                const length = parseFloat(parcel.querySelector('.length').value) || 0;
+                const width = parseFloat(parcel.querySelector('.width').value) || 0;
+                const height = parseFloat(parcel.querySelector('.height').value) || 0;
+                
+                
+                const volWeight = (length * width * height) / 5000;
+                
+                totalVolWeight += volWeight * quantity;
+                totalActualWeight += weight * quantity;
+            });
+            
+           
+            const chargeableWeight = Math.max(totalVolWeight, totalActualWeight);
+            
+            
+            document.getElementById('vol-weight').textContent = totalVolWeight.toFixed(2);
+            document.getElementById('actual-weight').textContent = totalActualWeight.toFixed(2);
+            document.getElementById('chargeable-weight').textContent = chargeableWeight.toFixed(2);
+            
+            document.getElementById('result').style.display = 'block';
+        }
+        
+        
+        document.querySelectorAll('.faq-question').forEach(question => {
+            question.addEventListener('click', () => {
+                const answer = question.nextElementSibling;
+                answer.style.display = answer.style.display === 'none' ? 'block' : 'none';
+            });
+        });
+    </script>
+</body>
+</html>

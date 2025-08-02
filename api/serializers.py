@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
+from .models import Feedback, Order
 from shipping.models import (
     Shipment, ShippingAddress, Bill, Invoice, 
     ShipmentItem, TrackingEvent, Contact, SupportRequest
@@ -621,3 +622,16 @@ class QuoteSerializer(serializers.Serializer):
             raise serializers.ValidationError(errors)
 
         return data
+    
+from rest_framework import serializers
+from .models import Feedback, Order
+
+class FeedbackSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Feedback
+        fields = '__all__'
+
+class OrderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Order
+        fields = '__all__'

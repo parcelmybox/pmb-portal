@@ -29,6 +29,10 @@ class PickupRequest(models.Model):
     def __str__(self):
         return f"Pickup for {self.name}"
 
+      
+     
+from django.db import models
+
 class SupportRequest(models.Model):
     STATUS_CHOICES = [
         ('new', 'New'),
@@ -43,9 +47,10 @@ class SupportRequest(models.Model):
     attachment = models.FileField(upload_to='support_attachments/', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=100, default='new')
-    
+
     def __str__(self):
         return f"Support #{self.id} - {self.subject}"
+
 
 class ShippingRates(models.Model):
     courier = models.CharField(max_length=50, null=True, blank=True)
@@ -57,3 +62,22 @@ class ShippingRates(models.Model):
 
     def __str__(self):
         return f"{self.courier} ({self.min_kg}-{self.max_kg}kg): {self.fixed_price if self.per_kg_price is None else self.per_kg_price}"
+
+
+class Order(models.Model):
+    order_id = models.CharField(max_length=100, unique=True)
+    customer_name = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.order_id
+
+
+class Feedback(models.Model):
+    order_id = models.CharField(max_length=100, null=True, blank=True)
+    rating = models.IntegerField()
+    message = models.TextField()
+    image = models.ImageField(upload_to='feedback_images/', null=True, blank=True)
+    submitted_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Feedback for {self.order_id}"

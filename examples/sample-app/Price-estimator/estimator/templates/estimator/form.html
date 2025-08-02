@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Shipping Estimate Form</title>
+  <style>
+    body {
+      background-color: #f0fff0;
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    .container {
+      background-color: white;
+      max-width: 600px;
+      margin: auto;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    h2 {
+      text-align: center;
+      color: #2e7d32;
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: bold;
+      color: #333;
+    }
+    input[type="text"],
+    input[type="number"],
+    select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    button {
+      margin-top: 20px;
+      width: 100%;
+      background-color: #4caf50;
+      color: white;
+      padding: 12px;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #43a047;
+    }
+    #box-fields {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Shipping Estimate</h2>
+    <form method="post">
+      {% csrf_token %}
+      <label>Pickup City:</label>
+      <select name="pickup_city" required>
+        <option value="Hyderabad">Hyderabad</option>
+        <option value="Chennai">Chennai</option>
+      </select>
+
+      <label>Destination Country:</label>
+      <input type="text" name="destination_country" value="USA" required>
+
+      <label>Destination Zip Code:</label>
+      <input type="text" name="destination_zip" required>
+
+      <label>Carrier:</label>
+      <select name="carrier" required>
+        <option value="DHL">DHL</option>
+        <option value="FedEx">FedEx</option>
+        <option value="UPS">UPS</option>
+      </select>
+
+      <label>Package Type:</label>
+      <select name="package_type" id="package_type" required>
+        <option value="Document">Document</option>
+        <option value="Box">Box</option>
+      </select>
+
+      <div id="box-fields">
+        <label>Length (cm):</label>
+        <input type="number" name="length" min="0" step="0.1">
+
+        <label>Width (cm):</label>
+        <input type="number" name="width" min="0" step="0.1">
+
+        <label>Height (cm):</label>
+        <input type="number" name="height" min="0" step="0.1">
+      </div>
+
+      <button type="submit">Get Estimate</button>
+    </form>
+  </div>
+
+  <script>
+    const packageSelect = document.getElementById('package_type');
+    const boxFields = document.getElementById('box-fields');
+
+    function toggleBoxFields() {
+      boxFields.style.display = packageSelect.value === 'Box' ? 'block' : 'none';
+    }
+
+    packageSelect.addEventListener('change', toggleBoxFields);
+    window.addEventListener('DOMContentLoaded', toggleBoxFields);
+  </script>
+</body>
+</html>
