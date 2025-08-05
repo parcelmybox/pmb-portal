@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 function Cart() {
+	const navigate = useNavigate();
+
 	const [cartItems, setCartItems] = useState([]);
 	const [total, setTotal] = useState(0);
 
@@ -18,9 +21,9 @@ function Cart() {
 	};
 
 	const updateQuantity = (item, newQuantity) => {
-		const updatedItems = item.variant ? 
-		cartItems.map((cartItem) => item.variant === cartItem.variant ? { ...item, quantity: newQuantity} : cartItem) :
-		cartItems.map((cartItem) => item.id === cartItem.id ? { ...item, quantity: newQuantity } : cartItem);
+		const updatedItems = item.variant ?
+			cartItems.map((cartItem) => item.variant === cartItem.variant ? { ...item, quantity: newQuantity } : cartItem) :
+			cartItems.map((cartItem) => item.id === cartItem.id ? { ...item, quantity: newQuantity } : cartItem);
 		setCartItems(updatedItems);
 		localStorage.setItem('cart', JSON.stringify(updatedItems));
 		updateTotal();
@@ -57,7 +60,7 @@ function Cart() {
 											onClick={() => updateQuantity(item, item.quantity - 1)}
 											disabled={item.quantity === 1}
 											className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200"
-										> 
+										>
 											-
 										</button>
 										<span className="mx-2">{item.quantity}</span>
@@ -90,6 +93,7 @@ function Cart() {
 							<button
 								className="w-full mt-4 bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700"
 								disabled={cartItems.length === 0}
+								onClick={() => navigate('/checkout')}
 							>
 								Proceed to Checkout
 							</button>

@@ -22,6 +22,7 @@ import About from './pages/About';
 import QuotePricing from './pages/QuotePricing';
 import ProductPage from './pages/ProductPage';
 import CategoryPage from './pages/CategoryPage';
+import CheckoutPage from './pages/CheckoutPage';
 
 function App() {
   const [showSidebar, setShowSidebar] = useState(false);
@@ -91,6 +92,7 @@ function App() {
               />
               <Route path="/product/:productName" element={<ProductPage />} />
               <Route path="/category/:categoryName" element={<CategoryPage />} />
+              <Route path="/checkout" element={<CheckoutPage />} />
             </Routes>
           </div>
         </div>
