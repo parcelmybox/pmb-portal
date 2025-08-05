@@ -19,6 +19,7 @@ import PickupRequest from './pages/PickupRequest';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import About from './pages/About';
+import QuotePricing from './pages/QuotePricing';
 
 function App() {
   const [showSidebar, setShowSidebar] = useState(false);
@@ -81,6 +82,10 @@ function App() {
                     <Admin />
                   </ProtectedRoute>
                 }
+              />
+              <Route
+                path="/quote-result"
+                element={<QuotePricing />}
               />
             </Routes>
           </div>

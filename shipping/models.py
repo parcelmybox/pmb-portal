@@ -445,10 +445,11 @@ class SupportRequest(models.Model):
     ]
     
     REQUEST_TYPES = [
-        ('general', 'General Inquiry'),
-        ('technical', 'Technical Issue'),
-        ('billing', 'Billing Question'),
-        ('shipment', 'Shipment Issue'),
+        ('general', 'General'),
+        ('price', 'Price'),
+        ('tracking', 'Tracking'),
+        ('documentation', 'Documentation'),
+        ('pickup', 'Pickup'),
         ('other', 'Other'),
     ]
     
@@ -517,19 +518,15 @@ class SupportRequest(models.Model):
     
     def save(self, *args, **kwargs):
         if not self.ticket_number:
-            # Generate ticket number: TICKET-YYYYMMDD-XXXXX
-            date_str = timezone.now().strftime('%Y%m%d')
-            last_ticket = SupportRequest.objects.filter(
-                ticket_number__startswith=f'TICKET-{date_str}'
-            ).order_by('-ticket_number').first()
+            # Generate ticket number: SR-XX (where XX is a sequential number)
+            last_ticket = SupportRequest.objects.order_by('-id').first()
             
-            if last_ticket:
-                last_num = int(last_ticket.ticket_number.split('-')[-1])
-                new_num = last_num + 1
+            if last_ticket and last_ticket.id:
+                new_num = last_ticket.id + 1
             else:
                 new_num = 1
                 
-            self.ticket_number = f'TICKET-{date_str}-{new_num:05d}'
+            self.ticket_number = f'SR-{new_num:02d}'
         
         # Update timestamps
         if self.status in ['resolved', 'closed'] and not self.resolved_at:

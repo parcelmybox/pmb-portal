@@ -10,10 +10,26 @@ from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from django.conf import settings
 from django.conf.urls.static import static
-from .views import QuoteView, OrderViewSet, FeedbackViewSet
+from django.views.decorators.csrf import csrf_exempt
 
-# DRF Router
+from . import views
+from .views import (
+    QuoteView,
+    GenerateQuotePDF,
+    OrderViewSet,
+    FeedbackViewSet,
+)
+
+
+# DRF Router - Register all viewsets
 router = DefaultRouter()
+router.register(r'users', views.UserViewSet, basename='user')
+router.register(r'addresses', views.AddressViewSet, basename='address')
+router.register(r'shipments', views.ShipmentViewSet, basename='shipment')
+router.register(r'bills', views.BillViewSet, basename='bill')
+router.register(r'invoices', views.InvoiceViewSet, basename='invoice')
+router.register(r'pickup-requests', views.PickupRequestViewSet, basename='pickuprequest')
+router.register(r'support-requests', views.SupportRequestViewSet, basename='supportrequest')
 router.register(r'orders', OrderViewSet, basename='orders')
 router.register(r'feedback', FeedbackViewSet, basename='feedback')
 
@@ -24,7 +40,7 @@ schema_view = get_schema_view(
         default_version='v1',
         description="""
         <h2>ParcelMyBox Shipping Management System API</h2>
-        <p>This API provides endpoints for managing orders and feedback.</p>
+        <p>This API provides endpoints for managing orders, feedback, quotes, and support requests.</p>
         """,
         terms_of_service="https://www.parcelmybox.com/terms/",
         contact=openapi.Contact(email="support@parcelmybox.com"),
@@ -36,20 +52,25 @@ schema_view = get_schema_view(
 
 # URL patterns
 urlpatterns = [
-    # Core API routes
+    # Custom API root view
+    path('', views.api_root, name='api-root'),
+
+    # Router URLs
     path('', include(router.urls)),
 
-    # Quote endpoint
+    # Quote endpoints
+    path('quotes/', QuoteView.as_view(), name='quote-calculate'),
     path('quote/', QuoteView.as_view(), name='quote'),
+    path('generate-quote-pdf/', GenerateQuotePDF.as_view(), name='generate_quote_pdf'),
 
-    # Auth endpoints (JWT)
+    # JWT Auth endpoints
     path('auth/', include([
         path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
         path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
         path('token/verify/', TokenVerifyView.as_view(), name='token_verify'),
     ])),
 
-    # Swagger & ReDoc
+    # Swagger / Redoc API docs
     re_path(r'^swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),

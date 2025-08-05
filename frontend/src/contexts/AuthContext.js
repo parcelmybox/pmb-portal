@@ -13,22 +13,42 @@ export function AuthProvider({ children }) {
   });
 
   const login = async (email, password) => {
-    // Temporary hardcoded logic (until backend integration)
-    const isAdmin = email === 'admin@parcelmybox.com';
-    const validUser = email && password; // simple check
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8000'}/api/auth/token/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email,
+          password: password
+        })
+      });
 
-    if (!validUser) {
-      alert("Please enter valid credentials");
+      if (!response.ok) {
+        throw new Error('Invalid credentials');
+      }
+
+      const data = await response.json();
+      const { access, refresh } = data;
+
+      // Store both tokens in localStorage
+      localStorage.setItem('access_token', access);
+      localStorage.setItem('refresh_token', refresh);
+
+      // Update user state
+      setUser({
+        isAuthenticated: true,
+        isAdmin: email === 'admin@parcelmybox.com',
+        name: email.split('@')[0],
+        email
+      });
+
+      return true;
+    } catch (error) {
+      alert("Invalid credentials");
       return false;
     }
-
-    setUser({
-      isAuthenticated: true,
-      isAdmin,
-      name: isAdmin ? 'Admin User' : email.split('@')[0],
-      email
-    });
-    return true;
   };
 
   const signup = async (name, email, password) => {
@@ -48,6 +68,9 @@ export function AuthProvider({ children }) {
   };
 
   const logout = () => {
+    // Clear tokens from localStorage
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
     setUser({
       isAuthenticated: false,
       isAdmin: false,

@@ -20,7 +20,7 @@ export default function Header({ showSidebar, setShowSidebar }) {
         <div className="flex justify-between h-20">
           <div className="flex items-center">
             <button
-              className="text-gray-500 hover:text-gray-700 -ml-4"
+              className="text-gray-500 hover:text-gray-700 md:-ml-4"
               onClick={handleSidebarToggle}
             >
               <Bars3Icon className="h-6 w-6" />

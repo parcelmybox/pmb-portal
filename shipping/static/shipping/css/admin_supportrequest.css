@@ -1,0 +1,181 @@
+/* Compact layout for SupportRequest admin */
+body.change-form {
+    padding: 10px 15px 0;
+    font-size: 13px;
+}
+
+/* Two-column layout */
+.two-columns .form-row {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0 -8px 5px;
+    padding: 0;
+    align-items: flex-start;
+}
+
+.two-columns .form-row > div {
+    flex: 1 0 calc(50% - 16px);
+    min-width: 0;
+    padding: 0 8px;
+    margin-bottom: 8px;
+    box-sizing: border-box;
+}
+
+/* Full width fields */
+.two-columns .form-row > div:only-child,
+.two-columns .form-row > div:last-child:nth-child(odd) {
+    flex: 1 0 calc(100% - 16px);
+}
+
+/* Make form fields more compact */
+.two-columns .form-row input[type="text"],
+.two-columns .form-row input[type="email"],
+.two-columns .form-row input[type="tel"],
+.two-columns .form-row input[type="url"],
+.two-columns .form-row input[type="number"],
+.two-columns .form-row select,
+.two-columns .form-row .vTextField,
+.two-columns .form-row .vSelectSingleWidget,
+.two-columns .form-row .vSelectMultipleWidget {
+    width: 100%;
+    height: 28px;
+    padding: 2px 8px;
+    margin: 0;
+    box-sizing: border-box;
+    font-size: 12px;
+}
+
+/* Textarea specific styles */
+.two-columns .form-row textarea {
+    width: 100% !important;
+    min-height: 60px;
+    padding: 5px 8px;
+    margin: 0;
+    box-sizing: border-box;
+    font-size: 12px;
+    line-height: 1.3;
+    resize: vertical;
+}
+
+/* Make the resolution notes textarea taller */
+#id_resolution_notes {
+    min-height: 100px;
+}
+
+/* Compact field labels */
+.two-columns .form-row label {
+    display: block;
+    padding: 0 0 2px 1px;
+    margin: 0;
+    font-size: 11px;
+    color: #666;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+/* Fieldset styling */
+.module {
+    margin-bottom: 15px;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.module h2 {
+    margin: 0;
+    padding: 8px 12px;
+    font-size: 13px;
+    background: #f8f8f8;
+    border-bottom: 1px solid #e0e0e0;
+    color: #333;
+}
+
+.module .form-row:last-child {
+    margin-bottom: 0;
+}
+
+/* Compact submit row */
+.submit-row {
+    padding: 10px 12px;
+    margin: 15px 0 10px;
+    background: #f5f5f5;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    overflow: hidden;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+
+.submit-row input[type="submit"],
+.submit-row input[type="button"] {
+    height: 30px;
+    line-height: 28px;
+    padding: 0 12px;
+    margin: 3px 0;
+    font-size: 12px;
+    border-radius: 3px;
+    transition: all 0.2s;
+}
+
+/* Make the Close with Comments button more prominent */
+.submit-row input[type="button"] {
+    background: #417690;
+    color: white;
+    border: 1px solid #2c5d78;
+    font-weight: 600;
+}
+
+.submit-row input[type="button"]:hover {
+    background: #3a6a7e;
+}
+
+/* Form field focus states */
+.two-columns .form-row input:focus,
+.two-columns .form-row select:focus,
+.two-columns .form-row textarea:focus {
+    border-color: #5b80b2;
+    box-shadow: 0 0 0 2px rgba(91, 128, 178, 0.2);
+    outline: none;
+}
+
+/* Help text styling */
+.help {
+    color: #666;
+    font-size: 11px;
+    margin: 2px 0 0;
+    line-height: 1.3;
+}
+
+/* Required field indicators */
+.required label:after {
+    content: "*";
+    color: #ba2121;
+    margin-left: 3px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+    .two-columns .form-row > div {
+        flex: 1 0 100% !important;
+    }
+}
+
+/* Compact help text */
+.help {
+    font-size: 11px;
+    color: #666;
+    margin: 2px 0 0 2px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+    .two-columns .form-row > div {
+        flex: 1 0 100%;
+    }
+    
+    body.change-form {
+        padding: 10px 10px 0;
+    }
+}
