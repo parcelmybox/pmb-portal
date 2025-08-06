@@ -66,6 +66,12 @@ const COUNTRY_CODES = [
   { value: '+1', label: '+1 (US)' }
 ];
 
+const getDefaultDate = () => {
+  const date = new Date();
+  date.setDate(date.getDate() + 3); // Add 3 days to current date
+  return date.toISOString().split('T')[0];
+};
+
 const INITIAL_FORM_STATE = {
   name: '',
   phone: '',
@@ -74,13 +80,13 @@ const INITIAL_FORM_STATE = {
   pickupAddress: '',
   postalCode: '',  
   city: '',
-  date: '',
-  time: '',
+  date: getDefaultDate(),
+  time: '12:00:00',
   notes: '',
   terms: false,
   weightUnit: 'kg',
   packageWeight: '',
-  packageType: '',
+  packageType: 'medium',
   shippingDirection: 'india_to_usa'
 };
 
