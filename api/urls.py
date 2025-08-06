@@ -10,10 +10,19 @@ from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from django.conf import settings
 from django.conf.urls.static import static
-from .views import QuoteView, OrderViewSet, FeedbackViewSet
+from .views import (
+    QuoteView, 
+    OrderViewSet, 
+    FeedbackViewSet,
+    PickupRequestViewSet,
+    UserViewSet,
+)
 
-# DRF Router
+# DRF Router - Register all ViewSets that exist
 router = DefaultRouter()
+router.register(r'users', UserViewSet, basename='users')
+# Removed AddressViewSet, ShipmentViewSet, BillViewSet, InvoiceViewSet, SupportRequestViewSet
+router.register(r'pickup-requests', PickupRequestViewSet, basename='pickup-requests')
 router.register(r'orders', OrderViewSet, basename='orders')
 router.register(r'feedback', FeedbackViewSet, basename='feedback')
 
@@ -24,7 +33,14 @@ schema_view = get_schema_view(
         default_version='v1',
         description="""
         <h2>ParcelMyBox Shipping Management System API</h2>
-        <p>This API provides endpoints for managing orders and feedback.</p>
+        <p>Complete API for managing shipping operations including:</p>
+        <ul>
+            <li>Pickup Requests (authenticated and anonymous)</li>
+            <li>Shipment Tracking</li>
+            <li>Billing & Invoicing</li>
+            <li>Customer Feedback</li>
+            <li>Support Tickets</li>
+        </ul>
         """,
         terms_of_service="https://www.parcelmybox.com/terms/",
         contact=openapi.Contact(email="support@parcelmybox.com"),
@@ -38,21 +54,32 @@ schema_view = get_schema_view(
 urlpatterns = [
     # Core API routes
     path('', include(router.urls)),
-
-    # Quote endpoint
-    path('quote/', QuoteView.as_view(), name='quote'),
-
-    # Auth endpoints (JWT)
-    path('auth/', include([
-        path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-        path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-        path('token/verify/', TokenVerifyView.as_view(), name='token_verify'),
+    
+    # API endpoints
+    path('api/', include([
+        # Public endpoints
+        path('quote/', QuoteView.as_view(), name='quote'),
+        
+        # Authentication endpoints
+        path('auth/', include([
+            path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+            path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+            path('token/verify/', TokenVerifyView.as_view(), name='token_verify'),
+        ])),
     ])),
 
-    # Swagger & ReDoc
-    re_path(r'^swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
-    path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
-    path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+    # Documentation endpoints
+    path('docs/', include([
+        re_path(r'^swagger(?P<format>\.json|\.yaml)$', 
+               schema_view.without_ui(cache_timeout=0), 
+               name='schema-json'),
+        path('swagger/', 
+             schema_view.with_ui('swagger', cache_timeout=0), 
+             name='schema-swagger-ui'),
+        path('redoc/', 
+             schema_view.with_ui('redoc', cache_timeout=0), 
+             name='schema-redoc'),
+    ])),
 
     # Browsable API login/logout
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
