@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import ImageCarousel from "../components/ImageCarousel";
 import BreadCrumbs from "../components/BreadCrumbs";
 import { useParams } from 'react-router-dom';
+import { toast, Slide } from 'react-toastify';
 
 const ProductPage = () => {
 	const [product, setProduct] = useState();
@@ -52,6 +53,16 @@ const ProductPage = () => {
 		}
 
 		localStorage.setItem("cart", JSON.stringify(cart));
+		toast.success('Added to Cart', {
+			position: "bottom-center",
+			autoClose: 3000,
+			hideProgressBar: true,
+			closeOnClick: false,
+			draggable: true,
+			progress: undefined,
+			theme: "light",
+			transition: Slide,
+		});
 	};
 
 	return (

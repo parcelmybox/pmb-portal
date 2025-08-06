@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Bars3Icon, ShoppingCartIcon, BellIcon, UserCircleIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '../contexts/AuthContext';
@@ -8,11 +8,21 @@ export default function Header({ showSidebar, setShowSidebar }) {
   const { user, logout } = useAuth();
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [cartItemCount, setCartItemCount] = useState(0);
 
   const handleSidebarToggle = () => {
     console.log('Toggle clicked');
     setShowSidebar(prev => !prev);
   };
+
+  useEffect(() => {
+    const cartItems = JSON.parse(localStorage.getItem('cart')) || [];
+    let count = 0;
+    cartItems.forEach(cartItem => {
+      count += cartItem.quantity
+    });
+    setCartItemCount(count);
+  }, []);
 
   return (
     <header className="bg-white shadow-lg fixed top-0 left-0 w-full z-50">
@@ -33,7 +43,7 @@ export default function Header({ showSidebar, setShowSidebar }) {
                   alt="ParcelMyBox Logo"
                 />
               </Link>
-              
+
             </div>
           </div>
 
@@ -47,9 +57,13 @@ export default function Header({ showSidebar, setShowSidebar }) {
           </div>
 
           <div className="flex items-center">
-            <Link to="/cart" className="hidden sm:ml-6 sm:flex items-center text-gray-700 hover:text-gray-900">
+            <Link to="/cart" className="relative hidden sm:ml-6 sm:flex items-center text-gray-700 hover:text-gray-900">
               <ShoppingCartIcon className="h-6 w-6" />
               <span className="ml-2 text-sm">Cart</span>
+
+              <span className="inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-bold leading-none text-white bg-indigo-600 rounded-full ml-3">
+                {cartItemCount}
+              </span>
             </Link>
 
             <div className="ml-3 relative">

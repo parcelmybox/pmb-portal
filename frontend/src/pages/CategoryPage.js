@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import SortDropdown from '../components/SortDropdown';
+import { toast, Slide } from 'react-toastify';
 
 const CategoryPage = () => {
     const { categoryName } = useParams();
@@ -103,6 +104,17 @@ const CategoryPage = () => {
 		}
 
 		localStorage.setItem("cart", JSON.stringify(cart));
+
+        toast.success('Added to Cart', {
+            position: "bottom-center",
+            autoClose: 3000,
+            hideProgressBar: true,
+            closeOnClick: false,
+            draggable: true,
+            progress: undefined,
+            theme: "light",
+            transition: Slide,
+        });
 	};
 
     return (

@@ -23,6 +23,8 @@ import QuotePricing from './pages/QuotePricing';
 import ProductPage from './pages/ProductPage';
 import CategoryPage from './pages/CategoryPage';
 import CheckoutPage from './pages/CheckoutPage';
+import { ToastContainer, Slide } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function App() {
   const [showSidebar, setShowSidebar] = useState(false);
@@ -94,6 +96,18 @@ function App() {
               <Route path="/category/:categoryName" element={<CategoryPage />} />
               <Route path="/checkout" element={<CheckoutPage />} />
             </Routes>
+            <ToastContainer
+              position="bottom-center"
+              autoClose={3000}
+              hideProgressBar
+              newestOnTop={false}
+              closeOnClick={false}
+              rtl={false}
+              pauseOnFocusLoss
+              draggable
+              theme="light"
+              transition={Slide}
+            />
           </div>
         </div>
       </Router>
