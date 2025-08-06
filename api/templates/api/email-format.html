@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Order Summary</title>
+    <style>
+      table {
+        border-collapse: collapse;
+        width: 100%;
+      }
+      th,
+      td {
+        border: 1px solid #cccccc;
+        padding: 10px;
+        text-align: left;
+      }
+      th {
+        background-color: #f2f2f2;
+      }
+      h2 {
+        color: #2e6c80;
+      }
+    </style>
+  </head>
+  <body style="font-family: Arial, sans-serif; color: #333">
+    <h2>Thank you for your order!</h2>
+    <p>Here is a summary of your selected shipping services:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Product</th>
+          <th>Variant</th>
+          <th>Description</th>
+          <th>Price</th>
+          <th>Quantity</th>
+          <th>Subtotal</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in cartItems %}
+        <tr>
+          <td>{{ item.productName }}</td>
+          <td>
+            {% if item.variant %}{{ item.variant }}{% else %}N/A{% endif %}
+          </td>
+          <td>{{ item.description }}</td>
+          <td>{{ item.currency|default:"$" }}{{ item.price|floatformat:2 }}</td>
+          <td>{{ item.quantity }}</td>
+          <td>
+            {{ item.currency|default:"$" }}{{ item.subtotal|floatformat:2 }}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr>
+          <td colspan="5" align="right"><strong>Total</strong></td>
+          <td><strong>${{ total }}</strong></td>
+        </tr>
+      </tfoot>
+    </table>
+
+    <p>
+      If you have any questions or need to make changes to your order, feel free
+      to reply to this email.
+    </p>
+    <p>Thank you for choosing our service!</p>
+
+    <br />
+    <p>Best regards,<br />Your Shipping Company</p>
+  </body>
+</html>

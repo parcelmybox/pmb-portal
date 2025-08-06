@@ -82,7 +82,7 @@ from rest_framework import views
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
 from django.http import HttpResponse
-from django.template.loader import get_template
+from django.template.loader import get_template, render_to_string
 import pdfkit
 import datetime
 import math
@@ -923,3 +923,47 @@ class ProductViewSet(viewsets.ModelViewSet):
         products = self.get_queryset().filter(category__iexact=category)
         serializer = self.get_serializer(products, many=True)
         return Response(serializer.data)
+
+from django.core.mail import EmailMessage
+from django.conf import settings
+
+class SendEmailView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        return Response({"Hello": "Hi"})
+
+    def post(self, request):
+        email = request.data.get("email")
+        cartItems = request.data.get("cartItems", [])
+
+        if not email:
+            return Response({"error": "Email is required"}, status=400)
+
+        if not cartItems or not isinstance(cartItems, list):
+            return Response({"error": "cartItems must be a non-empty list"}, status=400)
+
+        for item in cartItems:
+            item['subtotal'] = item['price'] * item['quantity']
+        
+        total = sum(item['subtotal'] for item in cartItems)
+
+        html_content = render_to_string("api/email-format.html", {
+            "cartItems": cartItems,
+            "total": total,
+        })
+
+        subject = "Your Shipping Order Details - Summary of Items in Your Cart"
+        email_from = settings.EMAIL_HOST_USER
+        recipient_list = [email]
+
+        email_message = EmailMessage(
+            subject=subject,
+            body=html_content,
+            from_email=email_from,
+            to=recipient_list
+        )
+        email_message.content_subtype = "html"
+        email_message.send()
+
+        return Response({"message": "Email sent successfully"})
