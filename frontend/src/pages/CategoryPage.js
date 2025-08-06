@@ -83,27 +83,28 @@ const CategoryPage = () => {
     }, []);
 
     const addToCart = (product) => {
-		const cart = JSON.parse(localStorage.getItem("cart")) || [];
+        const cart = JSON.parse(localStorage.getItem("cart")) || [];
 
-		const itemToAdd = {
-			productName: product.name,
-			variant: null,
-			price: product.discounted_price,
-			quantity: 1,
-			id: product.id,
-			description: product.description,
-			currency: '$',
-		};
+        const itemToAdd = {
+            productName: product.name,
+            variant: null,
+            price: product.discounted_price,
+            quantity: 1,
+            id: product.id,
+            description: product.description,
+            currency: '$',
+            image: product.images[0].image_url,
+        };
 
-		const existingItemIndex = cart.findIndex(item => item.id === itemToAdd.id);
+        const existingItemIndex = cart.findIndex(item => item.id === itemToAdd.id);
 
-		if (existingItemIndex !== -1) {
-			cart[existingItemIndex].quantity += 1;
-		} else {
-			cart.push(itemToAdd);
-		}
+        if (existingItemIndex !== -1) {
+            cart[existingItemIndex].quantity += 1;
+        } else {
+            cart.push(itemToAdd);
+        }
 
-		localStorage.setItem("cart", JSON.stringify(cart));
+        localStorage.setItem("cart", JSON.stringify(cart));
 
         toast.success('Added to Cart', {
             position: "bottom-center",
@@ -115,7 +116,7 @@ const CategoryPage = () => {
             theme: "light",
             transition: Slide,
         });
-	};
+    };
 
     return (
         <>
@@ -154,9 +155,9 @@ const CategoryPage = () => {
                                 max="180"
                                 value={filters.priceRange[1]}
                                 onChange={(e) =>
-                                        setFilters((prev) => ({
-                                            ...prev,
-                                            priceRange: [prev.priceRange[0], +e.target.value],
+                                    setFilters((prev) => ({
+                                        ...prev,
+                                        priceRange: [prev.priceRange[0], +e.target.value],
                                     }))
                                 }
                                 className="w-full accent-indigo-600"
@@ -231,15 +232,15 @@ const CategoryPage = () => {
                                                 ${item.weights.length !== 0 ? item.weights[0].price.toFixed(2) : item.price.toFixed(2)}
                                             </span>
                                         </div>
-                                        
+
                                         <button
                                             className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 rounded-md transition mt-5"
                                             onClick={item.weights.length === 0 ? () => addToCart(item) : () => navigate(`/product/${item.name}`)}
                                         >
                                             {
-                                                (item.weights.length !== 0) ? 
-                                                "See Options" : 
-                                                "Add to Cart"
+                                                (item.weights.length !== 0) ?
+                                                    "See Options" :
+                                                    "Add to Cart"
                                             }
                                         </button>
                                     </div>

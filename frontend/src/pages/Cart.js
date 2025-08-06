@@ -48,40 +48,62 @@ function Cart() {
 					<div className="space-y-4">
 						{cartItems.map((item) => (
 							<div key={item.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-								<div>
-									<h3 className="font-medium text-gray-800">
-										{item.productName}<span className='font-normal'>{item.variant && ` - ${item.variant}`}</span>
-									</h3>
-									<p className="text-sm text-gray-600">{item.description}</p>
-								</div>
-								<div className="flex items-center space-x-4">
-									<div className="flex items-center">
-										<button
-											onClick={() => updateQuantity(item, item.quantity - 1)}
-											disabled={item.quantity === 1}
-											className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200"
-										>
-											-
-										</button>
-										<span className="mx-2">{item.quantity}</span>
-										<button
-											onClick={() => updateQuantity(item, item.quantity + 1)}
-											className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200"
-										>
-											+
-										</button>
+								<img
+									src={item.image}
+									alt={item.productName}
+									className="w-16 h-16 object-cover rounded mr-4"
+								/>
+
+								{/* Text and controls */}
+								<div className="flex-1 flex items-center justify-between">
+									<div>
+										<h3 className="text-lg font-medium mb-2">
+											<a
+												href={`/product/${item.productName}`}
+												className="text-gray-800 underline hover:text-indigo-600"
+												target="_blank"
+											>
+												{item.productName}
+											</a>
+											<span className="font-normal">{item.variant && ` - ${item.variant}`}</span>
+										</h3>
+										<p className="text-sm text-gray-600">{item.description}</p>
 									</div>
-									<div className="flex items-center space-x-2">
-										<p className="text-indigo-600 font-medium">{item.currency}{(item.price * item.quantity).toLocaleString()}</p>
-										<button
-											onClick={() => removeFromCart(item)}
-											className="text-red-500 hover:text-red-700"
-										>
-											Remove
-										</button>
+
+									<div className="flex items-center space-x-4">
+										<div className="flex items-center">
+											<button
+												onClick={() => updateQuantity(item, item.quantity - 1)}
+												disabled={item.quantity === 1}
+												className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200"
+											>
+												-
+											</button>
+											<span className="mx-2">{item.quantity}</span>
+											<button
+												onClick={() => updateQuantity(item, item.quantity + 1)}
+												className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200"
+											>
+												+
+											</button>
+										</div>
+
+										<div className="flex items-center space-x-2">
+											<p className="text-indigo-600 font-medium">
+												{item.currency}
+												{(item.price * item.quantity).toLocaleString()}
+											</p>
+											<button
+												onClick={() => removeFromCart(item)}
+												className="text-red-500 hover:text-red-700"
+											>
+												Remove
+											</button>
+										</div>
 									</div>
 								</div>
 							</div>
+
 						))}
 
 						<div className="border-t pt-6">

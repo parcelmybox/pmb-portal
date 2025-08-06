@@ -42,6 +42,7 @@ const ProductPage = () => {
 			id: selectedVariant?.id || product.id,
 			description: product.description,
 			currency: '$',
+			image: product.images[0].image_url,
 		};
 
 		const existingItemIndex = selectedVariant ? cart.findIndex(item => item.variant === itemToAdd.variant) : cart.findIndex(item => item.id === itemToAdd.id)
@@ -124,7 +125,7 @@ const ProductPage = () => {
 								<option key={i} value={i + 1}>{i + 1}</option>
 							))}
 						</select>
-						<button 
+						<button
 							onClick={addToCart}
 							className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-2 rounded-md transition"
 						>
