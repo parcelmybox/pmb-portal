@@ -930,12 +930,10 @@ from django.conf import settings
 class SendEmailView(APIView):
     permission_classes = [AllowAny]
 
-    def get(self, request):
-        return Response({"Hello": "Hi"})
-
     def post(self, request):
         email = request.data.get("email")
         cartItems = request.data.get("cartItems", [])
+        name = request.data.get("name", "")
 
         if not email:
             return Response({"error": "Email is required"}, status=400)
@@ -951,6 +949,7 @@ class SendEmailView(APIView):
         html_content = render_to_string("api/email-format.html", {
             "cartItems": cartItems,
             "total": total,
+            "name": name,
         })
 
         subject = "Your Shipping Order Details - Summary of Items in Your Cart"
