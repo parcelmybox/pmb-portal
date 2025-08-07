@@ -341,6 +341,7 @@ class Shipment(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    declared_value = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
 
     def __str__(self):
         return f"Shipment #{self.id} - {self.tracking_number}"

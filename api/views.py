@@ -23,6 +23,8 @@ from .models import PickupRequest
 from rest_framework import views
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
+
+
 import math
 
 User = get_user_model()
@@ -366,3 +368,21 @@ class PickupRequestViewSet(viewsets.ModelViewSet):
     def perform_update(self, serializer):
         """Auto-update without changing user"""
         serializer.save()
+
+# ---- Signup API ----
+from rest_framework.permissions import AllowAny
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework import status
+from rest_framework.generics import CreateAPIView  # ✅ FIXED: added this
+from rest_framework_simplejwt.views import TokenObtainPairView
+from .serializers import UserSerializer, EmailTokenObtainPairSerializer
+from django.contrib.auth import get_user_model
+
+
+class SignupView(CreateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [AllowAny]
+class EmailTokenObtainPairView(TokenObtainPairView):
+    serializer_class = EmailTokenObtainPairSerializer
+    permission_classes = [AllowAny]

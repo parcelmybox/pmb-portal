@@ -53,3 +53,11 @@ htmlcov/
 
 # Local development
 *.local
+
+*.pyc
+__pycache__/
+.vscode/
+node_modules/
+*.log
+*.sqlite3
+*.env

@@ -1,3 +1,5 @@
+version: '3.9'
+
 services:
   frontend:
     build:
@@ -12,8 +14,8 @@ services:
     environment:
       - NODE_ENV=development
       - CHOKIDAR_USEPOLLING=true
-      - WDS_SOCKET_PORT=0  # Disable WebSocket for hot reloading in Docker
-      - REACT_APP_API_URL= http://localhost:8000
+      - WDS_SOCKET_PORT=0
+      - REACT_APP_API_URL=http://localhost:8000  # ✅ fixed space issue
       - DANGEROUSLY_DISABLE_HOST_CHECK=true
     networks:
       - pmb_network
@@ -51,7 +53,7 @@ services:
       dockerfile: Dockerfile
     container_name: web
     environment:
-      - DB_HOST=mariadb  # Use container_name as hostname
+      - DB_HOST=mariadb
       - DB_NAME=${DB_NAME:-pmb_db}
       - DB_USER=${DB_USER:-pmb_user}
       - DB_PASSWORD=${DB_PASSWORD:-pmb_user}
@@ -61,9 +63,6 @@ services:
       - ALLOWED_HOSTS=${ALLOWED_HOSTS:-*}
       - PYTHONUNBUFFERED=1
       - PYTHONDONTWRITEBYTECODE=1
-      - STREAMLIT_SERVER_PORT=8501
-      - STREAMLIT_SERVER_HEADLESS=true
-      - STREAMLIT_BROWSER_GATHER_USAGE_STATS=false
       - CORS_ORIGIN_WHITELIST=http://localhost:3000,http://localhost:8000
       - CSRF_TRUSTED_ORIGINS=http://localhost:3000,http://localhost:8000
     volumes:
@@ -72,13 +71,30 @@ services:
       - media_volume:/app/media
     ports:
       - "8000:8000"
-      - "8501:8501"
     networks:
       - pmb_network
     restart: unless-stopped
-    init: true  # Use tini as init process to handle signals properly
+    init: true
     working_dir: /app
     command: ["sh", "-c", "dos2unix /app/entrypoint.sh && chmod +x /app/entrypoint.sh && exec /app/entrypoint.sh"]
+    env_file:
+      - .env
+
+  streamlit:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: streamlit
+    command: streamlit run streamlit_app.py --server.port=8501 --server.address=0.0.0.0 --server.headless=true
+    volumes:
+      - .:/app
+    ports:
+      - "8501:8501"
+    depends_on:
+      - db
+    networks:
+      - pmb_network
+    restart: unless-stopped
 
 networks:
   pmb_network:

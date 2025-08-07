@@ -1,18 +1,32 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Bars3Icon, ShoppingCartIcon, BellIcon, UserCircleIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function Header({ showSidebar, setShowSidebar }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, logout } = useAuth();
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
   const handleSidebarToggle = () => {
-    console.log('Toggle clicked');
     setShowSidebar(prev => !prev);
   };
+
+  // Don't show Header on /auth route
+  if (location.pathname === '/auth') {
+    return null;
+  }
+
+  const navItems = [
+    { to: '/', label: 'Home' },
+    { to: '/quote', label: 'Quote' },
+    { to: '/tracking', label: 'Track' },
+    { to: '/pricing', label: 'Pricing' },
+    { to: '/pickup', label: 'Pickup Request' },
+    { to: '/about', label: 'About' },
+  ];
 
   return (
     <header className="bg-white shadow-lg">
@@ -33,17 +47,23 @@ export default function Header({ showSidebar, setShowSidebar }) {
                   alt="ParcelMyBox Logo"
                 />
               </Link>
-              
             </div>
           </div>
 
           <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
-            <Link to="/" className="inline-flex items-center px-1 pt-1 border-b-2 border-indigo-500 text-sm font-medium text-indigo-900">Home</Link>
-            <Link to="/quote" className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium text-indigo-700 hover:border-indigo-500 hover:text-indigo-900">Quote</Link>
-            <Link to="/tracking" className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium text-indigo-700 hover:border-indigo-500 hover:text-indigo-900">Track</Link>
-            <Link to="/pricing" className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium text-indigo-700 hover:border-indigo-500 hover:text-indigo-900">Pricing</Link>
-            <Link to="/pickup" className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium text-indigo-700 hover:border-indigo-500 hover:text-indigo-900">Pickup Request</Link>
-            <Link to="/about" className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium text-indigo-700 hover:border-indigo-500 hover:text-indigo-900">About</Link>
+            {navItems.map((item) => (
+              <Link
+                key={item.to}
+                to={item.to}
+                className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
+                  location.pathname === item.to
+                    ? 'border-indigo-500 text-indigo-900'
+                    : 'border-transparent text-indigo-700 hover:border-indigo-500 hover:text-indigo-900'
+                }`}
+              >
+                {item.label}
+              </Link>
+            ))}
           </div>
 
           <div className="flex items-center">
@@ -52,6 +72,7 @@ export default function Header({ showSidebar, setShowSidebar }) {
               <span className="ml-2 text-sm">Cart</span>
             </Link>
 
+            {/* Notifications */}
             <div className="ml-3 relative">
               <button
                 type="button"
@@ -66,9 +87,7 @@ export default function Header({ showSidebar, setShowSidebar }) {
                 <div className="origin-top-right absolute right-0 mt-2 w-80 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5">
                   <div className="border-b border-gray-200 px-4 py-3">
                     <h3 className="text-sm font-medium text-gray-900">Notifications</h3>
-                    <p className="mt-1 text-sm text-gray-500">
-                      You have 3 unread messages
-                    </p>
+                    <p className="mt-1 text-sm text-gray-500">You have 3 unread messages</p>
                   </div>
                   <ul className="divide-y divide-gray-200">
                     <li>
@@ -86,7 +105,11 @@ export default function Header({ showSidebar, setShowSidebar }) {
                     </li>
                   </ul>
                   <div className="border-t border-gray-200 px-4 py-3">
-                    <a href="#" className="block text-sm font-medium text-indigo-600 hover:text-indigo-500" onClick={() => setIsNotificationsOpen(false)}>
+                    <a
+                      href="#"
+                      className="block text-sm font-medium text-indigo-600 hover:text-indigo-500"
+                      onClick={() => setIsNotificationsOpen(false)}
+                    >
                       View all notifications
                     </a>
                   </div>
@@ -94,6 +117,7 @@ export default function Header({ showSidebar, setShowSidebar }) {
               )}
             </div>
 
+            {/* User Menu */}
             <div className="ml-3 relative">
               <button
                 type="button"
@@ -120,9 +144,6 @@ export default function Header({ showSidebar, setShowSidebar }) {
                         to="/profile"
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                         onClick={() => setIsUserMenuOpen(false)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') setIsUserMenuOpen(false);
-                        }}
                       >
                         Profile
                       </Link>
@@ -138,18 +159,13 @@ export default function Header({ showSidebar, setShowSidebar }) {
                       </button>
                     </>
                   ) : (
-                    <>
-                      <Link
-                        to="/auth"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                        onClick={() => setIsUserMenuOpen(false)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') setIsUserMenuOpen(false);
-                        }}
-                      >
-                        Sign in / Create Account
-                      </Link>
-                    </>
+                    <Link
+                      to="/auth"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={() => setIsUserMenuOpen(false)}
+                    >
+                      Sign in / Create Account
+                    </Link>
                   )}
                 </div>
               )}
@@ -160,5 +176,3 @@ export default function Header({ showSidebar, setShowSidebar }) {
     </header>
   );
 }
-
-

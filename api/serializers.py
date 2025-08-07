@@ -9,23 +9,24 @@ from django.utils import timezone
 User = get_user_model()
 
 class UserSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True, min_length=6)
+
     class Meta:
         model = User
-        fields = [
-            'id', 'username', 'email', 'first_name', 'last_name',
-            'is_staff', 'is_active', 'date_joined', 'last_login'
-        ]
-        read_only_fields = ['id', 'is_staff', 'is_active', 'date_joined', 'last_login']
-        extra_kwargs = {'password': {'write_only': True}}
+        fields = ['id', 'first_name', 'last_name', 'email', 'password']
+        read_only_fields = ['id']
 
     def create(self, validated_data):
-        # Create user with superuser and staff privileges
-        user = User.objects.create_superuser(
-            **validated_data,
-            is_staff=True,
-            is_superuser=True
-        )
+        password = validated_data.pop('password')
+        email = validated_data['email']
+        validated_data['username'] = email  # Set username = email
+
+        user = User(**validated_data)
+        user.set_password(password)
+        user.save()
         return user
+
+
 
 class ContactSerializer(serializers.ModelSerializer):
     class Meta:
@@ -50,8 +51,7 @@ class ShipmentItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = ShipmentItem
         fields = [
-            'id', 'shipment', 'name', 'quantity', 'description', 
-            'declared_value'
+            'id', 'shipment','name', 'quantity', 'description'
         ]
         read_only_fields = ['id', 'created_at']
 
@@ -167,7 +167,7 @@ class SupportRequestSerializer(serializers.ModelSerializer):
         fields = [
             'id',
             'ticket_number',
-            'user',
+            #'user',
             'subject',
             'message',
             'request_type',
@@ -177,7 +177,7 @@ class SupportRequestSerializer(serializers.ModelSerializer):
             'attachment',
             'resolution_notes'
         ]
-        read_only_fields = ['id', 'ticket_number', 'user', 'created_at', 'updated_at', 'status']
+        read_only_fields = ['id', 'ticket_number', 'created_at', 'updated_at', 'status']
 
 class PickupRequestSerializer(serializers.ModelSerializer):
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
@@ -246,3 +246,45 @@ class QuoteSerializer(serializers.Serializer):
             raise serializers.ValidationError(errors)
 
         return data
+    
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework import serializers
+from django.contrib.auth import get_user_model
+import traceback
+
+import traceback
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+
+class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
+    def validate(self, attrs):
+        try:
+            email = attrs.get("email")
+            password = attrs.get("password")
+
+            print("DEBUG - Email:", email)
+            print("DEBUG - Password:", password)
+
+            if not email or not password:
+                raise serializers.ValidationError("Email and password are required")
+
+            user = User.objects.filter(email=email).first()
+            print("DEBUG - Found user:", user)
+
+            if not user or not user.check_password(password) or not user.is_active:
+                raise serializers.ValidationError("Invalid credentials or inactive user")
+
+            refresh = RefreshToken.for_user(user)
+
+            return {
+                "refresh": str(refresh),
+                "access": str(refresh.access_token),
+                "email": user.email,
+                "user_id": user.id,
+                "first_name": user.first_name,
+            }
+
+        except Exception as e:
+            print("EXCEPTION in validate():", str(e))
+            traceback.print_exc()
+            raise e

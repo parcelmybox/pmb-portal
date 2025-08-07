@@ -30,7 +30,7 @@ function App() {
           {/* Header */}
           <Header showSidebar={showSidebar} setShowSidebar={setShowSidebar} />
 
-          {/* Sidebar Overlay - now conditionally rendered */}
+          {/* Sidebar Overlay */}
           {showSidebar && (
             <Sidebar showSidebar={showSidebar} setShowSidebar={setShowSidebar} />
           )}
@@ -54,7 +54,18 @@ function App() {
               <Route path="/support" element={<Support />} />
               <Route path="/about" element={<About />} />
               <Route path="/tracking" element={<Tracking />} />
-              <Route path="/feedback" element={<Feedback />} />
+
+              {/* ✅ Feedback requires login */}
+              <Route
+                path="/feedback"
+                element={
+                  <ProtectedRoute>
+                    <Feedback />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* ✅ Profile requires login */}
               <Route
                 path="/profile"
                 element={
@@ -63,8 +74,11 @@ function App() {
                   </ProtectedRoute>
                 }
               />
+
               <Route path="/auth" element={<Auth />} />
               <Route path="/create-account" element={<CreateAccount />} />
+
+              {/* Admin routes (require isAdminRoute flag) */}
               <Route path="/admin/login" element={<AdminLogin />} />
               <Route
                 path="/admin/dashboard"

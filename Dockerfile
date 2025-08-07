@@ -1,17 +1,14 @@
 FROM python:3.10-slim
 
-# Set environment variables
+# --- Environment Variables ---
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=off \
     PIP_DISABLE_PIP_VERSION_CHECK=on \
     PIP_DEFAULT_TIMEOUT=100 \
-    STREAMLIT_SERVER_PORT=8501 \
-    STREAMLIT_SERVER_HEADLESS=true \
-    STREAMLIT_BROWSER_GATHER_USAGE_STATS=false \
     DEBIAN_FRONTEND=noninteractive
 
-# Install system dependencies
+# --- System Dependencies ---
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     gcc \
@@ -20,20 +17,21 @@ RUN apt-get update && \
     pkg-config \
     default-mysql-client \
     dos2unix \
+    htop \
     && rm -rf /var/lib/apt/lists/*
 
-# Set working directory
+# --- Working Directory ---
 WORKDIR /app
 
-# Copy requirements first to leverage Docker cache
+# --- Install Python Dependencies ---
 COPY requirements.txt .
+RUN pip install --upgrade pip && pip install -r requirements.txt
 
-# Install Python dependencies
-RUN pip install --upgrade pip && \
-    pip install -r requirements.txt
-
-# Copy project
+# --- Copy Application ---
 COPY . .
 
-# Expose the ports the app runs on
-EXPOSE 8000 8501
+# --- Convert entrypoint.sh to Unix line endings (only this one!) ---
+RUN dos2unix /app/entrypoint.sh
+
+# --- Expose only Django (8000) ---
+EXPOSE 8000

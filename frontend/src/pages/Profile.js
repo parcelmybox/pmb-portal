@@ -1,11 +1,38 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import axios from 'axios';
+import { Navigate } from 'react-router-dom'; // ✅ import Navigate
 
 function Profile() {
   const { user } = useAuth();
+  const [userInfo, setUserInfo] = useState(null);
+
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      try {
+        const token = localStorage.getItem('access_token'); // ✅ fixed key name
+        const res = await axios.get('http://localhost:8000/api/auth/user/', {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        setUserInfo(res.data);
+      } catch (err) {
+        console.error("Error fetching user info:", err);
+      }
+    };
+
+    if (user.isAuthenticated) {
+      fetchUserInfo();
+    }
+  }, [user.isAuthenticated]);
 
   if (!user.isAuthenticated) {
-    return <div className="p-6 text-center">Please sign in to view your profile.</div>;
+    return <Navigate to="/auth" />;
+  }
+
+  if (!userInfo) {
+    return <div className="p-6 text-center">Loading profile...</div>;
   }
 
   const infoRowClass = "py-3 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6";
@@ -13,7 +40,6 @@ function Profile() {
   const valueClass = "mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2";
   const buttonClass = "mt-4 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500";
 
-  // Temporary static values for now
   const phone = "+91-9876543210";
   const lockerCode = "PMB-98765";
   const warehouseAddress = "ParcelMyBox Warehouse, Hyderabad, Telangana";
@@ -39,11 +65,11 @@ function Profile() {
           <dl>
             <div className={`${infoRowClass} bg-gray-50`}>
               <dt className={labelClass}>Full Name</dt>
-              <dd className={valueClass}>{user.name}</dd>
+              <dd className={valueClass}>{userInfo.first_name} {userInfo.last_name}</dd>
             </div>
             <div className={infoRowClass}>
               <dt className={labelClass}>Email Address</dt>
-              <dd className={valueClass}>{user.email}</dd>
+              <dd className={valueClass}>{userInfo.email}</dd>
             </div>
             <div className={`${infoRowClass} bg-gray-50`}>
               <dt className={labelClass}>Phone Number</dt>

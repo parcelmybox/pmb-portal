@@ -1,20 +1,17 @@
 from django.urls import path, include, re_path
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
     TokenRefreshView,
     TokenVerifyView,
 )
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
-from django.views.generic import TemplateView
 from django.conf import settings
 from django.conf.urls.static import static
-from django.views.decorators.csrf import csrf_exempt
-from .views import QuoteView
 
 from . import views
+from .views import QuoteView, SignupView, EmailTokenObtainPairView  # ✅ Import email-based JWT view
 
 # Create a router and register our viewsets with it.
 router = DefaultRouter()
@@ -26,68 +23,54 @@ router.register(r'invoices', views.InvoiceViewSet, basename='invoice')
 router.register(r'pickup-requests', views.PickupRequestViewSet, basename='pickuprequest')
 router.register(r'support-requests', views.SupportRequestViewSet, basename='supportrequest')
 
-# Schema View for API documentation
+# API documentation schema
 schema_view = get_schema_view(
-   openapi.Info(
-      title="ParcelMyBox API",
-      default_version='v1',
-      description="""
-      <h2>ParcelMyBox Shipping Management System API</h2>
-      <p>This API provides endpoints for managing shipments, addresses, bills, invoices and pickup request</p>
-      <p>To get started, obtain an access token by authenticating with your credentials.</p>
-      """,
-      terms_of_service="https://www.parcelmybox.com/terms/",
-      contact=openapi.Contact(email="support@parcelmybox.com"),
-      license=openapi.License(name="Proprietary"),
-   ),
-   public=True,
-   permission_classes=(permissions.AllowAny,),
+    openapi.Info(
+        title="ParcelMyBox API",
+        default_version='v1',
+        description="""
+        <h2>ParcelMyBox Shipping Management System API</h2>
+        <p>This API provides endpoints for managing shipments, addresses, bills, invoices and pickup request</p>
+        <p>To get started, obtain an access token by authenticating with your credentials.</p>
+        """,
+        terms_of_service="https://www.parcelmybox.com/terms/",
+        contact=openapi.Contact(email="support@parcelmybox.com"),
+        license=openapi.License(name="Proprietary"),
+    ),
+    public=True,
+    permission_classes=(permissions.AllowAny,),
 )
 
-# The API URLs are now determined automatically by the router.
 urlpatterns = [
-    # API endpoints
+    # Main API endpoints (using DRF ViewSets)
     path('', include(router.urls)),
 
-    # Quote calculation API endpoint
+    # Quote calculation API
     path('quote/', QuoteView.as_view(), name='quote'),
-    
-    # Authentication endpoints
+
+    # Auth endpoints (custom login via email + signup)
     path('auth/', include([
-        path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+        path('signup/', SignupView.as_view(), name='signup'),
+        path('token/', EmailTokenObtainPairView.as_view(), name='token_obtain_pair'),  # ✅ custom login with email
         path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
         path('token/verify/', TokenVerifyView.as_view(), name='token_verify'),
     ])),
-    
-    
-    # API documentation
-    re_path(r'^swagger(?P<format>\.json|\.yaml)$', 
-            schema_view.without_ui(cache_timeout=0), 
-            name='schema-json'),
-    path('swagger/', 
-         schema_view.with_ui('swagger', cache_timeout=0), 
-         name='schema-swagger-ui'),
-    path('redoc/', 
-         schema_view.with_ui('redoc', cache_timeout=0), 
-         name='schema-redoc'),
-    
+
+    # Swagger / Redoc API docs
+    re_path(r'^swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
+    path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+
     # Browsable API login/logout
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
 ]
-
-# Add debug toolbar and serve media files in development
+# Dev-only: debug toolbar and static/media
 if settings.DEBUG:
     try:
         import debug_toolbar
-        urlpatterns += [
-            path('__debug__/', include(debug_toolbar.urls)),
-        ]
+        urlpatterns += [path('__debug__/', include(debug_toolbar.urls))]
     except ImportError:
-        # Debug toolbar is not installed, skip it
         pass
-        
-    # Serve media files in development
+
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
-
-# Removed the duplicate and misplaced code

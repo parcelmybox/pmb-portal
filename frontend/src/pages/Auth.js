@@ -1,154 +1,240 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import {
-  UserIcon,
-  LockClosedIcon,
-  EnvelopeIcon as MailIcon,
-  PhoneIcon,
-  UserPlusIcon
-} from '@heroicons/react/24/outline';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext'; // use the custom hook
+import axios from 'axios';
 
-function Auth() {
-  const { login } = useAuth();
+const images = ['/images/1.png', '/images/2.png', '/images/3.png'];
+
+export default function Auth() {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isSignUp, setIsSignUp] = useState(false);
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
+  const location = useLocation();
+
+  const { login, signup } = useAuth(); // ✅ get auth functions
+
+  const redirectTo = new URLSearchParams(location.search).get('redirect') || '/';
+
+  const [form, setForm] = useState({
+    first_name: '',
+    last_name: '',
     email: '',
     password: ''
   });
-  const [error, setError] = useState('');
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e) => {
+  const handleSignup = async (e) => {
     e.preventDefault();
-    setError('');
-    try {
-      const success = await login(formData.email, formData.password);
-      
-      if (success) {
-        navigate('/');
-      }
-    } catch (err) {
-      setError(err.message);
+    const { first_name, last_name, email, password } = form;
+
+    const success = await signup(first_name, last_name, email, password);
+    if (success) {
+      alert('Signup successful! You are now logged in.');
+      navigate(redirectTo);
     }
   };
 
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    const { email, password } = form;
+
+    const success = await login(email, password); // ✅ using AuthContext login
+    if (success) {
+      alert('Login successful!');
+      navigate(redirectTo); // ✅ go back to /feedback or home
+    }
+  };
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentIndex(prev => (prev + 1) % images.length);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
-    <div className="min-h-screen bg-gray-50 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md mx-auto mt-8 space-y-8">
-        <div className="text-center">
-          <h2 className="text-3xl font-extrabold text-gray-900">
-            Sign in to your account
-          </h2>
-          <div className="mt-2 space-y-2">
-            <p className="text-sm text-gray-500">
-              Don't have an account?
-            </p>
-            <Link
-              to="/create-account"
-              className="text-sm font-medium text-indigo-600 hover:text-indigo-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-            >
-              Create Account
-            </Link>
+    <>
+      <style>
+        {`
+          @keyframes fill {
+            from { width: 0%; }
+            to { width: 100%; }
+          }
+          .animate-fill {
+            animation: fill 4s linear forwards;
+          }
+          @font-face {
+            font-family: 'SequelSans';
+            src: url('/fonts/SequelSans-Medium.ttf') format('truetype');
+            font-weight: 400;
+            font-style: normal;
+          }
+          .sequel-font {
+            font-family: 'SequelSans', sans-serif;
+          }
+        `}
+      </style>
+
+      <div
+        className="fixed top-0 left-0 w-screen h-screen flex p-0 m-0 overflow-hidden z-50"
+        style={{ backgroundColor: '#2C2638' }}
+      >
+        {/* Left Slideshow */}
+        <div className="w-1/2 flex items-center justify-center p-[0.5cm]">
+          <div className="w-full h-full rounded-lg overflow-hidden relative">
+            <img
+              src={images[currentIndex]}
+              alt="Slideshow"
+              className="object-cover w-full h-full transition-all duration-1000 rounded-lg"
+            />
+            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2 w-[40%]">
+              {images.map((_, idx) => {
+                const isActive = idx === currentIndex;
+                const isCompleted = idx < currentIndex;
+                return (
+                  <div
+                    key={idx}
+                    className="h-1 w-full rounded-md bg-white bg-opacity-30 overflow-hidden"
+                  >
+                    <div
+                      className={`h-full ${
+                        isActive
+                          ? 'bg-white animate-fill'
+                          : isCompleted
+                          ? 'bg-white bg-opacity-50 w-full'
+                          : 'w-0'
+                      }`}
+                    ></div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
 
-        {error && (
-          <div className="rounded-md bg-red-50 p-4 mb-4">
-            <div className="flex">
-              <div className="flex-shrink-0">
-                <svg
-                  className="h-5 w-5 text-red-400"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                    clipRule="evenodd"
+        {/* Right Auth Form */}
+        <div className="w-1/2 flex flex-col justify-center items-center px-12 text-white sequel-font">
+          {isSignUp ? (
+            <>
+              <div className="w-full max-w-lg text-left mb-8">
+                <h2 className="text-5xl font-normal">Create an Account</h2>
+                <p className="text-sm mt-2 mb-8">
+                  Already have an account?{' '}
+                  <span
+                    className="underline cursor-pointer"
+                    onClick={() => setIsSignUp(false)}
+                  >
+                    Login.
+                  </span>
+                </p>
+              </div>
+
+              <form className="w-full max-w-lg space-y-6" onSubmit={handleSignup}>
+                <div className="flex space-x-4">
+                  <input
+                    type="text"
+                    name="first_name"
+                    placeholder="First Name"
+                    value={form.first_name}
+                    onChange={handleChange}
+                    className="w-1/2 px-5 py-4 rounded-md focus:outline-none"
+                    style={{ backgroundColor: '#3C364C', color: 'white' }}
+                    required
                   />
-                </svg>
-              </div>
-              <div className="ml-3">
-                <h3 className="text-sm font-medium text-red-800">Error</h3>
-                <div className="mt-2 text-sm text-red-700">
-                  <p>{error}</p>
+                  <input
+                    type="text"
+                    name="last_name"
+                    placeholder="Last Name"
+                    value={form.last_name}
+                    onChange={handleChange}
+                    className="w-1/2 px-5 py-4 rounded-md focus:outline-none"
+                    style={{ backgroundColor: '#3C364C', color: 'white' }}
+                    required
+                  />
                 </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <input type="hidden" name="remember" defaultValue="true" />
-          
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-              Email address
-            </label>
-            <div className="mt-1 relative rounded-md shadow-sm">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <MailIcon className="h-5 w-5 text-gray-400" />
-              </div>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                className="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md"
-                placeholder="Enter your email"
-                value={formData.email}
-                onChange={handleChange}
-              />
-            </div>
-          </div>
-
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-              Password
-            </label>
-            <div className="mt-1 relative rounded-md shadow-sm">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <LockClosedIcon className="h-5 w-5 text-gray-400" />
-              </div>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                className="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md"
-                placeholder="Enter your password"
-                value={formData.password}
-                onChange={handleChange}
-              />
-            </div>
-          </div>
-
-          <div>
-            <button
-              type="submit"
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-            >
-              <span className="absolute left-0 inset-y-0 flex items-center pl-3">
-                <LockClosedIcon className="h-5 w-5 text-indigo-500 group-hover:text-indigo-400" />
-              </span>
-              Sign in
-            </button>
-          </div>
-        </form>
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="Email"
+                  value={form.email}
+                  onChange={handleChange}
+                  className="w-full px-5 py-4 rounded-md focus:outline-none"
+                  style={{ backgroundColor: '#3C364C', color: 'white' }}
+                  required
+                />
+                <input
+                  type="password"
+                  name="password"
+                  placeholder="Password"
+                  value={form.password}
+                  onChange={handleChange}
+                  className="w-full px-5 py-4 rounded-md focus:outline-none"
+                  style={{ backgroundColor: '#3C364C', color: 'white' }}
+                  required
+                />
+                <div className="flex items-center space-x-2 text-sm mt-2">
+                  <input type="checkbox" className="accent-[#6D54B5]" required />
+                  <label>I accept the Terms & Conditions</label>
+                </div>
+                <div className="mt-10">
+                  <button
+                    type="submit"
+                    className="w-full py-4 font-semibold rounded-md hover:opacity-90 transition"
+                    style={{ backgroundColor: '#6D54B5', color: 'white' }}
+                  >
+                    Create Account
+                  </button>
+                </div>
+              </form>
+            </>
+          ) : (
+            <>
+              <h2 className="text-4xl font-bold mb-6">Welcome Back</h2>
+              <form className="w-full max-w-lg space-y-5" onSubmit={handleLogin}>
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="Email"
+                  value={form.email}
+                  onChange={handleChange}
+                  className="w-full px-5 py-4 rounded-md focus:outline-none"
+                  style={{ backgroundColor: '#3C364C', color: 'white' }}
+                  required
+                />
+                <input
+                  type="password"
+                  name="password"
+                  placeholder="Password"
+                  value={form.password}
+                  onChange={handleChange}
+                  className="w-full px-5 py-4 rounded-md focus:outline-none"
+                  style={{ backgroundColor: '#3C364C', color: 'white' }}
+                  required
+                />
+                <button
+                  type="submit"
+                  className="w-full py-4 font-semibold rounded-md hover:opacity-90 transition"
+                  style={{ backgroundColor: '#6D54B5', color: 'white' }}
+                >
+                  LogIn
+                </button>
+              </form>
+              <p className="text-sm text-center mt-4">
+                Don’t have an account?{' '}
+                <span
+                  className="underline cursor-pointer"
+                  onClick={() => setIsSignUp(true)}
+                >
+                  Sign Up
+                </span>
+              </p>
+            </>
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }
-
-export default Auth;
