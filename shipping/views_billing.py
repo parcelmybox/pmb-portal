@@ -32,235 +32,116 @@ class BillListView(ListView):
     template_name = 'shipping/billing/bill_list.html'
     context_object_name = 'bills'
     paginate_by = 20
-    
+
     def get_queryset(self):
-        # First, update any pending bills that are now overdue
+        # Update PENDING bills that are now overdue
         overdue_bills = Bill.objects.filter(
             status='PENDING',
             due_date__lt=timezone.now().date()
         )
-        
-        # Update status to OVERDUE for any pending bills that are now overdue
         if overdue_bills.exists():
             updated_count = overdue_bills.update(status='OVERDUE')
             if updated_count > 0:
                 logger.info(f"Updated {updated_count} bills to OVERDUE status")
-        
-        # Get the base queryset
+
         queryset = Bill.objects.select_related('customer').order_by('-created_at')
-        
-        # Apply filters
+
+        # Filters
         status = self.request.GET.get('status')
         customer_id = self.request.GET.get('customer')
         search = self.request.GET.get('search')
-        
-        # Handle status filter
+
         if status == 'OVERDUE':
-            # Get pending bills that are past due date
-            pending_overdue = Q(
-                status='PENDING',
-                due_date__lt=timezone.now().date()
-            )
-            # Get bills already marked as OVERDUE
+            # Bills that are overdue (either marked or past due date)
+            pending_overdue = Q(status='PENDING', due_date__lt=timezone.now().date())
             already_overdue = Q(status='OVERDUE')
-            # Combine both conditions with OR
             queryset = queryset.filter(pending_overdue | already_overdue)
         elif status:
             queryset = queryset.filter(status=status)
-            
+
         if customer_id:
             queryset = queryset.filter(customer_id=customer_id)
-            
+
         if search:
             queryset = queryset.filter(
-                Q(description__icontains=search) |
+                Q(phone_number__icontains=search) |
                 Q(customer__username__icontains=search) |
-                Q(id__icontains=search) |
                 Q(customer__first_name__icontains=search) |
                 Q(customer__last_name__icontains=search) |
-                Q(customer__email__icontains=search)
+                Q(customer__email__icontains=search) |
+                Q(id__icontains=search)
             )
-            
+
         return queryset
-    
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        
-        # Get the base queryset without pagination for summary
-        base_queryset = self.get_queryset()
-        
-        # Get all bills for summary calculations
-        all_bills = Bill.objects.all()
-        
-        # Calculate overdue bills for summary
-        # Include both PENDING bills past due date and bills already marked as OVERDUE
+
+        all_bills = Bill.objects.select_related('customer')
+
         today = timezone.now().date()
-        
-        # Get bills that are PENDING and past due date
-        pending_overdue = all_bills.filter(
-            status='PENDING',
-            due_date__lt=today
-        )
-        
-        # Get bills already marked as OVERDUE
-        already_overdue = all_bills.filter(
-            status='OVERDUE'
-        )
-        
-        # Combine both querysets and remove duplicates
+        pending_overdue = all_bills.filter(status='PENDING', due_date__lt=today)
+        already_overdue = all_bills.filter(status='OVERDUE')
         overdue_bills_qs = (pending_overdue | already_overdue).distinct()
-        
-        # Calculate totals
-        overdue_amount = sum(bill.amount for bill in overdue_bills_qs if bill.amount is not None)
+
+        overdue_amount = sum(bill.total for bill in overdue_bills_qs)
         overdue_count = overdue_bills_qs.count()
-        
-        # Add filter form with current request data
+
         context['filter_form'] = BillFilterForm(self.request.GET or None, user=self.request.user)
-        
-        # Get unique customers who have bills
+
         context['customers'] = User.objects.filter(
             id__in=all_bills.values_list('customer', flat=True).distinct()
         ).order_by('first_name', 'last_name', 'username')
-        
-        # Add summary data for the cards
+
         context['summary'] = {
             'total_bills': all_bills.count(),
-            'total_amount': all_bills.aggregate(total=Sum('amount'))['total'] or 0,
-            'pending_amount': all_bills.filter(status='PENDING').aggregate(total=Sum('amount'))['total'] or 0,
+            'total_amount': sum(bill.total for bill in all_bills),
+            'pending_amount': sum(bill.total for bill in all_bills.filter(status='PENDING')),
             'overdue_amount': overdue_amount,
             'overdue_count': overdue_count,
         }
-        
-        # Add current request to context for pagination
+
         context['request'] = self.request
-        
-        # Add current filters to context
         context['current_status'] = self.request.GET.get('status', '')
         context['current_customer'] = self.request.GET.get('customer', '')
         context['current_search'] = self.request.GET.get('search', '')
-        
+
         return context
 
 @staff_required
 def create_bill(request):
     if request.method == 'POST':
-        # Debug: Print form data
-        print("\n=== FORM DATA ===")
-        print(f"POST data: {request.POST}")
-        
-        # Create a mutable copy of POST data
-        post_data = request.POST.copy()
-        form = BillForm(post_data, user=request.user)
-        
+        form = BillForm(request.POST)
+
         if form.is_valid():
             try:
                 with transaction.atomic():
-                    # Debug: Print cleaned data
-                    print("\n=== CLEANED DATA ===")
-                    print(f"Status: {form.cleaned_data.get('status')}")
-                    print(f"Customer name: {form.cleaned_data.get('customer_name')}")
-                    
                     bill = form.save(commit=False)
+
+                    # Set created_by to the logged-in user
                     bill.created_by = request.user
-                    
-                    # Debug: Print bill status before any changes
-                    print("\n=== BILL STATUS ===")
-                    print(f"Before setting customer - Status: {bill.status}")
-                    
-                    # Handle customer input
-                    customer_name = form.cleaned_data.get('customer_name', '').strip()
-                    
-                    # Try to find existing user by name or username
-                    user = User.objects.filter(
-                        Q(first_name__iexact=customer_name) |
-                        Q(username__iexact=customer_name) |
-                        Q(email__iexact=customer_name)
-                    ).first()
-                    
-                    if not user and customer_name:  # Create new user if not found
-                        username = customer_name.lower().replace(' ', '.')
-                        email = f"{username}@example.com" if '@' not in customer_name else customer_name
-                        
-                        # Generate a random password
-                        password = get_random_string(12)
-                        user = User.objects.create_user(
-                            username=username,
-                            email=email,
-                            first_name=customer_name,
-                            is_active=False,  # Mark as inactive until verified
-                            password=password
-                        )
-                    
-                    bill.customer = user
-                    
-                    # Debug: Print bill status after setting customer
-                    print(f"After setting customer - Status: {bill.status}")
-                    
-                    # Set default due date to 10 days from now if not provided
-                    if not bill.due_date:
-                        bill.due_date = timezone.now().date() + timedelta(days=10)
-                        
-                    # Debug: Print payment method before saving
-                    print(f"Payment method before save: {bill.payment_method}")
-                    print(f"Form payment method: {form.cleaned_data.get('payment_method')}")
-                    
-                    # Debug: Print before setting paid_at
-                    print(f"Before setting paid_at - Status: {bill.status}, paid_at: {bill.paid_at}")
-                    
-                    # Ensure payment method is set from form data
-                    if 'payment_method' in form.cleaned_data:
-                        bill.payment_method = form.cleaned_data['payment_method']
-                        print(f"Set payment method to: {bill.payment_method}")
-                    
-                    # Set paid_at timestamp if status is PAID
-                    if bill.status == 'PAID' and not bill.paid_at:
-                        bill.paid_at = timezone.now()
-                        print(f"Set paid_at to: {bill.paid_at}")
-                    
-                    # Debug: Print before save
-                    print(f"Before save - Status: {bill.status}, paid_at: {bill.paid_at}")
-                    
+
+                    # Set billed_weight as rounded weight
+                    bill.billed_weight = round(bill.weight)
+
                     bill.save()
-                    
-                    # Debug: Print after save
-                    print(f"After save - Status: {bill.status}, paid_at: {bill.paid_at}")
-                    print(f"Bill ID: {bill.id}")
-                    
-                    # Log the bill generation
-                    ActivityHistory.log_activity(
-                        user=request.user,
-                        action='Bill Generated',
-                        obj=bill
-                    )
-                    
-                    messages.success(request, f'Bill #{bill.id} has been generated successfully.')
+
+                    messages.success(request, f'Bill #{bill.id} created successfully.')
                     return redirect('shipping:bill_detail', bill_id=bill.id)
-                    
+
             except Exception as e:
-                messages.error(request, f'Error generating bill: {str(e)}')
-                # Log the error
-                logger.error(f'Error generating bill: {str(e)}', exc_info=True)
+                messages.error(request, f"Error generating bill: {str(e)}")
+
     else:
-        # Initialize form with any provided customer data
-        initial_data = {}
-        customer_id = request.GET.get('customer_id')
-        if customer_id:
-            try:
-                customer = User.objects.get(id=customer_id, is_staff=False)
-                initial_data['customer_name'] = customer.get_full_name() or customer.username
-                initial_data['customer_id'] = customer_id
-            except User.DoesNotExist:
-                pass
-                
-        form = BillForm(initial=initial_data, user=request.user)
-    
+        form = BillForm()
+
     context = {
         'form': form,
         'title': 'Generate New Bill',
         'submit_text': 'Create Bill',
         'cancel_url': reverse('shipping:bill_list')
     }
-    
+
     return render(request, 'shipping/billing/create_bill.html', context)
 
 @staff_required
@@ -276,11 +157,12 @@ def bill_detail(request, bill_id):
     related_bills = Bill.objects.filter(customer=bill.customer).exclude(id=bill.id).order_by('-created_at')[:5]
     
     # Get customer statistics
-    customer_stats = Bill.objects.filter(customer=bill.customer).aggregate(
-        total_bills=Count('id'),
-        total_paid=Sum('amount', filter=Q(status='PAID')),
-        total_pending=Sum('amount', filter=Q(status='PENDING') | Q(status='OVERDUE')),
-    )
+    bills = Bill.objects.filter(customer=bill.customer)
+    customer_stats = {
+        'total_bills': bills.count(),
+        'total_paid': sum(b.total for b in bills if b.status == 'PAID'),
+        'total_pending': sum(b.total for b in bills if b.status in ['PENDING', 'OVERDUE']),
+    }
     
     # Get activity history for this bill
     activity_history = ActivityHistory.objects.filter(

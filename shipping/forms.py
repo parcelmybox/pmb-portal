@@ -209,9 +209,8 @@ class ShippingAddressForm(forms.ModelForm):
             instance.save()
         return instance
 
-
 class BillForm(forms.ModelForm):
-    # Simple text input for customer name
+    # Input for customer name (not a model field)
     customer_name = forms.CharField(
         label='Customer Name',
         required=True,
@@ -221,27 +220,26 @@ class BillForm(forms.ModelForm):
             'autocomplete': 'off',
         })
     )
-    
-    # Hidden field to store the customer ID after creation
+
     customer_id = forms.CharField(
         required=False,
         widget=forms.HiddenInput()
     )
-    
-    payment_method = forms.ChoiceField(
+
+    payment_mode = forms.ChoiceField(
         label='Payment Method',
-        choices=PAYMENT_METHODS,
-        initial='GOOGLE_PAY',
+        choices=Bill.PAYMENT_CHOICES,
+        initial='ZELLE',
         required=True,
         widget=forms.Select(attrs={
             'class': 'form-select',
             'style': 'width: 100%;',
         })
     )
-    
+
     status = forms.ChoiceField(
         label='Payment Status',
-        choices=BILL_STATUS_CHOICES,
+        choices=Bill.STATUS_CHOICES,
         initial='PENDING',
         required=True,
         widget=forms.Select(attrs={
@@ -249,14 +247,25 @@ class BillForm(forms.ModelForm):
             'style': 'width: 100%;',
         })
     )
-    
+
     class Meta:
         model = Bill
-        fields = ['customer_name', 'package', 'weight', 'courier_service', 'amount', 'status', 'description', 'payment_method']
+        fields = [
+            'customer_name',  # not in model, handled in clean()
+            'phone_number',
+            'weight',
+            'billed_weight',
+            'package_fee',
+            'porter_charges',
+            'other_charges',
+            'status',
+            'due_date',
+            'payment_mode',
+        ]
         widgets = {
-            'package': forms.TextInput(attrs={
+            'phone_number': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'Enter package type or description',
+                'placeholder': 'Enter phone number',
                 'autocomplete': 'off'
             }),
             'weight': forms.NumberInput(attrs={
@@ -265,181 +274,126 @@ class BillForm(forms.ModelForm):
                 'min': '0.01',
                 'placeholder': 'Weight in kg'
             }),
-            'courier_service': forms.TextInput(attrs={
+            'billed_weight': forms.NumberInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'Enter courier service name',
-                'autocomplete': 'off'
+                'min': '1',
+                'placeholder': 'Billed weight (rounded kg)'
             }),
-            'amount': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0.01'}),
-            'status': forms.Select(attrs={'class': 'form-select'}),
-            'description': forms.Textarea(attrs={
+            'package_fee': forms.NumberInput(attrs={
                 'class': 'form-control',
-                'rows': 3,
-                'placeholder': 'Enter bill description (optional)'
+                'step': '0.01',
+                'min': '0',
+                'placeholder': 'Package fee ($)'
+            }),
+            'porter_charges': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'step': '0.01',
+                'min': '0',
+                'placeholder': 'Porter charges ($)'
+            }),
+            'other_charges': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'step': '0.01',
+                'min': '0',
+                'placeholder': 'Other charges ($)'
+            }),
+            'due_date': forms.DateInput(attrs={
+                'class': 'form-control',
+                'type': 'date'
             }),
         }
-        help_texts = {
-            'amount': 'Enter the total amount to be billed',
-            'due_date': 'Date by which the payment is due',
-            'description': 'Optional description or reference for this bill'
-        }
-    
+
     def __init__(self, *args, **kwargs):
-        self.user = kwargs.pop('user', None)
+        self.user = kwargs.pop('user', None)  # User who is creating the bill
         super().__init__(*args, **kwargs)
-        
-        # Set choices for courier_service field
-        self.fields['courier_service'].widget = forms.Select(choices=COURIER_SERVICES, attrs={'class': 'form-select'})
-        
-        # Ensure customer_name remains a simple text input
-        self.fields['customer_name'].widget = forms.TextInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'Enter customer name',
-            'autocomplete': 'off',
-            'data-select2-enable': 'false',
-            'style': 'background-image: none !important;'
-        })
-        
-        # Set default status for new bills if not already set
+
         if not self.instance.pk and not self.data.get('status'):
             self.initial['status'] = 'PENDING'
-        
-        # Set initial customer value if editing existing bill
+
         if self.instance.pk and self.instance.customer:
             customer_name = self.instance.customer.get_full_name() or self.instance.customer.username
             self.initial['customer_name'] = customer_name
             self.initial['customer_id'] = self.instance.customer_id
-            
-        # Set default due date to 10 days from now if not set
+
         if not self.instance.due_date and not self.data.get('due_date'):
             self.initial['due_date'] = timezone.now().date() + timedelta(days=10)
-            
-        # Set CSS classes for fields
+
         for field_name, field in self.fields.items():
-            if field_name == 'status':
-                field.widget.attrs['class'] = 'form-select'
-            elif field_name != 'customer_name':  # Skip customer_name as it's already set
-                field.widget.attrs['class'] = 'form-control'
-    
-    def clean_amount(self):
-        amount = self.cleaned_data.get('amount')
-        if amount is not None and amount <= 0:
-            raise forms.ValidationError('Amount must be greater than zero.')
-        return amount
-    
+            if field_name != 'customer_name':
+                if isinstance(field.widget, forms.Select):
+                    field.widget.attrs['class'] = 'form-select'
+                else:
+                    field.widget.attrs['class'] = 'form-control'
+
     def clean_due_date(self):
         due_date = self.cleaned_data.get('due_date')
         if due_date and due_date < timezone.now().date():
             raise forms.ValidationError('Due date cannot be in the past.')
         return due_date
-        
+
     def clean(self):
         cleaned_data = super().clean()
-        print("\n=== CLEAN METHOD ===")
-        print(f"All cleaned_data: {cleaned_data}")
-        
-        # Get customer name from form
+
         customer_name = cleaned_data.get('customer_name', '').strip()
         if not customer_name:
             self.add_error('customer_name', 'Please enter a customer name.')
             return cleaned_data
-        
-        print(f"Processing customer: {customer_name}")
-        
-        # Try to find existing customer by name
+
         user = None
-        
-        # First, try to find by exact name match
+
+        # Try matching by full name
         if ' ' in customer_name:
             first_name, last_name = customer_name.split(' ', 1)
             user = User.objects.filter(
                 first_name__iexact=first_name,
                 last_name__iexact=last_name
             ).first()
-        
-        # If no match, try more flexible search
+
+        # Try alternative matching
         if not user:
             user = User.objects.filter(
                 Q(first_name__iexact=customer_name) |
                 Q(username__iexact=customer_name.lower().replace(' ', '.'))
             ).first()
-        
-        # If still no user found, create a new one
+
+        # Create new user if none found
         if not user:
-            print(f"Creating new customer: {customer_name}")
-            try:
-                # Generate a unique username
-                base_username = customer_name.lower().replace(' ', '.')[:20]
-                username = base_username
-                counter = 1
-                
-                # Ensure username is unique
-                while User.objects.filter(username=username).exists():
-                    username = f"{base_username}{counter}"
-                    counter += 1
-                
-                # Create a temporary email
-                email = f"{username}@customer.parcelmybox.com"
-                
-                # Generate a secure random password
-                from django.utils.crypto import get_random_string
-                random_password = get_random_string(12)
-                
-                # Create the new user
-                first_name = customer_name.split(' ')[0]
-                last_name = ' '.join(customer_name.split(' ')[1:]) if ' ' in customer_name else ''
-                
-                user = User.objects.create_user(
-                    username=username,
-                    email=email,
-                    password=random_password,
-                    first_name=first_name,
-                    last_name=last_name,
-                    is_active=True,
-                    is_staff=False
-                )
-                
-                print(f"Created new customer: {user} (ID: {user.id})")
-                
-            except Exception as e:
-                error_msg = f"Error creating new customer: {str(e)}"
-                print(error_msg)
-                self.add_error('customer_name', error_msg)
-                return cleaned_data
-        
-        # Set the customer on the instance
+            from django.utils.crypto import get_random_string
+
+            base_username = customer_name.lower().replace(' ', '.')[:20]
+            username = base_username
+            counter = 1
+
+            while User.objects.filter(username=username).exists():
+                username = f"{base_username}{counter}"
+                counter += 1
+
+            email = f"{username}@customer.parcelmybox.com"
+            random_password = get_random_string(12)
+            first_name = customer_name.split(' ')[0]
+            last_name = ' '.join(customer_name.split(' ')[1:]) if ' ' in customer_name else ''
+
+            user = User.objects.create_user(
+                username=username,
+                email=email,
+                password=random_password,
+                first_name=first_name,
+                last_name=last_name,
+                is_active=True
+            )
+
+        # Attach customer and creator
         if hasattr(self, 'instance'):
             self.instance.customer = user
-            print(f"Set bill customer to: {user} (ID: {user.id})")
-        
-        # Store the customer ID in the form data
+            if self.user:
+                self.instance.created_by = self.user
+
         if self.data:
             self.data = self.data.copy()
             self.data['customer_id'] = str(user.id)
-        
+
         cleaned_data['customer'] = user
-        print(f"Final cleaned_data: {cleaned_data}")
         return cleaned_data
-    
-    def clean_status(self):
-        # Debug: Print initial status data
-        print("\n=== CLEAN_STATUS ===")
-        print(f"Initial cleaned_data: {self.cleaned_data}")
-        print(f"Initial status: {self.cleaned_data.get('status')}")
-        print(f"Instance exists: {hasattr(self, 'instance')}")
-        if hasattr(self, 'instance'):
-            print(f"Instance status: {getattr(self.instance, 'status', 'N/A')}")
-        
-        status = self.cleaned_data.get('status')
-        print(f"Status from form: {status}")
-        
-        if not status and hasattr(self, 'instance'):
-            print("Using instance status")
-            return self.instance.status
-            
-        result = status or 'PENDING'
-        print(f"Final status: {result}")
-        return result
 
 
 class InvoiceForm(forms.ModelForm):

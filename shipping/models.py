@@ -562,57 +562,115 @@ class SupportRequestHistory(models.Model):
     def __str__(self):
         return f"{self.support_request.ticket_number} - {self.action} - {self.created_at}"
 
-
 class Bill(models.Model):
-    """Model for managing customer bills and invoices."""
-    customer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='bills')
-    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='created_bills')
-    shipment = models.ForeignKey(
-        'Shipment', 
-        on_delete=models.SET_NULL, 
+    """Model for managing customer bills and charges."""
+
+    PAYMENT_CHOICES = [
+        ('ZELLE', 'Zelle'),
+        ('GPAY', 'GPay'),
+    ]
+
+    STATUS_CHOICES = [
+        ('PENDING', 'Pending'),
+        ('PAID', 'Paid'),
+        ('OVERDUE', 'Overdue'),
+    ]
+
+    customer = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
         related_name='bills',
+        verbose_name="Customer",
+        help_text="User for whom the bill is created"
+    )
+
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        help_text='Related shipment if this bill is for shipping charges'
+        related_name='created_bills',
+        verbose_name="Created By",
+        help_text="Staff/user who created the bill"
     )
-    amount = models.DecimalField(max_digits=10, decimal_places=2, validators=[])
-    status = models.CharField(max_length=10, choices=BILL_STATUS_CHOICES, default='PENDING')
-    due_date = models.DateField(null=True, blank=True)
-    description = models.TextField(blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    paid_at = models.DateTimeField(null=True, blank=True)
-    payment_method = models.CharField(
-        max_length=20,
-        choices=PAYMENT_METHODS,
-        default='CASH',
-        verbose_name='Payment Method',
-        help_text='Select the payment method used for this bill.'
-    )
-    package = models.CharField(
-        max_length=100,
-        blank=True,
-        null=True,
-        verbose_name='Package',
-        help_text='Package type or description'
-    )
-    weight = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
+
+    phone_number = models.CharField(
+        max_length=15,
+        verbose_name="Phone Number",
+        help_text="Customer's contact number",
         null=True,
         blank=True,
-        verbose_name='Weight (kg)',
-        help_text='Weight of the package in kilograms'
     )
-    courier_service = models.CharField(
-        max_length=100,
-        blank=True,
+
+    weight = models.FloatField(
+        verbose_name="Weight (kg)",
+        help_text="Entered weight of the package"
+    )
+
+    billed_weight = models.PositiveIntegerField(
+        default=0,
+        verbose_name="Billed Weight (kg)",
+        help_text="Rounded weight used for billing (in kg)"
+    )
+
+    payment_mode = models.CharField(
+        max_length=10,
+        choices=PAYMENT_CHOICES,
+        default='ZELLE',
+        verbose_name="Payment Method",
+        help_text="Payment platform used by the customer"
+    )
+
+    package_fee = models.FloatField(
+        default=3.0,
+        verbose_name="Package Fee",
+        help_text="Flat fee applied per package"
+    )
+
+    porter_charges = models.FloatField(
+        default=0.0,
+        verbose_name="Porter Charges",
+        help_text="Additional charges for porter/labor if any"
+    )
+
+    other_charges = models.FloatField(
+        default=0.0,
+        verbose_name="Other Charges",
+        help_text="Any miscellaneous charges"
+    )
+
+    status = models.CharField(
+        max_length=10,
+        choices=STATUS_CHOICES,
+        default='PENDING',
+        verbose_name="Bill Status",
+        help_text="Current payment status of the bill"
+    )
+
+    due_date = models.DateField(
         null=True,
-        choices=COURIER_SERVICES,
-        verbose_name='Courier Service',
-        help_text='Select the courier service used for this shipment'
+        blank=True,
+        verbose_name="Due Date",
+        help_text="Optional due date for bill payment"
     )
-    
+
+    paid_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name="Paid At",
+        help_text="Timestamp when bill was marked as paid"
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="Created At"
+    )
+
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        verbose_name="Last Updated"
+    )
+
     class Meta:
         ordering = ['-created_at']
         indexes = [
@@ -620,32 +678,45 @@ class Bill(models.Model):
             models.Index(fields=['due_date']),
             models.Index(fields=['customer']),
         ]
-    
+
     def __str__(self):
-        return f'Bill #{self.id} - {self.customer.get_username()} - ${self.amount:.2f}'
-    
+        return f"Bill #{self.id} - {self.customer.username} - {self.created_at.date()}"
+
+    @property
+    def base_charge(self):
+        return self.billed_weight * 10
+
+    @property
+    def total(self):
+        return (
+            self.base_charge +
+            self.package_fee +
+            self.porter_charges +
+            self.other_charges
+        )
+
     @property
     def is_paid(self):
         return self.status == 'PAID'
-    
+
     @property
     def is_overdue(self):
         if self.status == 'PAID' or not self.due_date:
             return False
         return timezone.now().date() > self.due_date
-    
+
     @property
     def days_overdue(self):
         if not self.is_overdue:
             return 0
         return (timezone.now().date() - self.due_date).days
-    
+
     @property
     def days_until_due(self):
         if not self.due_date or self.status == 'PAID':
             return 0
         return (self.due_date - timezone.now().date()).days
-    
+
     def mark_as_paid(self, commit=True):
         if self.status != 'PAID':
             self.status = 'PAID'
@@ -654,20 +725,19 @@ class Bill(models.Model):
                 self.save(update_fields=['status', 'paid_at', 'updated_at'])
             return True
         return False
-    
+
     def update_status(self, new_status=None):
         """Update the bill status and trigger related actions."""
-        if new_status and new_status != self.status and new_status in dict(BILL_STATUS_CHOICES):
+        if new_status and new_status != self.status and new_status in dict(self.STATUS_CHOICES):
             self.status = new_status
             if new_status == 'PAID' and not self.paid_at:
                 self.paid_at = timezone.now()
             self.save(update_fields=['status', 'paid_at', 'updated_at'])
             return True
-            
-        # If no new_status provided, update based on due date
+
         if self.status == 'PAID':
             return False
-            
+
         if self.is_overdue and self.status != 'OVERDUE':
             self.status = 'OVERDUE'
             self.save(update_fields=['status', 'updated_at'])
@@ -676,5 +746,5 @@ class Bill(models.Model):
             self.status = 'PENDING'
             self.save(update_fields=['status', 'updated_at'])
             return True
-            
+
         return False

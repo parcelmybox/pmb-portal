@@ -160,35 +160,51 @@ class TrackingEventAdmin(admin.ModelAdmin):
         return obj.description[:50] + '...' if obj.description and len(obj.description) > 50 else obj.description
     description_short.short_description = 'Description'
 
-@admin.register(Bill, site=site)
+@admin.register(Bill)
 class BillAdmin(admin.ModelAdmin):
-    list_display = ('id', 'invoice_number', 'customer_link', 'amount_display', 'status_badge', 
-                   'created_at', 'due_date', 'is_overdue_display')
-    list_filter = ('status', 'created_at', 'due_date', 'payment_method')
-    search_fields = ('customer__username', 'description', 'invoice_number')
+    list_display = (
+        'id',
+        'invoice_number',
+        'customer_link',
+        'created_by_link',
+        'amount_display',
+        'status_badge',
+        'created_at',
+        'due_date',
+        'is_overdue_display',
+    )
+    list_filter = ('status', 'created_at', 'due_date', 'payment_mode')
+    search_fields = ('customer__username', 'customer__first_name', 'invoice_number')
     date_hierarchy = 'created_at'
     change_list_template = 'admin/billing_dashboard.html'
     readonly_fields = ('created_at', 'updated_at', 'paid_at')
-    list_select_related = ('customer', 'shipment')
+    list_select_related = ('customer', 'created_by')  # Removed 'shipment' unless it exists
     actions = ['mark_as_paid', 'export_to_csv']
-    
+
     def invoice_number(self, obj):
         return f"INV-{obj.id:06d}"
     invoice_number.short_description = 'Invoice #'
     invoice_number.admin_order_field = 'id'
-    
+
     def customer_link(self, obj):
         if obj.customer:
             url = reverse('admin:auth_user_change', args=[obj.customer.id])
             return mark_safe(f'<a href="{url}">{obj.customer.username}</a>')
         return "-"
     customer_link.short_description = 'Customer'
-    
+
+    def created_by_link(self, obj):
+        if obj.created_by:
+            url = reverse('admin:auth_user_change', args=[obj.created_by.id])
+            return mark_safe(f'<a href="{url}">{obj.created_by.username}</a>')
+        return "-"
+    created_by_link.short_description = 'Created By'
+
     def amount_display(self, obj):
-        return f"${obj.amount:.2f}"
+        return f"${obj.total:.2f}"  # Use property instead of non-existent field
     amount_display.short_description = 'Amount'
-    amount_display.admin_order_field = 'amount'
-    
+    # Removed admin_order_field – not sortable since total is a property
+
     def status_badge(self, obj):
         status_colors = {
             'draft': 'secondary',
@@ -200,49 +216,54 @@ class BillAdmin(admin.ModelAdmin):
         color = status_colors.get(obj.status, 'secondary')
         return mark_safe(f'<span class="badge bg-{color}">{obj.get_status_display()}</span>')
     status_badge.short_description = 'Status'
-    status_badge.admin_order_field = 'status'
-    
+
     def is_overdue_display(self, obj):
-        if obj.is_overdue():
-            return mark_safe('<span class="text-danger">Yes</span>')
+        if hasattr(obj, 'is_overdue') and callable(obj.is_overdue):
+            if obj.is_overdue():
+                return mark_safe('<span class="text-danger">Yes</span>')
         return 'No'
     is_overdue_display.short_description = 'Overdue'
     is_overdue_display.boolean = True
-    
+
     @admin.action(description='Mark selected bills as paid')
     def mark_as_paid(self, request, queryset):
         updated = queryset.update(status='paid', paid_at=timezone.now())
         self.message_user(request, f"{updated} bill(s) marked as paid.")
-    
+
     @admin.action(description='Export selected bills to CSV')
     def export_to_csv(self, request, queryset):
         import csv
         from django.http import HttpResponse
-        import io
-        
+
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename=bills_export.csv'
-        
+
         writer = csv.writer(response)
-        writer.writerow(['Invoice #', 'Customer', 'Amount', 'Status', 'Created', 'Due Date', 'Paid'])
-        
+        writer.writerow(['Invoice #', 'Customer', 'Created By', 'Amount', 'Status', 'Created', 'Due Date', 'Paid'])
+
         for bill in queryset:
             writer.writerow([
                 f"INV-{bill.id:06d}",
                 bill.customer.username if bill.customer else '',
-                f"${bill.amount:.2f}",
+                bill.created_by.username if bill.created_by else '',
+                f"${bill.total:.2f}",
                 bill.get_status_display(),
                 bill.created_at.strftime('%Y-%m-%d'),
                 bill.due_date.strftime('%Y-%m-%d') if bill.due_date else '',
                 'Yes' if bill.paid_at else 'No'
             ])
-        
+
         return response
-    
+
     def changelist_view(self, request, extra_context=None):
         extra_context = extra_context or {}
-        extra_context['billing_stats'] = get_billing_stats()
+        try:
+            from .utils import get_billing_stats
+            extra_context['billing_stats'] = get_billing_stats()
+        except ImportError:
+            extra_context['billing_stats'] = {}
         return super().changelist_view(request, extra_context=extra_context)
+
 
 
 class SupportRequestHistoryInline(admin.TabularInline):
