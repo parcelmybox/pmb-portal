@@ -381,20 +381,3 @@ class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
     permission_classes = [AllowAny]
-=======
-class SupportRequestViewSet(viewsets.ModelViewSet):
-    """
-    Complete CRUD operations for support requests
-    """
-    serializer_class = SupportRequestSerializer
-    permission_classes = [IsAuthenticated]
-    authentication_classes = [JWTAuthentication]
-
-    def get_queryset(self):
-        """Only show requests submitted by the current user"""
-        return SupportRequest.objects.filter(user=self.request.user)
-
-    def perform_create(self, serializer):
-        """Auto-set the user on creation"""
-        serializer.save(user=self.request.user)
->>>>>>> 95606f0 (contact support page updates(with token))

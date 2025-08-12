@@ -48,6 +48,9 @@ docker-compose.override.yml
 .env
 .env.local
 
+# Cherry-pick helper scripts
+scripts/
+
 # OS generated files
 .DS_Store
 .DS_Store?
