@@ -748,3 +748,28 @@ class Bill(models.Model):
             return True
 
         return False
+
+
+class BillUpdateLog(models.Model):
+    ACTIVITY_TYPES = [
+        ('BILL_GENERATED', 'Bill Generated'),
+        ('BILL_PAID', 'Bill Paid'),
+        ('BILL_PENDING', 'Bill marked Pending'),
+        ('BILL_OVERDUE', 'Bill marked Overdue'),
+    ]
+
+    bill = models.ForeignKey('Bill', on_delete=models.CASCADE, related_name='update_logs')
+    activity_type = models.CharField(max_length=20, choices=ACTIVITY_TYPES)
+    date = models.DateTimeField(auto_now_add=True)
+    payment_mode = models.CharField(max_length=50, blank=True, null=True)
+    reference_image = models.ImageField(upload_to='bill_references/', blank=True, null=True)
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='bill_updates'
+    )
+
+    def __str__(self):
+        return f"{self.get_activity_type_display()} - Bill #{self.bill.id} - {self.date.strftime('%Y-%m-%d %H:%M')}"

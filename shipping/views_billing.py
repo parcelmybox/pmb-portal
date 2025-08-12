@@ -19,7 +19,7 @@ import logging
 # Set up logging
 logger = logging.getLogger(__name__)
 
-from .models import Bill
+from .models import Bill, BillUpdateLog
 from .activity import ActivityHistory
 from .forms import BillForm, BillFilterForm
 from .decorators import staff_required
@@ -126,6 +126,14 @@ def create_bill(request):
 
                     bill.save()
 
+                    BillUpdateLog.objects.create(
+                        bill=bill,
+                        activity_type='BILL_GENERATED',
+                        payment_mode=bill.payment_mode,  # assuming Bill has payment_mode
+                        reference_image=None,            # or bill.reference_image if available
+                        updated_by=request.user
+                    )
+
                     messages.success(request, f'Bill #{bill.id} created successfully.')
                     return redirect('shipping:bill_detail', bill_id=bill.id)
 
@@ -165,10 +173,9 @@ def bill_detail(request, bill_id):
     }
     
     # Get activity history for this bill
-    activity_history = ActivityHistory.objects.filter(
-        content_type__model='bill',
-        object_id=bill.id
-    ).select_related('user').order_by('-timestamp')
+    activity_history = BillUpdateLog.objects.filter(
+        bill=bill
+    ).select_related('updated_by').order_by('-date')
     
     return render(request, 'shipping/billing/bill_detail.html', {
         'bill': bill,
