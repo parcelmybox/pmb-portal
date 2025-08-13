@@ -130,13 +130,18 @@ WSGI_APPLICATION = 'pmb_hello.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-# Database
-# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': str(BASE_DIR / 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': os.environ.get('DB_NAME', 'pmb_db'),
+        'USER': os.environ.get('DB_USER', 'pmb_user'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', 'pmb_user'),
+        'HOST': os.environ.get('DB_HOST', 'mariadb'),
+        'PORT': os.environ.get('DB_PORT', '3306'),
+        'OPTIONS': {
+            'charset': 'utf8mb4',
+            'sql_mode': 'STRICT_TRANS_TABLES',
+        },
     }
 }
 

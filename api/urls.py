@@ -10,12 +10,23 @@ from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from django.conf import settings
 from django.conf.urls.static import static
+from . import views
 from .views import QuoteView, OrderViewSet, FeedbackViewSet
 
 # DRF Router
 router = DefaultRouter()
+# Core app routes
 router.register(r'orders', OrderViewSet, basename='orders')
 router.register(r'feedback', FeedbackViewSet, basename='feedback')
+
+# Shipping app routes
+router.register(r'users', views.UserViewSet, basename='user')
+router.register(r'addresses', views.AddressViewSet, basename='address')
+router.register(r'shipments', views.ShipmentViewSet, basename='shipment')
+router.register(r'bills', views.BillViewSet, basename='bill')
+router.register(r'invoices', views.InvoiceViewSet, basename='invoice')
+router.register(r'pickup-requests', views.PickupRequestViewSet, basename='pickuprequest')
+router.register(r'support-requests', views.SupportRequestViewSet, basename='supportrequest')
 
 # Swagger/OpenAPI schema view
 schema_view = get_schema_view(

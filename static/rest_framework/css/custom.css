@@ -1,0 +1,88 @@
+/* Custom styles for DRF Browsable API */
+
+/* Base styles */
+body {
+    background-color: #f8f9fa;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Header */
+.navbar {
+    background-color: #2c3e50 !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.navbar-brand {
+    font-weight: 700;
+    font-size: 1.5rem;
+    color: #fff !important;
+}
+
+/* Main content */
+#content {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+    margin: 20px auto;
+    padding: 30px;
+    max-width: 1200px;
+}
+
+/* Buttons */
+.btn-primary {
+    background-color: #3498db;
+    border-color: #2980b9;
+}
+
+.btn-primary:hover {
+    background-color: #2980b9;
+    border-color: #2472a4;
+}
+
+/* Forms */
+.form-control:focus {
+    border-color: #3498db;
+    box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+}
+
+/* API endpoints */
+.api .endpoint {
+    border-left: 4px solid #3498db;
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 0 4px 4px 0;
+}
+
+/* Code blocks */
+.highlight {
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    padding: 15px;
+    margin: 15px 0;
+}
+
+/* Response formats */
+.response-formats {
+    margin: 15px 0;
+}
+
+/* Footer */
+.footer {
+    text-align: center;
+    margin: 30px 0;
+    color: #6c757d;
+    font-size: 0.9em;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    #content {
+        padding: 15px;
+        margin: 10px;
+    }
+    
+    .navbar-brand {
+        font-size: 1.2rem;
+    }
+}

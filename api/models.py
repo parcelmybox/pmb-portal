@@ -1,7 +1,4 @@
 from django.db import models
-
-# Create your models here.
-from django.db import models
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
@@ -25,26 +22,37 @@ class PickupRequest(models.Model):
     date = models.DateField()
     time = models.TimeField()
     package_type = models.CharField(max_length=20, choices=PACKAGE_TYPES)
-    weight = models.DecimalField(max_digits=6, decimal_places=2)
+    weight = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
     instructions = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    
+
     def __str__(self):
         return f"Pickup for {self.name}"
-    
+
 class Order(models.Model):
-    order_id = models.CharField(max_length=100, unique=True)  # Add unique=True
+    order_id = models.CharField(max_length=100, unique=True)
     customer_name = models.CharField(max_length=255)
 
     def __str__(self):
         return self.order_id
 
 class Feedback(models.Model):
-    order_id = models.CharField(max_length=100, null=True, blank=True)
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, null=True, blank=True)
     rating = models.IntegerField()
     message = models.TextField()
     image = models.ImageField(upload_to='feedback_images/', null=True, blank=True)
     submitted_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Feedback for {self.order_id}"
+        if self.order:
+            return f"Feedback for {self.order.order_id}"
+        return "Feedback (no order)"
+
+class SupportRequest(models.Model):
+    subject = models.CharField(max_length=255)
+    message = models.TextField()
+    attachment = models.FileField(upload_to='support_attachments/', null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.subject
