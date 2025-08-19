@@ -21,7 +21,6 @@ RUN apt-get update && \
     pkg-config \
     default-mysql-client \
     dos2unix \
-    wkhtmltopdf \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
